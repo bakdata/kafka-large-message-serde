@@ -86,13 +86,13 @@ public class S3BackedSerdeConfig extends AbstractConfig {
     public static final Class<? extends Serde<?>> KEY_SERDE_CLASS_DEFAULT = ByteArraySerde.class;
     public static final String VALUE_SERDE_CLASS_DOC = "Value serde class to use.";
     public static final Class<? extends Serde<?>> VALUE_SERDE_CLASS_DEFAULT = ByteArraySerde.class;
-    public static final String MAX_SIZE_CONFIG = PREFIX + "max.size";
-    public static final String MAX_SIZE_DOC = "Maximum message size before serialized messages are stored on S3.";
-    public static final int MAX_SIZE_DEFAULT = 1000 * 1000;
+    public static final String MAX_BYTE_SIZE_CONFIG = PREFIX + "max.byte.size";
+    public static final String MAX_BYTE_SIZE_DOC =
+            "Maximum message size in bytes before serialized messages are stored on S3.";
+    public static final int MAX_BYTE_SIZE_DEFAULT = 1000 * 1000;
     public static final String BASE_PATH_CONFIG = PREFIX + "base.path";
-    public static final String BASE_PATH_DOC =
-            "Base path to store data. Must include bucket and any prefix that should be used, e.g., "
-                    + "'s3://my-bucket/my/prefix/'.";
+    public static final String BASE_PATH_DOC = "Base path to store data. Must include bucket and any prefix that "
+            + "should be used, e.g., 's3://my-bucket/my/prefix/'.";
     public static final String BASE_PATH_DEFAULT = "";
     private static final ConfigDef config = baseConfigDef();
 
@@ -112,7 +112,7 @@ public class S3BackedSerdeConfig extends AbstractConfig {
                 .define(S3_SECRET_KEY_CONFIG, Type.PASSWORD, S3_SECRET_KEY_DEFAULT, Importance.LOW, S3_SECRET_KEY_DOC)
                 .define(S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, Type.BOOLEAN, S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT,
                         Importance.LOW, S3_ENABLE_PATH_STYLE_ACCESS_DOC)
-                .define(MAX_SIZE_CONFIG, Type.INT, MAX_SIZE_DEFAULT, Importance.MEDIUM, MAX_SIZE_DOC)
+                .define(MAX_BYTE_SIZE_CONFIG, Type.INT, MAX_BYTE_SIZE_DEFAULT, Importance.MEDIUM, MAX_BYTE_SIZE_DOC)
                 .define(BASE_PATH_CONFIG, Type.STRING, BASE_PATH_DEFAULT, Importance.HIGH, BASE_PATH_DOC);
     }
 
@@ -132,7 +132,7 @@ public class S3BackedSerdeConfig extends AbstractConfig {
     }
 
     public int getMaxSize() {
-        return this.getInt(MAX_SIZE_CONFIG);
+        return this.getInt(MAX_BYTE_SIZE_CONFIG);
     }
 
     public <T> Serde<T> getKeySerde() {

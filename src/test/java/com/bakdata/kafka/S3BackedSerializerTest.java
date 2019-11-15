@@ -140,7 +140,7 @@ class S3BackedSerializerTest {
     @Test
     void shouldWriteNonBackedTextKey() {
         final Properties properties = new Properties();
-        properties.put(S3BackedSerdeConfig.MAX_SIZE_CONFIG, Integer.MAX_VALUE);
+        properties.put(S3BackedSerdeConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
         this.createTopology(S3BackedSerializerTest::createKeyTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.String())
@@ -159,7 +159,7 @@ class S3BackedSerializerTest {
     @Test
     void shouldWriteNonBackedTextValue() {
         final Properties properties = new Properties();
-        properties.put(S3BackedSerdeConfig.MAX_SIZE_CONFIG, Integer.MAX_VALUE);
+        properties.put(S3BackedSerdeConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
         this.createTopology(S3BackedSerializerTest::createValueTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
@@ -180,7 +180,7 @@ class S3BackedSerializerTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Properties properties = new Properties();
-        properties.put(S3BackedSerdeConfig.MAX_SIZE_CONFIG, 0);
+        properties.put(S3BackedSerdeConfig.MAX_BYTE_SIZE_CONFIG, 0);
         properties.setProperty(S3BackedSerdeConfig.BASE_PATH_CONFIG, basePath);
         this.createTopology(S3BackedSerializerTest::createKeyTopology, properties);
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
@@ -205,7 +205,7 @@ class S3BackedSerializerTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Properties properties = new Properties();
-        properties.put(S3BackedSerdeConfig.MAX_SIZE_CONFIG, 0);
+        properties.put(S3BackedSerdeConfig.MAX_BYTE_SIZE_CONFIG, 0);
         properties.setProperty(S3BackedSerdeConfig.BASE_PATH_CONFIG, basePath);
         this.createTopology(S3BackedSerializerTest::createValueTopology, properties);
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
