@@ -24,12 +24,9 @@
 
 package com.bakdata.kafka;
 
-import com.amazonaws.services.s3.AmazonS3URI;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
@@ -51,56 +48,30 @@ import org.apache.kafka.common.serialization.Serializer;
 @NoArgsConstructor
 @Slf4j
 public class S3BackedSerializer<T> implements Serializer<T> {
-    private static final String VALUE_PREFIX = "values";
-    private static final String KEY_PREFIX = "keys";
-    private S3BackingClient s3;
+    private S3StoringClient s3;
     private Serializer<? super T> serializer;
-    private AmazonS3URI basePath;
-    private int maxSize;
-    private String prefix;
-
-    private static String toString(final String s) {
-        return s == null ? "" : s;
-    }
+    private boolean isKey;
 
     @Override
     public void configure(final Map<String, ?> configs, final boolean isKey) {
         final S3BackedSerdeConfig serdeConfig = new S3BackedSerdeConfig(configs);
         final Serde<T> serde = isKey ? serdeConfig.getKeySerde() : serdeConfig.getValueSerde();
         this.serializer = serde.serializer();
-        this.maxSize = serdeConfig.getMaxSize();
-        this.basePath = serdeConfig.getBasePath();
-        this.s3 = serdeConfig.getS3();
+        this.s3 = serdeConfig.getS3Storer();
         this.serializer.configure(configs, isKey);
-        this.prefix = isKey ? KEY_PREFIX : VALUE_PREFIX;
+        this.isKey = isKey;
     }
 
     @Override
     public byte[] serialize(final String topic, final T data) {
         Objects.requireNonNull(this.serializer);
+        Objects.requireNonNull(this.s3);
         final byte[] bytes = this.serializer.serialize(topic, data);
-        if (this.needsS3Backing(bytes)) {
-            Objects.requireNonNull(this.basePath);
-            Objects.requireNonNull(this.s3);
-            final String bucket = this.basePath.getBucket();
-            final String key = this.createS3Key(topic);
-            final String uri = this.s3.uploadToS3(bucket, key, bytes);
-            return S3BackingClient.serialize(uri);
-        } else {
-            return S3BackingClient.serialize(bytes);
-        }
+        return this.s3.storeBytes(topic, bytes, this.isKey);
     }
 
     @Override
     public void close() {
         this.serializer.close();
-    }
-
-    private String createS3Key(final @NonNull String topic) {
-        return toString(this.basePath.getKey()) + topic + "/" + this.prefix + "/" + UUID.randomUUID();
-    }
-
-    private boolean needsS3Backing(final byte[] bytes) {
-        return bytes.length >= this.maxSize;
     }
 }

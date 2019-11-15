@@ -3,36 +3,36 @@ package com.bakdata.kafka;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Object;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.UUID;
+import lombok.Builder;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.SerializationException;
 
+/**
+ * Client for storing large {@code byte[]} on Amazon S3 if the exceed a defined maximum size.
+ */
 @Slf4j
-@RequiredArgsConstructor
-class S3BackingClient {
+@Builder
+class S3StoringClient {
 
-    private static final byte IS_NOT_BACKED = 0;
-    private static final byte IS_BACKED = 1;
-    private static final Charset CHARSET = StandardCharsets.UTF_8;
+    static final byte IS_NOT_BACKED = 0;
+    static final byte IS_BACKED = 1;
+    static final Charset CHARSET = StandardCharsets.UTF_8;
+    private static final String VALUE_PREFIX = "values";
+    private static final String KEY_PREFIX = "keys";
     private final @NonNull AmazonS3 s3;
+    private final AmazonS3URI basePath;
+    private final int maxSize;
 
-    static String deserializeUri(final byte[] data) {
-        final byte[] uriBytes = getBytes(data);
-        return new String(uriBytes, CHARSET);
-    }
-
-    static byte[] getBytes(final byte[] data) {
-        final byte[] bytes = new byte[data.length - 1];
-        System.arraycopy(data, 1, bytes, 0, data.length - 1);
-        return bytes;
+    private static String toString(final String s) {
+        return s == null ? "" : s;
     }
 
     static byte[] serialize(final String uri) {
@@ -56,27 +56,28 @@ class S3BackingClient {
         return fullBytes;
     }
 
-    byte[] extractBytes(final byte[] data) {
-        if (data[0] == IS_NOT_BACKED) {
-            return getBytes(data);
-        }
-        if (data[0] != IS_BACKED) {
-            throw new IllegalArgumentException("Message can only be marked as backed or non-backed");
-        }
-        Objects.requireNonNull(this.s3);
-        final String uri = deserializeUri(data);
-        final AmazonS3URI s3URI = new AmazonS3URI(uri);
-        try (final S3Object s3Object = this.s3.getObject(s3URI.getBucket(), s3URI.getKey());
-                final InputStream in = s3Object.getObjectContent()) {
-            final byte[] bytes = in.readAllBytes();
-            log.info("Extracted large message from S3: {}", uri);
-            return bytes;
-        } catch (final IOException e) {
-            throw new SerializationException("Cannot handle S3 backed message: " + s3URI, e);
+    private String createS3Key(final String topic, final boolean isKey) {
+        final String prefix = isKey ? KEY_PREFIX : VALUE_PREFIX;
+        return toString(this.basePath.getKey()) + topic + "/" + prefix + "/" + UUID.randomUUID();
+    }
+
+    private boolean needsS3Backing(final byte[] bytes) {
+        return bytes.length >= this.maxSize;
+    }
+
+    byte[] storeBytes(final String topic, final byte[] bytes, final boolean isKey) {
+        if (this.needsS3Backing(bytes)) {
+            Objects.requireNonNull(this.basePath);
+            final String bucket = this.basePath.getBucket();
+            final String key = this.createS3Key(topic, isKey);
+            final String uri = this.uploadToS3(bucket, key, bytes);
+            return serialize(uri);
+        } else {
+            return serialize(bytes);
         }
     }
 
-    String uploadToS3(final String bucket, final String key, final byte[] bytes) {
+    private String uploadToS3(final String bucket, final String key, final byte[] bytes) {
         try (final InputStream content = new ByteArrayInputStream(bytes)) {
             final ObjectMetadata metadata = new ObjectMetadata();
             metadata.setContentLength(bytes.length);

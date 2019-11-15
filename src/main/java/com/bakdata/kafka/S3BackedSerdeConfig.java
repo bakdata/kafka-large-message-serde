@@ -116,24 +116,18 @@ public class S3BackedSerdeConfig extends AbstractConfig {
                 .define(BASE_PATH_CONFIG, Type.STRING, BASE_PATH_DEFAULT, Importance.HIGH, BASE_PATH_DOC);
     }
 
-    public S3BackingClient getS3() {
-        final AmazonS3ClientBuilder clientBuilder = AmazonS3ClientBuilder.standard();
-        this.getEndpointConfiguration().ifPresent(clientBuilder::setEndpointConfiguration);
-        this.getCredentialsProvider().ifPresent(clientBuilder::setCredentials);
-        if (this.enablePathStyleAccess()) {
-            clientBuilder.enablePathStyleAccess();
-        }
-        final AmazonS3 s3 = clientBuilder.build();
-        return new S3BackingClient(s3);
+    public S3RetrievingClient getS3Retriever() {
+        final AmazonS3 s3 = this.createS3Client();
+        return new S3RetrievingClient(s3);
     }
 
-    public AmazonS3URI getBasePath() {
-        final String basePath = this.getString(BASE_PATH_CONFIG);
-        return isEmpty(basePath) ? null : new AmazonS3URI(basePath);
-    }
-
-    public int getMaxSize() {
-        return this.getInt(MAX_BYTE_SIZE_CONFIG);
+    public S3StoringClient getS3Storer() {
+        final AmazonS3 s3 = this.createS3Client();
+        return S3StoringClient.builder()
+                .s3(s3)
+                .basePath(this.getBasePath())
+                .maxSize(this.getMaxSize())
+                .build();
     }
 
     public <T> Serde<T> getKeySerde() {
@@ -142,6 +136,25 @@ public class S3BackedSerdeConfig extends AbstractConfig {
 
     public <T> Serde<T> getValueSerde() {
         return (Serde<T>) this.getConfiguredInstance(VALUE_SERDE_CLASS_CONFIG, Serde.class);
+    }
+
+    private AmazonS3 createS3Client() {
+        final AmazonS3ClientBuilder clientBuilder = AmazonS3ClientBuilder.standard();
+        this.getEndpointConfiguration().ifPresent(clientBuilder::setEndpointConfiguration);
+        this.getCredentialsProvider().ifPresent(clientBuilder::setCredentials);
+        if (this.enablePathStyleAccess()) {
+            clientBuilder.enablePathStyleAccess();
+        }
+        return clientBuilder.build();
+    }
+
+    private AmazonS3URI getBasePath() {
+        final String basePath = this.getString(BASE_PATH_CONFIG);
+        return isEmpty(basePath) ? null : new AmazonS3URI(basePath);
+    }
+
+    private int getMaxSize() {
+        return this.getInt(MAX_BYTE_SIZE_CONFIG);
     }
 
     private boolean enablePathStyleAccess() {
