@@ -35,7 +35,6 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.util.IOUtils;
 import com.bakdata.fluent_kafka_streams_tests.TestTopology;
-import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +54,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-class S3BackedSpecificAvroSerializerTest {
+class S3BackedSerializerTest {
 
     @RegisterExtension
     static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
@@ -67,8 +66,6 @@ class S3BackedSpecificAvroSerializerTest {
     private static Properties createProperties(final Properties properties) {
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy");
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
-        properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, SpecificAvroSerde.class);
-        properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, SpecificAvroSerde.class);
         properties.setProperty(S3BackedSerdeConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort());
         properties.setProperty(S3BackedSerdeConfig.S3_REGION_CONFIG, "us-east-1");
         properties.setProperty(S3BackedSerdeConfig.S3_ACCESS_KEY_CONFIG, "foo");
@@ -144,7 +141,7 @@ class S3BackedSpecificAvroSerializerTest {
     void shouldWriteNonBackedTextKey() {
         final Properties properties = new Properties();
         properties.put(S3BackedSerdeConfig.MAX_SIZE_CONFIG, Integer.MAX_VALUE);
-        this.createTopology(S3BackedSpecificAvroSerializerTest::createKeyTopology, properties);
+        this.createTopology(S3BackedSerializerTest::createKeyTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.String())
                 .withValueSerde(Serdes.Integer())
@@ -163,7 +160,7 @@ class S3BackedSpecificAvroSerializerTest {
     void shouldWriteNonBackedTextValue() {
         final Properties properties = new Properties();
         properties.put(S3BackedSerdeConfig.MAX_SIZE_CONFIG, Integer.MAX_VALUE);
-        this.createTopology(S3BackedSpecificAvroSerializerTest::createValueTopology, properties);
+        this.createTopology(S3BackedSerializerTest::createValueTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.String())
@@ -185,7 +182,7 @@ class S3BackedSpecificAvroSerializerTest {
         final Properties properties = new Properties();
         properties.put(S3BackedSerdeConfig.MAX_SIZE_CONFIG, 0);
         properties.setProperty(S3BackedSerdeConfig.BASE_PATH_CONFIG, basePath);
-        this.createTopology(S3BackedSpecificAvroSerializerTest::createKeyTopology, properties);
+        this.createTopology(S3BackedSerializerTest::createKeyTopology, properties);
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);
         this.topology.input()
@@ -210,7 +207,7 @@ class S3BackedSpecificAvroSerializerTest {
         final Properties properties = new Properties();
         properties.put(S3BackedSerdeConfig.MAX_SIZE_CONFIG, 0);
         properties.setProperty(S3BackedSerdeConfig.BASE_PATH_CONFIG, basePath);
-        this.createTopology(S3BackedSpecificAvroSerializerTest::createValueTopology, properties);
+        this.createTopology(S3BackedSerializerTest::createValueTopology, properties);
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);
         this.topology.input()

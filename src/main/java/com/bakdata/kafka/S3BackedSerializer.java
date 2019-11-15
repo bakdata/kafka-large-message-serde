@@ -70,12 +70,12 @@ public class S3BackedSerializer<T> implements Serializer<T> {
     private int maxSize;
     private String prefix;
 
-    public static byte[] serialize(final String uri) {
+    static byte[] serialize(final String uri) {
         final byte[] uriBytes = uri.getBytes(CHARSET);
         return serialize(uriBytes, IS_BACKED);
     }
 
-    public static byte[] serialize(final byte[] bytes) {
+    static byte[] serialize(final byte[] bytes) {
         return serialize(bytes, IS_NOT_BACKED);
     }
 

@@ -30,7 +30,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.bakdata.fluent_kafka_streams_tests.TestTopology;
-import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Properties;
@@ -49,7 +48,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-class S3BackedSpecificAvroDeserializerTest {
+class S3BackedDeserializerTest {
 
     @RegisterExtension
     static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
@@ -62,8 +61,6 @@ class S3BackedSpecificAvroDeserializerTest {
         final Properties properties = new Properties();
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy");
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
-        properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, SpecificAvroSerde.class);
-        properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, SpecificAvroSerde.class);
         properties.setProperty(S3BackedSerdeConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort());
         properties.setProperty(S3BackedSerdeConfig.S3_REGION_CONFIG, "us-east-1");
         properties.setProperty(S3BackedSerdeConfig.S3_ACCESS_KEY_CONFIG, "foo");
@@ -119,7 +116,7 @@ class S3BackedSpecificAvroDeserializerTest {
 
     @Test
     void shouldReadNonBackedTextValue() {
-        this.createTopology(S3BackedSpecificAvroDeserializerTest::createValueTopology);
+        this.createTopology(S3BackedDeserializerTest::createValueTopology);
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.ByteArray())
@@ -136,7 +133,7 @@ class S3BackedSpecificAvroDeserializerTest {
 
     @Test
     void shouldReadNonBackedTextKey() {
-        this.createTopology(S3BackedSpecificAvroDeserializerTest::createKeyTopology);
+        this.createTopology(S3BackedDeserializerTest::createKeyTopology);
         this.topology.input()
                 .withKeySerde(Serdes.ByteArray())
                 .withValueSerde(Serdes.Integer())
@@ -157,7 +154,7 @@ class S3BackedSpecificAvroDeserializerTest {
         S3_MOCK.createS3Client().createBucket(bucket);
         final String key = "key";
         store(bucket, key, "foo");
-        this.createTopology(S3BackedSpecificAvroDeserializerTest::createValueTopology);
+        this.createTopology(S3BackedDeserializerTest::createValueTopology);
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.ByteArray())
@@ -178,7 +175,7 @@ class S3BackedSpecificAvroDeserializerTest {
         S3_MOCK.createS3Client().createBucket(bucket);
         final String key = "key";
         store(bucket, key, "foo");
-        this.createTopology(S3BackedSpecificAvroDeserializerTest::createKeyTopology);
+        this.createTopology(S3BackedDeserializerTest::createKeyTopology);
         this.topology.input()
                 .withKeySerde(Serdes.ByteArray())
                 .withValueSerde(Serdes.Integer())

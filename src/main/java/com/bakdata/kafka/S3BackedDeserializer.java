@@ -58,12 +58,12 @@ public class S3BackedDeserializer<T> implements Deserializer<T> {
     private AmazonS3 s3;
     private Deserializer<? extends T> deserializer;
 
-    public static String deserializeUri(final byte[] data) {
+    static String deserializeUri(final byte[] data) {
         final byte[] uriBytes = getBytes(data);
         return new String(uriBytes, CHARSET);
     }
 
-    public static byte[] getBytes(final byte[] data) {
+    static byte[] getBytes(final byte[] data) {
         final byte[] bytes = new byte[data.length - 1];
         System.arraycopy(data, 1, bytes, 0, data.length - 1);
         return bytes;
