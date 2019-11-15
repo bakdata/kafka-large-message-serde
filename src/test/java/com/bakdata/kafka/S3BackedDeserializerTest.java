@@ -24,7 +24,7 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.S3BackedSerializer.serialize;
+import static com.bakdata.kafka.S3BackingClient.serialize;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;

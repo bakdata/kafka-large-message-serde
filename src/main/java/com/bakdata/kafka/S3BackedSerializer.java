@@ -24,21 +24,13 @@
 
 package com.bakdata.kafka;
 
-import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3URI;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 
@@ -59,40 +51,16 @@ import org.apache.kafka.common.serialization.Serializer;
 @NoArgsConstructor
 @Slf4j
 public class S3BackedSerializer<T> implements Serializer<T> {
-    public static final byte IS_NOT_BACKED = 0;
-    public static final byte IS_BACKED = 1;
-    static final Charset CHARSET = StandardCharsets.UTF_8;
     private static final String VALUE_PREFIX = "values";
     private static final String KEY_PREFIX = "keys";
-    private AmazonS3 s3;
+    private S3BackingClient s3;
     private Serializer<? super T> serializer;
     private AmazonS3URI basePath;
     private int maxSize;
     private String prefix;
 
-    static byte[] serialize(final String uri) {
-        final byte[] uriBytes = uri.getBytes(CHARSET);
-        return serialize(uriBytes, IS_BACKED);
-    }
-
-    static byte[] serialize(final byte[] bytes) {
-        return serialize(bytes, IS_NOT_BACKED);
-    }
-
     private static String toString(final String s) {
         return s == null ? "" : s;
-    }
-
-    private static byte[] serialize(final byte[] uriBytes, final byte flag) {
-        final byte[] fullBytes = prepareBytes(uriBytes);
-        fullBytes[0] = flag;
-        return fullBytes;
-    }
-
-    private static byte[] prepareBytes(final byte[] bytes) {
-        final byte[] fullBytes = new byte[bytes.length + 1];
-        System.arraycopy(bytes, 0, fullBytes, 1, bytes.length);
-        return fullBytes;
     }
 
     @Override
@@ -114,11 +82,12 @@ public class S3BackedSerializer<T> implements Serializer<T> {
         if (this.needsS3Backing(bytes)) {
             Objects.requireNonNull(this.basePath);
             Objects.requireNonNull(this.s3);
+            final String bucket = this.basePath.getBucket();
             final String key = this.createS3Key(topic);
-            final String uri = this.uploadToS3(bytes, key);
-            return serialize(uri);
+            final String uri = this.s3.uploadToS3(bucket, key, bytes);
+            return S3BackingClient.serialize(uri);
         } else {
-            return serialize(bytes);
+            return S3BackingClient.serialize(bytes);
         }
     }
 
@@ -129,20 +98,6 @@ public class S3BackedSerializer<T> implements Serializer<T> {
 
     private String createS3Key(final @NonNull String topic) {
         return toString(this.basePath.getKey()) + topic + "/" + this.prefix + "/" + UUID.randomUUID();
-    }
-
-    private String uploadToS3(final byte[] bytes, final String key) {
-        final String bucket = this.basePath.getBucket();
-        try (final InputStream content = new ByteArrayInputStream(bytes)) {
-            final ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(bytes.length);
-            this.s3.putObject(bucket, key, content, metadata);
-            final String uri = "s3://" + bucket + "/" + key;
-            log.info("Stored large message on S3: {}", uri);
-            return uri;
-        } catch (final IOException e) {
-            throw new SerializationException("Error backing message on S3", e);
-        }
     }
 
     private boolean needsS3Backing(final byte[] bytes) {

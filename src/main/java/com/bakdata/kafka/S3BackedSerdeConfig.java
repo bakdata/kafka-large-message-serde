@@ -116,14 +116,15 @@ public class S3BackedSerdeConfig extends AbstractConfig {
                 .define(BASE_PATH_CONFIG, Type.STRING, BASE_PATH_DEFAULT, Importance.HIGH, BASE_PATH_DOC);
     }
 
-    public AmazonS3 getS3() {
+    public S3BackingClient getS3() {
         final AmazonS3ClientBuilder clientBuilder = AmazonS3ClientBuilder.standard();
         this.getEndpointConfiguration().ifPresent(clientBuilder::setEndpointConfiguration);
         this.getCredentialsProvider().ifPresent(clientBuilder::setCredentials);
         if (this.enablePathStyleAccess()) {
             clientBuilder.enablePathStyleAccess();
         }
-        return clientBuilder.build();
+        final AmazonS3 s3 = clientBuilder.build();
+        return new S3BackingClient(s3);
     }
 
     public AmazonS3URI getBasePath() {
