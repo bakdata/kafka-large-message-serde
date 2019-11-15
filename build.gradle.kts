@@ -46,6 +46,7 @@ configure<com.bakdata.gradle.SonatypeSettings> {
 
 configure<org.hildan.github.changelog.plugin.GitHubChangelogExtension> {
     githubUser = "bakdata"
+    githubRepository = "kafka-s3-backed-serde"
     futureVersionTag = findProperty("changelog.releaseVersion")?.toString()
     sinceTag = findProperty("changelog.sinceTag")?.toString()
 }
