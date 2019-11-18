@@ -24,20 +24,10 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.S3BackedSerializer.CHARSET;
-import static com.bakdata.kafka.S3BackedSerializer.IS_BACKED;
-import static com.bakdata.kafka.S3BackedSerializer.IS_NOT_BACKED;
-
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3URI;
-import com.amazonaws.services.s3.model.S3Object;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 import java.util.Objects;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 
@@ -55,58 +45,28 @@ import org.apache.kafka.common.serialization.Serde;
 @NoArgsConstructor
 @Slf4j
 public class S3BackedDeserializer<T> implements Deserializer<T> {
-    private AmazonS3 s3;
+    private S3RetrievingClient client;
     private Deserializer<? extends T> deserializer;
-
-    static String deserializeUri(final byte[] data) {
-        final byte[] uriBytes = getBytes(data);
-        return new String(uriBytes, CHARSET);
-    }
-
-    static byte[] getBytes(final byte[] data) {
-        final byte[] bytes = new byte[data.length - 1];
-        System.arraycopy(data, 1, bytes, 0, data.length - 1);
-        return bytes;
-    }
 
     @Override
     public void configure(final Map<String, ?> configs, final boolean isKey) {
         final S3BackedSerdeConfig serdeConfig = new S3BackedSerdeConfig(configs);
         final Serde<T> serde = isKey ? serdeConfig.getKeySerde() : serdeConfig.getValueSerde();
         this.deserializer = serde.deserializer();
-        this.s3 = serdeConfig.getS3();
+        this.client = serdeConfig.getS3Retriever();
         this.deserializer.configure(configs, isKey);
     }
 
     @Override
     public T deserialize(final String topic, final byte[] data) {
         Objects.requireNonNull(this.deserializer);
-        final byte[] bytes = this.extractBytes(data);
+        Objects.requireNonNull(this.client);
+        final byte[] bytes = this.client.retrieveBytes(data);
         return this.deserializer.deserialize(topic, bytes);
     }
 
     @Override
     public void close() {
         this.deserializer.close();
-    }
-
-    private byte[] extractBytes(final byte[] data) {
-        if (data[0] == IS_NOT_BACKED) {
-            return getBytes(data);
-        }
-        if (data[0] != IS_BACKED) {
-            throw new IllegalArgumentException("Message can only be marked as backed or non-backed");
-        }
-        Objects.requireNonNull(this.s3);
-        final String uri = deserializeUri(data);
-        final AmazonS3URI s3URI = new AmazonS3URI(uri);
-        try (final S3Object s3Object = this.s3.getObject(s3URI.getBucket(), s3URI.getKey());
-                final InputStream in = s3Object.getObjectContent()) {
-            final byte[] bytes = in.readAllBytes();
-            log.info("Extracted large message from S3: {}", uri);
-            return bytes;
-        } catch (final IOException e) {
-            throw new SerializationException("Cannot handle S3 backed message: " + s3URI, e);
-        }
     }
 }

@@ -24,8 +24,8 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.S3BackedDeserializer.deserializeUri;
-import static com.bakdata.kafka.S3BackedDeserializer.getBytes;
+import static com.bakdata.kafka.S3RetrievingClient.deserializeUri;
+import static com.bakdata.kafka.S3RetrievingClient.getBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;

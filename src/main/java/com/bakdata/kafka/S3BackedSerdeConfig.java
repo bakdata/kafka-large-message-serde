@@ -96,7 +96,7 @@ public class S3BackedSerdeConfig extends AbstractConfig {
     public static final String BASE_PATH_DEFAULT = "";
     private static final ConfigDef config = baseConfigDef();
 
-    protected S3BackedSerdeConfig(final Map<?, ?> originals) {
+    S3BackedSerdeConfig(final Map<?, ?> originals) {
         super(config, originals);
     }
 
@@ -116,7 +116,29 @@ public class S3BackedSerdeConfig extends AbstractConfig {
                 .define(BASE_PATH_CONFIG, Type.STRING, BASE_PATH_DEFAULT, Importance.HIGH, BASE_PATH_DOC);
     }
 
-    public AmazonS3 getS3() {
+    S3RetrievingClient getS3Retriever() {
+        final AmazonS3 s3 = this.createS3Client();
+        return new S3RetrievingClient(s3);
+    }
+
+    S3StoringClient getS3Storer() {
+        final AmazonS3 s3 = this.createS3Client();
+        return S3StoringClient.builder()
+                .s3(s3)
+                .basePath(this.getBasePath())
+                .maxSize(this.getMaxSize())
+                .build();
+    }
+
+    <T> Serde<T> getKeySerde() {
+        return (Serde<T>) this.getConfiguredInstance(KEY_SERDE_CLASS_CONFIG, Serde.class);
+    }
+
+    <T> Serde<T> getValueSerde() {
+        return (Serde<T>) this.getConfiguredInstance(VALUE_SERDE_CLASS_CONFIG, Serde.class);
+    }
+
+    private AmazonS3 createS3Client() {
         final AmazonS3ClientBuilder clientBuilder = AmazonS3ClientBuilder.standard();
         this.getEndpointConfiguration().ifPresent(clientBuilder::setEndpointConfiguration);
         this.getCredentialsProvider().ifPresent(clientBuilder::setCredentials);
@@ -126,21 +148,13 @@ public class S3BackedSerdeConfig extends AbstractConfig {
         return clientBuilder.build();
     }
 
-    public AmazonS3URI getBasePath() {
+    private AmazonS3URI getBasePath() {
         final String basePath = this.getString(BASE_PATH_CONFIG);
         return isEmpty(basePath) ? null : new AmazonS3URI(basePath);
     }
 
-    public int getMaxSize() {
+    private int getMaxSize() {
         return this.getInt(MAX_BYTE_SIZE_CONFIG);
-    }
-
-    public <T> Serde<T> getKeySerde() {
-        return (Serde<T>) this.getConfiguredInstance(KEY_SERDE_CLASS_CONFIG, Serde.class);
-    }
-
-    public <T> Serde<T> getValueSerde() {
-        return (Serde<T>) this.getConfiguredInstance(VALUE_SERDE_CLASS_CONFIG, Serde.class);
     }
 
     private boolean enablePathStyleAccess() {
