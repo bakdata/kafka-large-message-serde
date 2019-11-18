@@ -96,7 +96,7 @@ public class S3BackedSerdeConfig extends AbstractConfig {
     public static final String BASE_PATH_DEFAULT = "";
     private static final ConfigDef config = baseConfigDef();
 
-    protected S3BackedSerdeConfig(final Map<?, ?> originals) {
+    S3BackedSerdeConfig(final Map<?, ?> originals) {
         super(config, originals);
     }
 
@@ -116,12 +116,12 @@ public class S3BackedSerdeConfig extends AbstractConfig {
                 .define(BASE_PATH_CONFIG, Type.STRING, BASE_PATH_DEFAULT, Importance.HIGH, BASE_PATH_DOC);
     }
 
-    public S3RetrievingClient getS3Retriever() {
+    S3RetrievingClient getS3Retriever() {
         final AmazonS3 s3 = this.createS3Client();
         return new S3RetrievingClient(s3);
     }
 
-    public S3StoringClient getS3Storer() {
+    S3StoringClient getS3Storer() {
         final AmazonS3 s3 = this.createS3Client();
         return S3StoringClient.builder()
                 .s3(s3)
@@ -130,11 +130,11 @@ public class S3BackedSerdeConfig extends AbstractConfig {
                 .build();
     }
 
-    public <T> Serde<T> getKeySerde() {
+    <T> Serde<T> getKeySerde() {
         return (Serde<T>) this.getConfiguredInstance(KEY_SERDE_CLASS_CONFIG, Serde.class);
     }
 
-    public <T> Serde<T> getValueSerde() {
+    <T> Serde<T> getValueSerde() {
         return (Serde<T>) this.getConfiguredInstance(VALUE_SERDE_CLASS_CONFIG, Serde.class);
     }
 

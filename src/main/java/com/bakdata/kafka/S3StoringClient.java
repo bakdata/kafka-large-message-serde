@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.SerializationException;
 
 /**
- * Client for storing large {@code byte[]} on Amazon S3 if the exceed a defined maximum size.
+ * Client for storing large {@code byte[]} on Amazon S3 if the size exceeds a defined limit.
  */
 @Slf4j
 @Builder
@@ -44,16 +44,17 @@ class S3StoringClient {
         return serialize(bytes, IS_NOT_BACKED);
     }
 
-    private static byte[] serialize(final byte[] uriBytes, final byte flag) {
-        final byte[] fullBytes = prepareBytes(uriBytes);
+    private static byte[] serialize(final byte[] bytes, final byte flag) {
+        final byte[] fullBytes = new byte[bytes.length + 1];
         fullBytes[0] = flag;
+        System.arraycopy(bytes, 0, fullBytes, 1, bytes.length);
         return fullBytes;
     }
 
-    private static byte[] prepareBytes(final byte[] bytes) {
-        final byte[] fullBytes = new byte[bytes.length + 1];
-        System.arraycopy(bytes, 0, fullBytes, 1, bytes.length);
-        return fullBytes;
+    private static ObjectMetadata createMetadata(final byte[] bytes) {
+        final ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(bytes.length);
+        return metadata;
     }
 
     private String createS3Key(final String topic, final boolean isKey) {
@@ -67,23 +68,22 @@ class S3StoringClient {
 
     byte[] storeBytes(final String topic, final byte[] bytes, final boolean isKey) {
         if (this.needsS3Backing(bytes)) {
-            Objects.requireNonNull(this.basePath);
-            final String bucket = this.basePath.getBucket();
             final String key = this.createS3Key(topic, isKey);
-            final String uri = this.uploadToS3(bucket, key, bytes);
+            final String uri = this.uploadToS3(key, bytes);
             return serialize(uri);
         } else {
             return serialize(bytes);
         }
     }
 
-    private String uploadToS3(final String bucket, final String key, final byte[] bytes) {
+    private String uploadToS3(final String key, final byte[] bytes) {
+        Objects.requireNonNull(this.basePath);
+        final String bucket = this.basePath.getBucket();
         try (final InputStream content = new ByteArrayInputStream(bytes)) {
-            final ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(bytes.length);
+            final ObjectMetadata metadata = createMetadata(bytes);
             this.s3.putObject(bucket, key, content, metadata);
             final String uri = "s3://" + bucket + "/" + key;
-            log.info("Stored large message on S3: {}", uri);
+            log.debug("Stored large message on S3: {}", uri);
             return uri;
         } catch (final IOException e) {
             throw new SerializationException("Error backing message on S3", e);

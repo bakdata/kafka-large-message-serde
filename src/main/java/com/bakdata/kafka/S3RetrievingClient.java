@@ -31,6 +31,7 @@ class S3RetrievingClient {
 
     static byte[] getBytes(final byte[] data) {
         final byte[] bytes = new byte[data.length - 1];
+        // flag is stored in first byte
         System.arraycopy(data, 1, bytes, 0, data.length - 1);
         return bytes;
     }
@@ -42,13 +43,17 @@ class S3RetrievingClient {
         if (data[0] != IS_BACKED) {
             throw new IllegalArgumentException("Message can only be marked as backed or non-backed");
         }
+        return this.retrieveBackedBytes(data);
+    }
+
+    private byte[] retrieveBackedBytes(final byte[] data) {
         Objects.requireNonNull(this.s3);
         final String uri = deserializeUri(data);
         final AmazonS3URI s3URI = new AmazonS3URI(uri);
         try (final S3Object s3Object = this.s3.getObject(s3URI.getBucket(), s3URI.getKey());
                 final InputStream in = s3Object.getObjectContent()) {
             final byte[] bytes = in.readAllBytes();
-            log.info("Extracted large message from S3: {}", uri);
+            log.debug("Extracted large message from S3: {}", uri);
             return bytes;
         } catch (final IOException e) {
             throw new SerializationException("Cannot handle S3 backed message: " + s3URI, e);

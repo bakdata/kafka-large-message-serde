@@ -48,7 +48,7 @@ import org.apache.kafka.common.serialization.Serializer;
 @NoArgsConstructor
 @Slf4j
 public class S3BackedSerializer<T> implements Serializer<T> {
-    private S3StoringClient s3;
+    private S3StoringClient client;
     private Serializer<? super T> serializer;
     private boolean isKey;
 
@@ -57,7 +57,7 @@ public class S3BackedSerializer<T> implements Serializer<T> {
         final S3BackedSerdeConfig serdeConfig = new S3BackedSerdeConfig(configs);
         final Serde<T> serde = isKey ? serdeConfig.getKeySerde() : serdeConfig.getValueSerde();
         this.serializer = serde.serializer();
-        this.s3 = serdeConfig.getS3Storer();
+        this.client = serdeConfig.getS3Storer();
         this.serializer.configure(configs, isKey);
         this.isKey = isKey;
     }
@@ -65,9 +65,9 @@ public class S3BackedSerializer<T> implements Serializer<T> {
     @Override
     public byte[] serialize(final String topic, final T data) {
         Objects.requireNonNull(this.serializer);
-        Objects.requireNonNull(this.s3);
+        Objects.requireNonNull(this.client);
         final byte[] bytes = this.serializer.serialize(topic, data);
-        return this.s3.storeBytes(topic, bytes, this.isKey);
+        return this.client.storeBytes(topic, bytes, this.isKey);
     }
 
     @Override

@@ -45,7 +45,7 @@ import org.apache.kafka.common.serialization.Serde;
 @NoArgsConstructor
 @Slf4j
 public class S3BackedDeserializer<T> implements Deserializer<T> {
-    private S3RetrievingClient s3;
+    private S3RetrievingClient client;
     private Deserializer<? extends T> deserializer;
 
     @Override
@@ -53,15 +53,15 @@ public class S3BackedDeserializer<T> implements Deserializer<T> {
         final S3BackedSerdeConfig serdeConfig = new S3BackedSerdeConfig(configs);
         final Serde<T> serde = isKey ? serdeConfig.getKeySerde() : serdeConfig.getValueSerde();
         this.deserializer = serde.deserializer();
-        this.s3 = serdeConfig.getS3Retriever();
+        this.client = serdeConfig.getS3Retriever();
         this.deserializer.configure(configs, isKey);
     }
 
     @Override
     public T deserialize(final String topic, final byte[] data) {
         Objects.requireNonNull(this.deserializer);
-        Objects.requireNonNull(this.s3);
-        final byte[] bytes = this.s3.retrieveBytes(data);
+        Objects.requireNonNull(this.client);
+        final byte[] bytes = this.client.retrieveBytes(data);
         return this.deserializer.deserialize(topic, bytes);
     }
 
