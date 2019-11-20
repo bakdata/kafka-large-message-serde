@@ -7,6 +7,7 @@ import static com.bakdata.kafka.S3StoringClient.IS_NOT_BACKED;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.util.IOUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
@@ -52,7 +53,7 @@ class S3RetrievingClient {
         final AmazonS3URI s3URI = new AmazonS3URI(uri);
         try (final S3Object s3Object = this.s3.getObject(s3URI.getBucket(), s3URI.getKey());
                 final InputStream in = s3Object.getObjectContent()) {
-            final byte[] bytes = in.readAllBytes();
+            final byte[] bytes = IOUtils.toByteArray(in);
             log.debug("Extracted large message from S3: {}", uri);
             return bytes;
         } catch (final IOException e) {
