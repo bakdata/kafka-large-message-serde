@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.0.2](https://github.com/bakdata/kafka-s3-backed-serde/tree/1.0.2) (2020-01-03)
+[Full Changelog](https://github.com/bakdata/kafka-s3-backed-serde/compare/1.0.1...1.0.2)
+
+**Merged pull requests:**
+
+- Downgrade to Java 8 [\#4](https://github.com/bakdata/kafka-s3-backed-serde/pull/4) ([@torbsto](https://github.com/torbsto))
+
 ## [1.0.1](https://github.com/bakdata/kafka-s3-backed-serde/tree/1.0.1) (2019-11-18)
 [Full Changelog](https://github.com/bakdata/kafka-s3-backed-serde/compare/1.0.0...1.0.1)
 
