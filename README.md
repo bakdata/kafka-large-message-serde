@@ -27,6 +27,16 @@ compile group: 'com.bakdata.kafka', name: 's3-backed-serde', version: '1.0.0'
 
 For other build tools or versions, refer to the [latest version in MvnRepository](https://mvnrepository.com/artifact/com.bakdata.kafka/s3-backed-serde/latest).
 
+### Using the Serde
+
+You can use it from your Kafka Streams application like any other Serde
+
+```java
+final Serde<String> serde = new S3BackedSerde<>();
+serde.configure(Map.of(S3BackedSerdeConfig.BASE_PATH_CONFIG, "s3://my-bucket/",
+        S3BackedSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class), false);
+```
+
 ## Development
 
 If you want to contribute to this project, you can simply clone the repository and build it via Gradle.
