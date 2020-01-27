@@ -37,6 +37,71 @@ serde.configure(Map.of(S3BackedSerdeConfig.BASE_PATH_CONFIG, "s3://my-bucket/",
         S3BackedSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class), false);
 ```
 
+### Configuring the Serde
+
+``s3backed.base.path``
+  Base path to store data. Must include bucket and any prefix that should be used, e.g., 's3://my-bucket/my/prefix/'.
+
+  * Type: string
+  * Default: ""
+  * Importance: high
+
+``s3backed.key.serde``
+  Key serde class to use.
+
+  * Type: class
+  * Default: class org.apache.kafka.common.serialization.Serdes$ByteArraySerde
+  * Importance: high
+
+``s3backed.value.serde``
+  Value serde class to use.
+
+  * Type: class
+  * Default: class org.apache.kafka.common.serialization.Serdes$ByteArraySerde
+  * Importance: high
+
+``s3backed.max.byte.size``
+  Maximum message size in bytes before serialized messages are stored on S3.
+
+  * Type: int
+  * Default: 1000000
+  * Importance: medium
+
+``s3backed.access.key``
+  AWS access key to use for connecting to S3. Leave empty if AWS credential provider chain should be used.
+
+  * Type: password
+  * Default: ""
+  * Importance: low
+
+``s3backed.endpoint``
+  Endpoint to use for connection to Amazon S3. Must be configured in conjunction with s3backed.region. Leave empty if default S3 endpoint should be used.
+
+  * Type: string
+  * Default: ""
+  * Importance: low
+
+``s3backed.path.style.access``
+  Enable path-style access for S3 client.
+
+  * Type: boolean
+  * Default: false
+  * Importance: low
+
+``s3backed.region``
+  S3 region to use. Must be configured in conjunction with s3backed.endpoint. Leave empty if default S3 region should be used.
+
+  * Type: string
+  * Default: ""
+  * Importance: low
+
+``s3backed.secret.key``
+  AWS secret key to use for connecting to S3. Leave empty if AWS credential provider chain should be used.
+
+  * Type: password
+  * Default: ""
+  * Importance: low
+
 ## Development
 
 If you want to contribute to this project, you can simply clone the repository and build it via Gradle.
