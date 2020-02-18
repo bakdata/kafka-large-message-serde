@@ -27,8 +27,6 @@ package com.bakdata.kafka;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
-import com.bakdata.schemaregistrymock.SchemaRegistryMock;
-import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -64,7 +62,6 @@ class S3BackedConverterIntegrationTest {
     static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
             .withSecureConnection(false).build();
 
-    private final SchemaRegistryMock srMock = new SchemaRegistryMock();
     private EmbeddedKafkaCluster kafkaCluster;
     private Path outputFile;
 
@@ -72,7 +69,6 @@ class S3BackedConverterIntegrationTest {
     void setUp() throws IOException {
         this.outputFile = Files.createTempFile("test", "temp");
         S3_MOCK.createS3Client().createBucket(BUCKET_NAME);
-        this.srMock.start();
         this.kafkaCluster = this.createCluster();
         this.kafkaCluster.start();
     }
@@ -80,7 +76,6 @@ class S3BackedConverterIntegrationTest {
     @AfterEach
     void tearDown() throws IOException {
         this.kafkaCluster.stop();
-        this.srMock.stop();
         Files.deleteIfExists(this.outputFile);
     }
 
@@ -137,7 +132,6 @@ class S3BackedConverterIntegrationTest {
 
     private Properties createS3BackedProperties() {
         final Properties properties = new Properties();
-        properties.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, this.srMock.getUrl());
         properties.put(S3BackedSerdeConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort());
         properties.put(S3BackedSerdeConfig.S3_REGION_CONFIG, "us-east-1");
         properties.put(S3BackedSerdeConfig.S3_ACCESS_KEY_CONFIG, "foo");
