@@ -40,7 +40,7 @@ serde.configure(Map.of(S3BackedSerdeConfig.BASE_PATH_CONFIG, "s3://my-bucket/",
 ### Configuring the Serde
 
 ``s3backed.base.path``
-  Base path to store data. Must include bucket and any prefix that should be used, e.g., 's3://my-bucket/my/prefix/'.
+  Base path to store data. Must include bucket and any prefix that should be used, e.g., `s3://my-bucket/my/prefix/`.
 
   * Type: string
   * Default: ""
@@ -50,14 +50,14 @@ serde.configure(Map.of(S3BackedSerdeConfig.BASE_PATH_CONFIG, "s3://my-bucket/",
   Key serde class to use.
 
   * Type: class
-  * Default: class org.apache.kafka.common.serialization.Serdes$ByteArraySerde
+  * Default: `class org.apache.kafka.common.serialization.Serdes$ByteArraySerde`
   * Importance: high
 
 ``s3backed.value.serde``
   Value serde class to use.
 
   * Type: class
-  * Default: class org.apache.kafka.common.serialization.Serdes$ByteArraySerde
+  * Default: `class org.apache.kafka.common.serialization.Serdes$ByteArraySerde`
   * Importance: high
 
 ``s3backed.max.byte.size``
@@ -71,6 +71,20 @@ serde.configure(Map.of(S3BackedSerdeConfig.BASE_PATH_CONFIG, "s3://my-bucket/",
   AWS access key to use for connecting to S3. Leave empty if AWS credential provider chain should be used.
 
   * Type: password
+  * Default: ""
+  * Importance: low
+
+``s3backed.secret.key``
+  AWS secret key to use for connecting to S3. Leave empty if AWS credential provider chain should be used.
+
+  * Type: password
+  * Default: ""
+  * Importance: low
+
+``s3backed.region``
+  S3 region to use. Must be configured in conjunction with s3backed.endpoint. Leave empty if default S3 region should be used.
+
+  * Type: string
   * Default: ""
   * Importance: low
 
@@ -88,19 +102,19 @@ serde.configure(Map.of(S3BackedSerdeConfig.BASE_PATH_CONFIG, "s3://my-bucket/",
   * Default: false
   * Importance: low
 
-``s3backed.region``
-  S3 region to use. Must be configured in conjunction with s3backed.endpoint. Leave empty if default S3 region should be used.
+### Kafka Connect
 
-  * Type: string
-  * Default: ""
-  * Importance: low
+This Serde also comes with support for Kafka Connect.
+Just configure your converter as `com.bakdata.kafka.S3Converter`.
 
-``s3backed.secret.key``
-  AWS secret key to use for connecting to S3. Leave empty if AWS credential provider chain should be used.
+Additionally to the configurations available for the SerDe, you can configure the following:
 
-  * Type: password
-  * Default: ""
-  * Importance: low
+``inner.converter``
+  The converter type to use
+
+  * Type: class
+  * Default: `class org.apache.kafka.connect.converters.ByteArrayConverter`
+  * Importance: medium
 
 ## Development
 

@@ -1,0 +1,165 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2020 bakdata
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package com.bakdata.kafka;
+
+
+import static com.bakdata.kafka.S3RetrievingClient.getBytes;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.adobe.testing.s3mock.junit5.S3MockExtension;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3URI;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.google.common.collect.ImmutableMap;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Map;
+import org.apache.commons.io.IOUtils;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.connect.data.SchemaAndValue;
+import org.apache.kafka.connect.storage.Converter;
+import org.apache.kafka.connect.storage.StringConverter;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
+class S3BackedConverterTest {
+    @RegisterExtension
+    static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
+            .withSecureConnection(false).build();
+    private static final String TOPIC = "topic";
+    private static final Converter STRING_CONVERTER = new StringConverter();
+    private static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
+    private static final Deserializer<String> STRING_DESERIALIZER = new StringDeserializer();
+    private final AmazonS3 s3Client = S3_MOCK.createS3Client();
+    private S3BackedConverter converter = null;
+
+    private static byte[] createBackedText(final String bucket, final String key) {
+        final String uri = "s3://" + bucket + "/" + key;
+        return S3StoringClient.serialize(uri);
+    }
+
+    private static byte[] readBytes(final AmazonS3URI amazonS3URI) {
+        try (final S3Object object = S3_MOCK.createS3Client().getObject(amazonS3URI.getBucket(), amazonS3URI.getKey());
+                final S3ObjectInputStream objectContent = object.getObjectContent()) {
+            return IOUtils.toByteArray(objectContent);
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static Map<String, String> createProperties(final int maxSize) {
+        return ImmutableMap.<String, String>builder()
+                .put(S3BackedSerdeConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
+                .put(S3BackedSerdeConfig.S3_REGION_CONFIG, "us-east-1")
+                .put(S3BackedSerdeConfig.S3_ACCESS_KEY_CONFIG, "foo")
+                .put(S3BackedSerdeConfig.S3_SECRET_KEY_CONFIG, "bar")
+                .put(S3BackedSerdeConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, "true")
+                .put(S3BackedSerdeConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(maxSize))
+                .put(S3BackedSerdeConfig.BASE_PATH_CONFIG, "s3://bucket/base")
+                .put(S3BackedConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName())
+                .build();
+    }
+
+    private static SchemaAndValue toConnectData(final String text) {
+        return STRING_CONVERTER.toConnectData(null, text.getBytes());
+    }
+
+    private static byte[] createNonBackedText(final String text) {
+        return S3StoringClient.serialize(STRING_SERIALIZER.serialize(null, text));
+    }
+
+    private static void expectBackedText(final String expected, final byte[] s3BackedText) {
+        final String uri = S3RetrievingClient.deserializeUri(s3BackedText);
+        final AmazonS3URI amazonS3URI = new AmazonS3URI(uri);
+        final byte[] bytes = readBytes(amazonS3URI);
+        final String actual = STRING_DESERIALIZER.deserialize(null, bytes);
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    private static void expectNonBackedText(final String expected, final byte[] s3BackedText) {
+        final String actual = STRING_DESERIALIZER.deserialize(null, getBytes(s3BackedText));
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void shouldConvertNonBackedToConnectData() {
+        this.initSetup(false, 5000);
+        final String text = "test";
+        final SchemaAndValue expected = toConnectData(text);
+        final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, createNonBackedText(text));
+        assertThat(schemaAndValue).isEqualTo(expected);
+    }
+
+    @Test
+    void shouldConvertBackedToConnectData() {
+        this.initSetup(false, 0);
+        final String bucket = "bucket";
+        final String key = "key";
+        final String text = "test";
+        this.s3Client.createBucket("bucket");
+        final SchemaAndValue expected = toConnectData(text);
+        this.store(bucket, key, text, TOPIC);
+        final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, createBackedText(bucket, key));
+        assertThat(schemaAndValue).isEqualTo(expected);
+    }
+
+    @Test
+    void shouldCreateBackedData() {
+        this.initSetup(false, 0);
+
+        final String text = "test";
+        final SchemaAndValue data = toConnectData(text);
+        this.s3Client.createBucket("bucket");
+
+        final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
+        expectBackedText(text, bytes);
+    }
+
+    @Test
+    void shouldCreateNonBackedData() {
+        this.initSetup(false, 5000);
+
+        final String text = "test";
+        final SchemaAndValue data = toConnectData(text);
+        final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
+        expectNonBackedText(text, bytes);
+    }
+
+    private void store(final String bucket, final String key, final String s, final String topic) {
+        this.s3Client.putObject(bucket, key, new ByteArrayInputStream(STRING_SERIALIZER.serialize(topic, s)),
+                new ObjectMetadata());
+    }
+
+    private void initSetup(final boolean isKey, final int maxSize) {
+        final Map<String, String> properties = createProperties(maxSize);
+        this.converter = new S3BackedConverter();
+        this.converter.configure(properties, isKey);
+    }
+}

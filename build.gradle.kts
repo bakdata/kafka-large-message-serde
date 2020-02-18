@@ -54,6 +54,8 @@ configure<org.hildan.github.changelog.plugin.GitHubChangelogExtension> {
 dependencies {
     val kafkaVersion: String by project
     api(group = "org.apache.kafka", name = "kafka_2.11", version = kafkaVersion)
+    api(group = "org.apache.kafka", name = "connect-api", version = kafkaVersion)
+    implementation(group = "org.apache.kafka", name = "connect-runtime", version = kafkaVersion)
 
     val confluentVersion: String by project
     api(group = "io.confluent", name = "common-config", version = confluentVersion)
@@ -71,5 +73,7 @@ dependencies {
     }
     testImplementation(group = "log4j", name = "log4j", version = "1.2.17")
     testImplementation(group = "org.slf4j", name = "slf4j-log4j12", version = "1.7.26")
-    testImplementation(group = "org.jooq", name = "jool", version = "0.9.14")
+    testImplementation(group = "org.jooq", name = "jool-java-8", version = "0.9.14")
+    testImplementation(group = "net.mguenther.kafka", name = "kafka-junit", version = kafkaVersion)
+    testImplementation(group = "org.apache.kafka", name = "connect-file", version = kafkaVersion)
 }
