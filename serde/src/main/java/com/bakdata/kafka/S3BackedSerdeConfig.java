@@ -69,11 +69,11 @@ public class S3BackedSerdeConfig extends AbstractS3BackedConfig {
     }
 
     <T> Serde<T> getKeySerde() {
-        return (Serde<T>) this.getConfiguredInstance(KEY_SERDE_CLASS_CONFIG, Serde.class);
+        return this.getConfiguredInstance(KEY_SERDE_CLASS_CONFIG, Serde.class);
     }
 
     <T> Serde<T> getValueSerde() {
-        return (Serde<T>) this.getConfiguredInstance(VALUE_SERDE_CLASS_CONFIG, Serde.class);
+        return this.getConfiguredInstance(VALUE_SERDE_CLASS_CONFIG, Serde.class);
     }
 
 }

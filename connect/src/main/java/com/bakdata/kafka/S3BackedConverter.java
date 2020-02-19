@@ -30,6 +30,11 @@ import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.storage.Converter;
 
+/**
+ * Kafka {@code Converter} that serializes large messages on Amazon S3.
+ * <p>
+ * For configuration options, see {@link S3BackedConverterConfig}.
+ */
 @NoArgsConstructor
 public class S3BackedConverter implements Converter {
     private Converter converter;
