@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2019 bakdata
+ * Copyright (c) 2020 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,26 +40,8 @@ import io.confluent.common.config.ConfigDef.Importance;
 import io.confluent.common.config.ConfigDef.Type;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.kafka.common.serialization.Serde;
-import org.apache.kafka.common.serialization.Serdes.ByteArraySerde;
 
-/**
- * This class provides configuration options for {@link S3BackedSerde}. It offers configuration of the following
- * properties:
- * <p>
- * <ul>
- *     <li> S3 endpoint
- *     <li> S3 region
- *     <li> S3 access key
- *     <li> S3 secret key
- *     <li> S3 enable path-style access
- *     <li> key serde class
- *     <li> value serde class
- *     <li> maximum message size
- *     <li> S3 base path
- * </ul>
- */
-public class S3BackedSerdeConfig extends AbstractConfig {
+public class AbstractS3BackedConfig extends AbstractConfig {
     public static final String PREFIX = "s3backed.";
     public static final String S3_ENDPOINT_CONFIG = PREFIX + "endpoint";
     public static final String S3_ENDPOINT_DEFAULT = "";
@@ -80,12 +62,6 @@ public class S3BackedSerdeConfig extends AbstractConfig {
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_CONFIG = PREFIX + "path.style.access";
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_DOC = "Enable path-style access for S3 client.";
     public static final boolean S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT = false;
-    public static final String KEY_SERDE_CLASS_CONFIG = PREFIX + "key.serde";
-    public static final String KEY_SERDE_CLASS_DOC = "Key serde class to use.";
-    public static final String VALUE_SERDE_CLASS_CONFIG = PREFIX + "value.serde";
-    public static final Class<? extends Serde<?>> KEY_SERDE_CLASS_DEFAULT = ByteArraySerde.class;
-    public static final String VALUE_SERDE_CLASS_DOC = "Value serde class to use.";
-    public static final Class<? extends Serde<?>> VALUE_SERDE_CLASS_DEFAULT = ByteArraySerde.class;
     public static final String MAX_BYTE_SIZE_CONFIG = PREFIX + "max.byte.size";
     public static final String MAX_BYTE_SIZE_DOC =
             "Maximum message size in bytes before serialized messages are stored on S3.";
@@ -94,20 +70,15 @@ public class S3BackedSerdeConfig extends AbstractConfig {
     public static final String BASE_PATH_DOC = "Base path to store data. Must include bucket and any prefix that "
             + "should be used, e.g., 's3://my-bucket/my/prefix/'.";
     public static final String BASE_PATH_DEFAULT = "";
-    private static final ConfigDef config = baseConfigDef();
 
-    S3BackedSerdeConfig(final Map<?, ?> originals) {
+    public AbstractS3BackedConfig(final ConfigDef config, final Map<?, ?> originals) {
         super(config, originals);
     }
 
-    private static ConfigDef baseConfigDef() {
+    protected static ConfigDef baseConfigDef() {
         return new ConfigDef()
                 .define(S3_ENDPOINT_CONFIG, Type.STRING, S3_ENDPOINT_DEFAULT, Importance.LOW, S3_ENDPOINT_DOC)
                 .define(S3_REGION_CONFIG, Type.STRING, S3_REGION_DEFAULT, Importance.LOW, S3_REGION_DOC)
-                .define(KEY_SERDE_CLASS_CONFIG, Type.CLASS, KEY_SERDE_CLASS_DEFAULT, Importance.HIGH,
-                        KEY_SERDE_CLASS_DOC)
-                .define(VALUE_SERDE_CLASS_CONFIG, Type.CLASS, VALUE_SERDE_CLASS_DEFAULT, Importance.HIGH,
-                        VALUE_SERDE_CLASS_DOC)
                 .define(S3_ACCESS_KEY_CONFIG, Type.PASSWORD, S3_ACCESS_KEY_DEFAULT, Importance.LOW, S3_ACCESS_KEY_DOC)
                 .define(S3_SECRET_KEY_CONFIG, Type.PASSWORD, S3_SECRET_KEY_DEFAULT, Importance.LOW, S3_SECRET_KEY_DOC)
                 .define(S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, Type.BOOLEAN, S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT,
@@ -128,14 +99,6 @@ public class S3BackedSerdeConfig extends AbstractConfig {
                 .basePath(this.getBasePath())
                 .maxSize(this.getMaxSize())
                 .build();
-    }
-
-    <T> Serde<T> getKeySerde() {
-        return (Serde<T>) this.getConfiguredInstance(KEY_SERDE_CLASS_CONFIG, Serde.class);
-    }
-
-    <T> Serde<T> getValueSerde() {
-        return (Serde<T>) this.getConfiguredInstance(VALUE_SERDE_CLASS_CONFIG, Serde.class);
     }
 
     private AmazonS3 createS3Client() {

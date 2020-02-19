@@ -125,21 +125,22 @@ class S3BackedConverterIntegrationTest {
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, S3BackedSerializer.class);
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, this.kafkaCluster.getBrokerList());
-        properties.put(S3BackedSerdeConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(shouldBack ? 0 : Integer.MAX_VALUE));
+        properties.put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(shouldBack ? 0 : Integer.MAX_VALUE));
         properties.putAll(this.createS3BackedProperties());
         return properties;
     }
 
     private Properties createS3BackedProperties() {
         final Properties properties = new Properties();
-        properties.put(S3BackedSerdeConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort());
-        properties.put(S3BackedSerdeConfig.S3_REGION_CONFIG, "us-east-1");
-        properties.put(S3BackedSerdeConfig.S3_ACCESS_KEY_CONFIG, "foo");
-        properties.put(S3BackedSerdeConfig.S3_SECRET_KEY_CONFIG, "bar");
-        properties.put(S3BackedSerdeConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
+        properties.put(AbstractS3BackedConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort());
+        properties.put(AbstractS3BackedConfig.S3_REGION_CONFIG, "us-east-1");
+        properties.put(AbstractS3BackedConfig.S3_ACCESS_KEY_CONFIG, "foo");
+        properties.put(AbstractS3BackedConfig.S3_SECRET_KEY_CONFIG, "bar");
+        properties.put(AbstractS3BackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
         properties.put(S3BackedSerdeConfig.KEY_SERDE_CLASS_CONFIG, StringSerde.class.getName());
         properties.put(S3BackedSerdeConfig.VALUE_SERDE_CLASS_CONFIG, StringSerde.class.getName());
-        properties.put(S3BackedSerdeConfig.BASE_PATH_CONFIG, String.format("s3://%s/%s", BUCKET_NAME, S3_KEY_NAME));
+        properties.put(
+                AbstractS3BackedConfig.BASE_PATH_CONFIG, String.format("s3://%s/%s", BUCKET_NAME, S3_KEY_NAME));
         properties.put(S3BackedConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName());
         return properties;
     }

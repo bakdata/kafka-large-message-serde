@@ -25,6 +25,7 @@
 package com.bakdata.kafka;
 
 
+import static com.bakdata.kafka.S3RetrievingClient.deserializeUri;
 import static com.bakdata.kafka.S3RetrievingClient.getBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,6 +41,7 @@ import java.io.IOException;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
 import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -74,15 +76,15 @@ class S3BackedConverterTest {
         }
     }
 
-    private static Map<String, String> createProperties(final int maxSize) {
+    private static Map<String, String> createProperties(final int maxSize, final String basePath) {
         return ImmutableMap.<String, String>builder()
-                .put(S3BackedSerdeConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
-                .put(S3BackedSerdeConfig.S3_REGION_CONFIG, "us-east-1")
-                .put(S3BackedSerdeConfig.S3_ACCESS_KEY_CONFIG, "foo")
-                .put(S3BackedSerdeConfig.S3_SECRET_KEY_CONFIG, "bar")
-                .put(S3BackedSerdeConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, "true")
-                .put(S3BackedSerdeConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(maxSize))
-                .put(S3BackedSerdeConfig.BASE_PATH_CONFIG, "s3://bucket/base")
+                .put(AbstractS3BackedConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
+                .put(AbstractS3BackedConfig.S3_REGION_CONFIG, "us-east-1")
+                .put(AbstractS3BackedConfig.S3_ACCESS_KEY_CONFIG, "foo")
+                .put(AbstractS3BackedConfig.S3_SECRET_KEY_CONFIG, "bar")
+                .put(AbstractS3BackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, "true")
+                .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(maxSize))
+                .put(AbstractS3BackedConfig.BASE_PATH_CONFIG, basePath)
                 .put(S3BackedConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName())
                 .build();
     }
@@ -95,22 +97,26 @@ class S3BackedConverterTest {
         return S3StoringClient.serialize(STRING_SERIALIZER.serialize(null, text));
     }
 
-    private static void expectBackedText(final String expected, final byte[] s3BackedText) {
-        final String uri = S3RetrievingClient.deserializeUri(s3BackedText);
+    private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
+            final String type) {
+        final String uri = deserializeUri(s3BackedText);
+        assertThat(uri).startsWith(basePath + TOPIC + "/" + type + "/");
         final AmazonS3URI amazonS3URI = new AmazonS3URI(uri);
         final byte[] bytes = readBytes(amazonS3URI);
-        final String actual = STRING_DESERIALIZER.deserialize(null, bytes);
-        assertThat(actual).isEqualTo(expected);
+        final String deserialized = Serdes.String().deserializer()
+                .deserialize(null, bytes);
+        assertThat(deserialized).isEqualTo(expected);
     }
 
     private static void expectNonBackedText(final String expected, final byte[] s3BackedText) {
-        final String actual = STRING_DESERIALIZER.deserialize(null, getBytes(s3BackedText));
-        assertThat(actual).isEqualTo(expected);
+        assertThat(STRING_DESERIALIZER.deserialize(null, getBytes(s3BackedText)))
+                .isInstanceOf(String.class)
+                .isEqualTo(expected);
     }
 
     @Test
     void shouldConvertNonBackedToConnectData() {
-        this.initSetup(false, 5000);
+        this.initSetup(false, 5000, "s3://bucket/base");
         final String text = "test";
         final SchemaAndValue expected = toConnectData(text);
         final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, createNonBackedText(text));
@@ -119,7 +125,7 @@ class S3BackedConverterTest {
 
     @Test
     void shouldConvertBackedToConnectData() {
-        this.initSetup(false, 0);
+        this.initSetup(false, 0, "s3://bucket/base");
         final String bucket = "bucket";
         final String key = "key";
         final String text = "test";
@@ -131,20 +137,36 @@ class S3BackedConverterTest {
     }
 
     @Test
-    void shouldCreateBackedData() {
-        this.initSetup(false, 0);
+    void shouldCreateBackedDataKey() {
+        final String bucket = "bucket";
+        final String basePath = "s3://" + bucket + "/base";
+        this.initSetup(true, 0, basePath);
 
         final String text = "test";
         final SchemaAndValue data = toConnectData(text);
-        this.s3Client.createBucket("bucket");
+        this.s3Client.createBucket(bucket);
 
         final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
-        expectBackedText(text, bytes);
+        expectBackedText(basePath, text, bytes, "keys");
+    }
+
+    @Test
+    void shouldCreateBackedDataValue() {
+        final String bucket = "bucket";
+        final String basePath = "s3://" + bucket + "/base";
+        this.initSetup(false, 0, basePath);
+
+        final String text = "test";
+        final SchemaAndValue data = toConnectData(text);
+        this.s3Client.createBucket(bucket);
+
+        final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
+        expectBackedText(basePath, text, bytes, "values");
     }
 
     @Test
     void shouldCreateNonBackedData() {
-        this.initSetup(false, 5000);
+        this.initSetup(false, 5000, "s3://bucket/base");
 
         final String text = "test";
         final SchemaAndValue data = toConnectData(text);
@@ -157,8 +179,8 @@ class S3BackedConverterTest {
                 new ObjectMetadata());
     }
 
-    private void initSetup(final boolean isKey, final int maxSize) {
-        final Map<String, String> properties = createProperties(maxSize);
+    private void initSetup(final boolean isKey, final int maxSize, final String basePath) {
+        final Map<String, String> properties = createProperties(maxSize, basePath);
         this.converter = new S3BackedConverter();
         this.converter.configure(properties, isKey);
     }

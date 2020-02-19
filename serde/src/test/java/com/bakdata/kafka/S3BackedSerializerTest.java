@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.function.Function;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -61,16 +62,17 @@ class S3BackedSerializerTest {
             .withSecureConnection(false).build();
     private static final String INPUT_TOPIC = "input";
     private static final String OUTPUT_TOPIC = "output";
+    private static final Deserializer<String> STRING_DESERIALIZER = Serdes.String().deserializer();
     private TestTopology<Integer, String> topology = null;
 
     private static Properties createProperties(final Properties properties) {
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy");
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
-        properties.setProperty(S3BackedSerdeConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort());
-        properties.setProperty(S3BackedSerdeConfig.S3_REGION_CONFIG, "us-east-1");
-        properties.setProperty(S3BackedSerdeConfig.S3_ACCESS_KEY_CONFIG, "foo");
-        properties.setProperty(S3BackedSerdeConfig.S3_SECRET_KEY_CONFIG, "bar");
-        properties.put(S3BackedSerdeConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
+        properties.setProperty(AbstractS3BackedConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort());
+        properties.setProperty(AbstractS3BackedConfig.S3_REGION_CONFIG, "us-east-1");
+        properties.setProperty(AbstractS3BackedConfig.S3_ACCESS_KEY_CONFIG, "foo");
+        properties.setProperty(AbstractS3BackedConfig.S3_SECRET_KEY_CONFIG, "bar");
+        properties.put(AbstractS3BackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
         properties.put(S3BackedSerdeConfig.KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         properties.put(S3BackedSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         return properties;
@@ -104,7 +106,7 @@ class S3BackedSerializerTest {
         assertThat(uri).startsWith(basePath + OUTPUT_TOPIC + "/" + type + "/");
         final AmazonS3URI amazonS3URI = new AmazonS3URI(uri);
         final byte[] bytes = readBytes(amazonS3URI);
-        final String deserialized = Serdes.String().deserializer()
+        final String deserialized = STRING_DESERIALIZER
                 .deserialize(null, bytes);
         assertThat(deserialized).isEqualTo(expected);
     }
@@ -118,8 +120,8 @@ class S3BackedSerializerTest {
         }
     }
 
-    private static void expectNonBackedText(final byte[] s3BackedText, final String expected) {
-        assertThat(Serdes.String().deserializer().deserialize(null, getBytes(s3BackedText)))
+    private static void expectNonBackedText(final String expected, final byte[] s3BackedText) {
+        assertThat(STRING_DESERIALIZER.deserialize(null, getBytes(s3BackedText)))
                 .isInstanceOf(String.class)
                 .isEqualTo(expected);
     }
@@ -140,7 +142,7 @@ class S3BackedSerializerTest {
     @Test
     void shouldWriteNonBackedTextKey() {
         final Properties properties = new Properties();
-        properties.put(S3BackedSerdeConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
+        properties.put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
         this.createTopology(S3BackedSerializerTest::createKeyTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.String())
@@ -153,13 +155,13 @@ class S3BackedSerializerTest {
         assertThat(records)
                 .hasSize(1)
                 .extracting(ProducerRecord::key)
-                .anySatisfy(s3BackedText -> expectNonBackedText(s3BackedText, "foo"));
+                .anySatisfy(s3BackedText -> expectNonBackedText("foo", s3BackedText));
     }
 
     @Test
     void shouldWriteNonBackedTextValue() {
         final Properties properties = new Properties();
-        properties.put(S3BackedSerdeConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
+        properties.put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
         this.createTopology(S3BackedSerializerTest::createValueTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
@@ -172,7 +174,7 @@ class S3BackedSerializerTest {
         assertThat(records)
                 .hasSize(1)
                 .extracting(ProducerRecord::value)
-                .anySatisfy(s3BackedText -> expectNonBackedText(s3BackedText, "foo"));
+                .anySatisfy(s3BackedText -> expectNonBackedText("foo", s3BackedText));
     }
 
     @Test
@@ -180,8 +182,8 @@ class S3BackedSerializerTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Properties properties = new Properties();
-        properties.put(S3BackedSerdeConfig.MAX_BYTE_SIZE_CONFIG, 0);
-        properties.setProperty(S3BackedSerdeConfig.BASE_PATH_CONFIG, basePath);
+        properties.put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0);
+        properties.setProperty(AbstractS3BackedConfig.BASE_PATH_CONFIG, basePath);
         this.createTopology(S3BackedSerializerTest::createKeyTopology, properties);
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);
@@ -205,8 +207,8 @@ class S3BackedSerializerTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Properties properties = new Properties();
-        properties.put(S3BackedSerdeConfig.MAX_BYTE_SIZE_CONFIG, 0);
-        properties.setProperty(S3BackedSerdeConfig.BASE_PATH_CONFIG, basePath);
+        properties.put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0);
+        properties.setProperty(AbstractS3BackedConfig.BASE_PATH_CONFIG, basePath);
         this.createTopology(S3BackedSerializerTest::createValueTopology, properties);
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);

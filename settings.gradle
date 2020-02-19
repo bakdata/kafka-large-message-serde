@@ -9,4 +9,6 @@ pluginManagement {
     }
 }
 
-rootProject.name = 's3-backed-serde'
+rootProject.name = 's3-backed'
+
+include ":core", ":serde", ":connect"

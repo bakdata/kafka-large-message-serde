@@ -15,13 +15,11 @@ public class S3BackedConverter implements Converter {
 
     @Override
     public void configure(final Map<String, ?> configs, final boolean isKey) {
-        final S3BackedSerdeConfig config = new S3BackedSerdeConfig(configs);
+        final S3BackedConverterConfig config = new S3BackedConverterConfig(configs);
         this.s3StoringClient = config.getS3Storer();
         this.s3RetrievingClient = config.getS3Retriever();
         this.isKey = isKey;
-
-        final S3BackedConverterConfig converterConfig = new S3BackedConverterConfig(configs);
-        this.converter = converterConfig.getConverter();
+        this.converter = config.getConverter();
         this.converter.configure(configs, isKey);
     }
 

@@ -24,7 +24,6 @@
 
 package com.bakdata.kafka;
 
-import io.confluent.common.config.AbstractConfig;
 import io.confluent.common.config.ConfigDef;
 import io.confluent.common.config.ConfigDef.Importance;
 import io.confluent.common.config.ConfigDef.Type;
@@ -32,25 +31,23 @@ import java.util.Map;
 import org.apache.kafka.connect.converters.ByteArrayConverter;
 import org.apache.kafka.connect.storage.Converter;
 
-public class S3BackedConverterConfig extends AbstractConfig {
-
-    public static final String CONVERTER_CLASS_CONFIG = "inner.converter";
+public class S3BackedConverterConfig extends AbstractS3BackedConfig {
+    public static final String CONVERTER_CLASS_CONFIG = "converter";
     public static final Class<? extends Converter> CONVERTER_CLASS_DEFAULT = ByteArrayConverter.class;
-    public static final String CONVERTER_CLASS_DOC = "The converter type to use";
-
-    private static final ConfigDef config = baseConfigDef();
+    public static final String CONVERTER_CLASS_DOC = "Converter to use.";
+    private static final ConfigDef config = configDef();
 
     protected S3BackedConverterConfig(final Map<?, ?> originals) {
         super(config, originals);
     }
 
-    private static ConfigDef baseConfigDef() {
-        return new ConfigDef()
-                .define(CONVERTER_CLASS_CONFIG, Type.CLASS, CONVERTER_CLASS_DEFAULT, Importance.MEDIUM,
+    private static ConfigDef configDef() {
+        return baseConfigDef()
+                .define(CONVERTER_CLASS_CONFIG, Type.CLASS, CONVERTER_CLASS_DEFAULT, Importance.HIGH,
                         CONVERTER_CLASS_DOC);
     }
 
-    public Converter getConverter() {
+    Converter getConverter() {
         return this.getConfiguredInstance(CONVERTER_CLASS_CONFIG, Converter.class);
     }
 

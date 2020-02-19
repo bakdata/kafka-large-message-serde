@@ -61,11 +61,11 @@ class S3BackedDeserializerTest {
         final Properties properties = new Properties();
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy");
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
-        properties.setProperty(S3BackedSerdeConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort());
-        properties.setProperty(S3BackedSerdeConfig.S3_REGION_CONFIG, "us-east-1");
-        properties.setProperty(S3BackedSerdeConfig.S3_ACCESS_KEY_CONFIG, "foo");
-        properties.setProperty(S3BackedSerdeConfig.S3_SECRET_KEY_CONFIG, "bar");
-        properties.put(S3BackedSerdeConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
+        properties.setProperty(AbstractS3BackedConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort());
+        properties.setProperty(AbstractS3BackedConfig.S3_REGION_CONFIG, "us-east-1");
+        properties.setProperty(AbstractS3BackedConfig.S3_ACCESS_KEY_CONFIG, "foo");
+        properties.setProperty(AbstractS3BackedConfig.S3_SECRET_KEY_CONFIG, "bar");
+        properties.put(AbstractS3BackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
         properties.put(S3BackedSerdeConfig.KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         properties.put(S3BackedSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         return properties;
