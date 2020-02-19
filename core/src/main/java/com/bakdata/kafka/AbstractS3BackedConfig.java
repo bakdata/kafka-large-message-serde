@@ -41,6 +41,20 @@ import io.confluent.common.config.ConfigDef.Type;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * This class provides default configuration options for S3 backed data. It offers configuration of the following
+ * properties:
+ * <p>
+ * <ul>
+ *     <li> S3 endpoint
+ *     <li> S3 region
+ *     <li> S3 access key
+ *     <li> S3 secret key
+ *     <li> S3 enable path-style access
+ *     <li> maximum message size
+ *     <li> S3 base path
+ * </ul>
+ */
 public class AbstractS3BackedConfig extends AbstractConfig {
     public static final String PREFIX = "s3backed.";
     public static final String S3_ENDPOINT_CONFIG = PREFIX + "endpoint";

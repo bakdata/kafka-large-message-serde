@@ -36,13 +36,13 @@ import org.apache.kafka.common.serialization.Serdes.ByteArraySerde;
  * properties:
  * <p>
  * <ul>
+ *     <li> key serde class
+ *     <li> value serde class
  *     <li> S3 endpoint
  *     <li> S3 region
  *     <li> S3 access key
  *     <li> S3 secret key
  *     <li> S3 enable path-style access
- *     <li> key serde class
- *     <li> value serde class
  *     <li> maximum message size
  *     <li> S3 base path
  * </ul>

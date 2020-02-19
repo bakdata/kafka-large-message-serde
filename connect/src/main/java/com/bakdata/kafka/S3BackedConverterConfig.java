@@ -31,6 +31,21 @@ import java.util.Map;
 import org.apache.kafka.connect.converters.ByteArrayConverter;
 import org.apache.kafka.connect.storage.Converter;
 
+/**
+ * This class provides configuration options for {@link S3BackedConverter}. It offers configuration of the following
+ * properties:
+ * <p>
+ * <ul>
+ *     <li> converter
+ *     <li> S3 endpoint
+ *     <li> S3 region
+ *     <li> S3 access key
+ *     <li> S3 secret key
+ *     <li> S3 enable path-style access
+ *     <li> maximum message size
+ *     <li> S3 base path
+ * </ul>
+ */
 public class S3BackedConverterConfig extends AbstractS3BackedConfig {
     public static final String CONVERTER_CLASS_CONFIG = "converter";
     public static final Class<? extends Converter> CONVERTER_CLASS_DEFAULT = ByteArrayConverter.class;

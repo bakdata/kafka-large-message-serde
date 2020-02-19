@@ -1,5 +1,5 @@
 plugins {
-    id("net.researchgate.release") version "2.6.0"
+    id("net.researchgate.release") version "2.8.0"
     id("com.bakdata.sonar") version "1.1.4"
     id("com.bakdata.sonatype") version "1.1.4"
     id("org.hildan.github.changelog") version "0.8.0"
@@ -7,7 +7,6 @@ plugins {
 }
 
 allprojects {
-
     group = "com.bakdata.kafka"
 
     tasks.withType<Test> {
