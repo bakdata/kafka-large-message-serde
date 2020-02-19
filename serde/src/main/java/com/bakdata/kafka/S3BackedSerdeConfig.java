@@ -49,10 +49,12 @@ import org.apache.kafka.common.serialization.Serdes.ByteArraySerde;
  */
 public class S3BackedSerdeConfig extends AbstractS3BackedConfig {
     public static final String KEY_SERDE_CLASS_CONFIG = PREFIX + "key.serde";
-    public static final String KEY_SERDE_CLASS_DOC = "Key serde class to use.";
+    public static final String KEY_SERDE_CLASS_DOC =
+            "Key serde class to use. All serde configurations are also delegated to this serde.";
     public static final String VALUE_SERDE_CLASS_CONFIG = PREFIX + "value.serde";
     public static final Class<? extends Serde<?>> KEY_SERDE_CLASS_DEFAULT = ByteArraySerde.class;
-    public static final String VALUE_SERDE_CLASS_DOC = "Value serde class to use.";
+    public static final String VALUE_SERDE_CLASS_DOC =
+            "Value serde class to use. All serde configurations are also delegated to this serde.";
     public static final Class<? extends Serde<?>> VALUE_SERDE_CLASS_DEFAULT = ByteArraySerde.class;
     private static final ConfigDef config = configDef();
 

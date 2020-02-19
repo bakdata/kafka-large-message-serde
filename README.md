@@ -41,14 +41,14 @@ serde.configure(Map.of(AbstractS3BackedConfig.BASE_PATH_CONFIG, "s3://my-bucket/
 The following configuration options are available:
 
 ``s3backed.key.serde``
-  Key serde class to use.
+  Key serde class to use. All serde configurations are also delegated to this serde.
 
   * Type: class
   * Default: `org.apache.kafka.common.serialization.Serdes$ByteArraySerde`
   * Importance: high
 
 ``s3backed.value.serde``
-  Value serde class to use.
+  Value serde class to use. All serde configurations are also delegated to this serde.
 
   * Type: class
   * Default: `org.apache.kafka.common.serialization.Serdes$ByteArraySerde`
@@ -132,7 +132,7 @@ In addition to the configurations available for the serde (except `s3backed.key.
 you can configure the following:
 
 ``s3backed.converter``
-  Converter to use.
+  Converter to use. All converter configurations are also delegated to this converter.
 
   * Type: class
   * Default: `org.apache.kafka.connect.converters.ByteArrayConverter`

@@ -47,9 +47,10 @@ import org.apache.kafka.connect.storage.Converter;
  * </ul>
  */
 public class S3BackedConverterConfig extends AbstractS3BackedConfig {
-    public static final String CONVERTER_CLASS_CONFIG = "converter";
+    public static final String CONVERTER_CLASS_CONFIG = PREFIX + "converter";
     public static final Class<? extends Converter> CONVERTER_CLASS_DEFAULT = ByteArrayConverter.class;
-    public static final String CONVERTER_CLASS_DOC = "Converter to use.";
+    public static final String CONVERTER_CLASS_DOC =
+            "Converter to use. All converter configurations are also delegated to this converter.";
     private static final ConfigDef config = configDef();
 
     protected S3BackedConverterConfig(final Map<?, ?> originals) {

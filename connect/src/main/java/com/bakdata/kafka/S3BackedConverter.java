@@ -25,7 +25,6 @@
 package com.bakdata.kafka;
 
 import java.util.Map;
-import lombok.NoArgsConstructor;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.storage.Converter;
@@ -35,7 +34,6 @@ import org.apache.kafka.connect.storage.Converter;
  * <p>
  * For configuration options, see {@link S3BackedConverterConfig}.
  */
-@NoArgsConstructor
 public class S3BackedConverter implements Converter {
     private Converter converter;
     private S3StoringClient s3StoringClient;
