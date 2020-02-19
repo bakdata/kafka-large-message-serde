@@ -11,4 +11,4 @@ pluginManagement {
 
 rootProject.name = 's3-backed'
 
-include ":core", ":serde", ":connect"
+include ":s3-backed-core", ":s3-backed-serde", ":s3-backed-connect"
