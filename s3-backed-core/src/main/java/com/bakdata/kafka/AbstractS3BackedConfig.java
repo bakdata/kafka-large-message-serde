@@ -78,7 +78,7 @@ public class AbstractS3BackedConfig extends AbstractConfig {
     public static final boolean S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT = false;
     public static final String MAX_BYTE_SIZE_CONFIG = PREFIX + "max.byte.size";
     public static final String MAX_BYTE_SIZE_DOC =
-            "Maximum message size in bytes before serialized messages are stored on S3.";
+            "Maximum serialized message size in bytes before messages are stored on S3.";
     public static final int MAX_BYTE_SIZE_DEFAULT = 1000 * 1000;
     public static final String BASE_PATH_CONFIG = PREFIX + "base.path";
     public static final String BASE_PATH_DOC = "Base path to store data. Must include bucket and any prefix that "

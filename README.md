@@ -1,6 +1,6 @@
 [![Build Status](https://dev.azure.com/bakdata/public/_apis/build/status/bakdata.kafka-s3-backed-serde?branchName=master)](https://dev.azure.com/bakdata/public/_build/latest?definitionId=20&branchName=master)
-[![Sonarcloud status](https://sonarcloud.io/api/project_badges/measure?project=com.bakdata.kafka%3As3-backed-serde&metric=alert_status)](https://sonarcloud.io/dashboard?id=com.bakdata.kafka%3As3-backed-serde)
-[![Code coverage](https://sonarcloud.io/api/project_badges/measure?project=com.bakdata.kafka%3As3-backed-serde&metric=coverage)](https://sonarcloud.io/dashboard?id=com.bakdata.kafka%3As3-backed-serde)
+[![Sonarcloud status](https://sonarcloud.io/api/project_badges/measure?project=com.bakdata.kafka%3As3-backed&metric=alert_status)](https://sonarcloud.io/dashboard?id=com.bakdata.kafka%3As3-backed)
+[![Code coverage](https://sonarcloud.io/api/project_badges/measure?project=com.bakdata.kafka%3As3-backed&metric=coverage)](https://sonarcloud.io/dashboard?id=com.bakdata.kafka%3As3-backed)
 [![Maven](https://img.shields.io/maven-central/v/com.bakdata.kafka/s3-backed-serde.svg)](https://search.maven.org/search?q=g:com.bakdata.kafka%20AND%20a:s3-backed-serde&core=gav)
 
 # kafka-s3-backed-serde
@@ -62,7 +62,7 @@ The following configuration options are available:
   * Importance: high
 
 ``s3backed.max.byte.size``
-  Maximum message size in bytes before serialized messages are stored on S3.
+  Maximum serialized message size in bytes before messages are stored on S3.
 
   * Type: int
   * Default: 1000000
