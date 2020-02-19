@@ -44,14 +44,14 @@ The following configuration options are available:
   Key serde class to use.
 
   * Type: class
-  * Default: `class org.apache.kafka.common.serialization.Serdes$ByteArraySerde`
+  * Default: `org.apache.kafka.common.serialization.Serdes$ByteArraySerde`
   * Importance: high
 
 ``s3backed.value.serde``
   Value serde class to use.
 
   * Type: class
-  * Default: `class org.apache.kafka.common.serialization.Serdes$ByteArraySerde`
+  * Default: `org.apache.kafka.common.serialization.Serdes$ByteArraySerde`
   * Importance: high
 
 ``s3backed.base.path``
@@ -135,7 +135,7 @@ you can configure the following:
   Converter to use.
 
   * Type: class
-  * Default: `class org.apache.kafka.connect.converters.ByteArrayConverter`
+  * Default: `org.apache.kafka.connect.converters.ByteArrayConverter`
   * Importance: high
 
 ## Development
