@@ -1,3 +1,7 @@
+description = "Base module for Kafka plugins that store large messages on Amazon S3"
+
+
+
 dependencies {
     val kafkaVersion: String by project
     api(group = "org.apache.kafka", name = "kafka-clients", version = kafkaVersion)
