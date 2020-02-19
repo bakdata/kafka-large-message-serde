@@ -8,11 +8,13 @@ A Kafka Serde that reads and writes records from and to S3 transparently.
 
 ## Getting Started
 
+### Serde
+
 You can add kafka-s3-backed-serde via Maven Central.
 
 #### Gradle
 ```gradle
-compile group: 'com.bakdata.kafka', name: 's3-backed-serde', version: '1.0.0'
+compile group: 'com.bakdata.kafka', name: 's3-backed-serde', version: '1.1.0'
 ```
 
 #### Maven
@@ -20,44 +22,43 @@ compile group: 'com.bakdata.kafka', name: 's3-backed-serde', version: '1.0.0'
 <dependency>
     <groupId>com.bakdata.kafka</groupId>
     <artifactId>s3-backed-serde</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
-
 For other build tools or versions, refer to the [latest version in MvnRepository](https://mvnrepository.com/artifact/com.bakdata.kafka/s3-backed-serde/latest).
 
-### Using the Serde
+#### Usage
 
 You can use it from your Kafka Streams application like any other Serde
 
 ```java
 final Serde<String> serde = new S3BackedSerde<>();
-serde.configure(Map.of(S3BackedSerdeConfig.BASE_PATH_CONFIG, "s3://my-bucket/",
+serde.configure(Map.of(AbstractS3BackedConfig.BASE_PATH_CONFIG, "s3://my-bucket/",
         S3BackedSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class), false);
 ```
 
-### Configuring the Serde
-
-``s3backed.base.path``
-  Base path to store data. Must include bucket and any prefix that should be used, e.g., 's3://my-bucket/my/prefix/'.
-
-  * Type: string
-  * Default: ""
-  * Importance: high
+The following configuration options are available:
 
 ``s3backed.key.serde``
-  Key serde class to use.
+  Key serde class to use. All serde configurations are also delegated to this serde.
 
   * Type: class
-  * Default: class org.apache.kafka.common.serialization.Serdes$ByteArraySerde
+  * Default: `org.apache.kafka.common.serialization.Serdes$ByteArraySerde`
   * Importance: high
 
 ``s3backed.value.serde``
-  Value serde class to use.
+  Value serde class to use. All serde configurations are also delegated to this serde.
 
   * Type: class
-  * Default: class org.apache.kafka.common.serialization.Serdes$ByteArraySerde
+  * Default: `org.apache.kafka.common.serialization.Serdes$ByteArraySerde`
+  * Importance: high
+
+``s3backed.base.path``
+  Base path to store data. Must include bucket and any prefix that should be used, e.g., `s3://my-bucket/my/prefix/`.
+
+  * Type: string
+  * Default: ""
   * Importance: high
 
 ``s3backed.max.byte.size``
@@ -71,6 +72,20 @@ serde.configure(Map.of(S3BackedSerdeConfig.BASE_PATH_CONFIG, "s3://my-bucket/",
   AWS access key to use for connecting to S3. Leave empty if AWS credential provider chain should be used.
 
   * Type: password
+  * Default: ""
+  * Importance: low
+
+``s3backed.secret.key``
+  AWS secret key to use for connecting to S3. Leave empty if AWS credential provider chain should be used.
+
+  * Type: password
+  * Default: ""
+  * Importance: low
+
+``s3backed.region``
+  S3 region to use. Must be configured in conjunction with s3backed.endpoint. Leave empty if default S3 region should be used.
+
+  * Type: string
   * Default: ""
   * Importance: low
 
@@ -88,19 +103,40 @@ serde.configure(Map.of(S3BackedSerdeConfig.BASE_PATH_CONFIG, "s3://my-bucket/",
   * Default: false
   * Importance: low
 
-``s3backed.region``
-  S3 region to use. Must be configured in conjunction with s3backed.endpoint. Leave empty if default S3 region should be used.
+### Kafka Connect
 
-  * Type: string
-  * Default: ""
-  * Importance: low
+This serde also comes with support for Kafka Connect.
+You can add kafka-s3-backed-connect via Maven Central.
 
-``s3backed.secret.key``
-  AWS secret key to use for connecting to S3. Leave empty if AWS credential provider chain should be used.
+#### Gradle
+```gradle
+compile group: 'com.bakdata.kafka', name: 's3-backed-connect', version: '1.1.0'
+```
 
-  * Type: password
-  * Default: ""
-  * Importance: low
+#### Maven
+```xml
+<dependency>
+    <groupId>com.bakdata.kafka</groupId>
+    <artifactId>s3-backed-connect</artifactId>
+    <version>1.1.0</version>
+</dependency>
+```
+
+For other build tools or versions, refer to the [latest version in MvnRepository](https://mvnrepository.com/artifact/com.bakdata.kafka/s3-backed-connect/latest).
+
+#### Usage
+
+To use it with your Kafka Connect jobs, just configure your converter as `com.bakdata.kafka.S3Converter`.
+
+In addition to the configurations available for the serde (except `s3backed.key.serde` and `s3backed.value.serde`),
+you can configure the following:
+
+``s3backed.converter``
+  Converter to use. All converter configurations are also delegated to this converter.
+
+  * Type: class
+  * Default: `org.apache.kafka.connect.converters.ByteArrayConverter`
+  * Importance: high
 
 ## Development
 
