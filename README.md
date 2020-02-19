@@ -132,7 +132,7 @@ In addition to the configurations available for the serde (except `s3backed.key.
 you can configure the following:
 
 ``s3backed.converter``
-  The converter type to use.
+  Converter to use.
 
   * Type: class
   * Default: `class org.apache.kafka.connect.converters.ByteArrayConverter`
