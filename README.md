@@ -28,6 +28,8 @@ compile group: 'com.bakdata.kafka', name: 's3-backed-serde', version: '1.1.0'
 
 For other build tools or versions, refer to the [latest version in MvnRepository](https://mvnrepository.com/artifact/com.bakdata.kafka/s3-backed-serde/latest).
 
+Make sure to also add [Confluent Maven Repository](http://packages.confluent.io/maven/) to your build file.
+
 #### Usage
 
 You can use it from your Kafka Streams application like any other Serde
