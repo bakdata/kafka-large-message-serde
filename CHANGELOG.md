@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.1.1](https://github.com/bakdata/kafka-s3-backed-serde/tree/1.1.1) (2020-03-02)
+[Full Changelog](https://github.com/bakdata/kafka-s3-backed-serde/compare/1.1.0...1.1.1)
+
+**Merged pull requests:**
+
+- Fix handling of null [\#7](https://github.com/bakdata/kafka-s3-backed-serde/pull/7) ([@philipp94831](https://github.com/philipp94831))
+
 ## [1.1.0](https://github.com/bakdata/kafka-s3-backed-serde/tree/1.1.0) (2020-02-19)
 [Full Changelog](https://github.com/bakdata/kafka-s3-backed-serde/compare/1.0.2...1.1.0)
 
