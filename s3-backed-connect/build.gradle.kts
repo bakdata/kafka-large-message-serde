@@ -10,6 +10,7 @@ dependencies {
 
     testImplementation(project(":s3-backed-serde"))
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = "5.4.0")
+    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", version = "5.4.0")
     testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = "5.4.0")
     testImplementation(group = "org.assertj", name = "assertj-core", version = "3.13.2")
 
