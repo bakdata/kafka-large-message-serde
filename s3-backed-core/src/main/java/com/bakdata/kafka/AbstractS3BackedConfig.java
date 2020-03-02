@@ -101,14 +101,14 @@ public class AbstractS3BackedConfig extends AbstractConfig {
                 .define(BASE_PATH_CONFIG, Type.STRING, BASE_PATH_DEFAULT, Importance.HIGH, BASE_PATH_DOC);
     }
 
-    S3RetrievingClient getS3Retriever() {
+    S3BackedRetrievingClient getS3Retriever() {
         final AmazonS3 s3 = this.createS3Client();
-        return new S3RetrievingClient(s3);
+        return new S3BackedRetrievingClient(s3);
     }
 
-    S3StoringClient getS3Storer() {
+    S3BackedStoringClient getS3Storer() {
         final AmazonS3 s3 = this.createS3Client();
-        return S3StoringClient.builder()
+        return S3BackedStoringClient.builder()
                 .s3(s3)
                 .basePath(this.getBasePath())
                 .maxSize(this.getMaxSize())

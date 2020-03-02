@@ -24,9 +24,9 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.S3StoringClient.CHARSET;
-import static com.bakdata.kafka.S3StoringClient.IS_BACKED;
-import static com.bakdata.kafka.S3StoringClient.IS_NOT_BACKED;
+import static com.bakdata.kafka.S3BackedStoringClient.CHARSET;
+import static com.bakdata.kafka.S3BackedStoringClient.IS_BACKED;
+import static com.bakdata.kafka.S3BackedStoringClient.IS_NOT_BACKED;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3URI;
@@ -41,11 +41,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.SerializationException;
 
 /**
- * Client for retrieving actual bytes of messages stored with {@link S3StoringClient}.
+ * Client for retrieving actual bytes of messages stored with {@link S3BackedStoringClient}.
  */
 @Slf4j
 @RequiredArgsConstructor
-class S3RetrievingClient {
+class S3BackedRetrievingClient {
 
     private final @NonNull AmazonS3 s3;
 
@@ -62,6 +62,9 @@ class S3RetrievingClient {
     }
 
     byte[] retrieveBytes(final byte[] data) {
+        if (data == null) {
+            return null;
+        }
         if (data[0] == IS_NOT_BACKED) {
             return getBytes(data);
         }

@@ -5,8 +5,9 @@ description = "Kafka serde that stores large messages on Amazon S3"
 dependencies {
     api(project(":s3-backed-core"))
 
-    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = "5.4.0")
-    testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = "5.4.0")
+    val junitVersion: String by project
+    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
+    testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
     testImplementation(group = "org.assertj", name = "assertj-core", version = "3.13.2")
 
     testImplementation(group = "com.bakdata.fluent-kafka-streams-tests", name = "fluent-kafka-streams-tests-junit5", version = "2.0.4")
