@@ -109,24 +109,24 @@ class S3BackedStoringClientTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"true", "false"})
-    void shouldWriteNonBackedText(final String isKey) {
+    @ValueSource(booleans = {true, false})
+    void shouldWriteNonBackedText(final boolean isKey) {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
                 .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE)
                 .build();
         final S3BackedStoringClient storer = createStorer(properties);
-        assertThat(storer.storeBytes(null, STRING_SERIALIZER.serialize(null, "foo"), Boolean.parseBoolean(isKey)))
+        assertThat(storer.storeBytes(null, STRING_SERIALIZER.serialize(null, "foo"), isKey))
                 .satisfies(s3BackedText -> expectNonBackedText("foo", s3BackedText));
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"true", "false"})
-    void shouldWriteNonBackedNull(final String isKey) {
+    @ValueSource(booleans = {true, false})
+    void shouldWriteNonBackedNull(final boolean isKey) {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
                 .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE)
                 .build();
         final S3BackedStoringClient storer = createStorer(properties);
-        assertThat(storer.storeBytes(null, null, Boolean.parseBoolean(isKey)))
+        assertThat(storer.storeBytes(null, null, isKey))
                 .isNull();
     }
 
@@ -147,13 +147,13 @@ class S3BackedStoringClientTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"true", "false"})
-    void shouldWriteBackedNull(final String isKey) {
+    @ValueSource(booleans = {true, false})
+    void shouldWriteBackedNull(final boolean isKey) {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
                 .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
                 .build();
         final S3BackedStoringClient storer = createStorer(properties);
-        assertThat(storer.storeBytes(null, null, Boolean.parseBoolean(isKey)))
+        assertThat(storer.storeBytes(null, null, isKey))
                 .isNull();
     }
 
@@ -174,8 +174,8 @@ class S3BackedStoringClientTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"true", "false"})
-    void shouldThrowExceptionOnS3Error(final String isKey) {
+    @ValueSource(booleans = {true, false})
+    void shouldThrowExceptionOnS3Error(final boolean isKey) {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final AmazonS3 s3 = mock(AmazonS3.class);
@@ -189,14 +189,14 @@ class S3BackedStoringClientTest {
                 .build();
         assertThatExceptionOfType(SerializationException.class)
                 .isThrownBy(() -> storer
-                        .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), Boolean.parseBoolean(isKey)))
+                        .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), isKey))
                 .withMessageStartingWith("Error backing message on S3")
                 .withCauseInstanceOf(IOException.class);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"true", "false"})
-    void shouldThrowExceptionOnMissingBucket(final String isKey) {
+    @ValueSource(booleans = {true, false})
+    void shouldThrowExceptionOnMissingBucket(final boolean isKey) {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
@@ -206,13 +206,13 @@ class S3BackedStoringClientTest {
         final S3BackedStoringClient storer = createStorer(properties);
         assertThatExceptionOfType(AmazonS3Exception.class)
                 .isThrownBy(() -> storer
-                        .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), Boolean.parseBoolean(isKey)))
+                        .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), isKey))
                 .withMessageStartingWith("The specified bucket does not exist.");
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"true", "false"})
-    void shouldThrowExceptionOnNullTopic(final String isKey) {
+    @ValueSource(booleans = {true, false})
+    void shouldThrowExceptionOnNullTopic(final boolean isKey) {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
@@ -222,13 +222,13 @@ class S3BackedStoringClientTest {
         final S3BackedStoringClient storer = createStorer(properties);
         assertThatNullPointerException()
                 .isThrownBy(() -> storer
-                        .storeBytes(null, STRING_SERIALIZER.serialize(null, "foo"), Boolean.parseBoolean(isKey)))
+                        .storeBytes(null, STRING_SERIALIZER.serialize(null, "foo"), isKey))
                 .withMessage("Topic must not be null");
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"true", "false"})
-    void shouldThrowExceptionOnNullBasePath(final String isKey) {
+    @ValueSource(booleans = {true, false})
+    void shouldThrowExceptionOnNullBasePath(final boolean isKey) {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
@@ -237,7 +237,7 @@ class S3BackedStoringClientTest {
         final S3BackedStoringClient storer = createStorer(properties);
         assertThatNullPointerException()
                 .isThrownBy(() -> storer
-                        .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), Boolean.parseBoolean(isKey)))
+                        .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), isKey))
                 .withMessage("Base path must not be null");
     }
 

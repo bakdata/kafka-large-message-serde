@@ -12,7 +12,7 @@ dependencies {
     implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.26")
     api(group = "com.amazonaws", name = "aws-java-sdk-s3", version = "1.11.636")
 
-    val junitVersion = "5.4.0"
+    val junitVersion: String by project
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", version = junitVersion)
     testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)

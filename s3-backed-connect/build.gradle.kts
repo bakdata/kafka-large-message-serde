@@ -9,9 +9,10 @@ dependencies {
     compileOnly(group = "org.apache.kafka", name = "connect-runtime", version = kafkaVersion)
 
     testImplementation(project(":s3-backed-serde"))
-    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = "5.4.0")
-    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", version = "5.4.0")
-    testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = "5.4.0")
+    val junitVersion: String by project
+    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
+    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", version = junitVersion)
+    testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
     testImplementation(group = "org.assertj", name = "assertj-core", version = "3.13.2")
 
     testImplementation(group = "com.adobe.testing", name = "s3mock-junit5", version = "2.1.8") {

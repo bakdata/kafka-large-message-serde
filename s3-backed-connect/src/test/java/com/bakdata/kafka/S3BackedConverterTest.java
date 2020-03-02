@@ -117,9 +117,9 @@ class S3BackedConverterTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"true", "false"})
-    void shouldConvertNonBackedToConnectData(final String isKey) {
-        this.initSetup(Boolean.parseBoolean(isKey), 5000, "s3://bucket/base");
+    @ValueSource(booleans = {true, false})
+    void shouldConvertNonBackedToConnectData(final boolean isKey) {
+        this.initSetup(isKey, 5000, "s3://bucket/base");
         final String text = "test";
         final SchemaAndValue expected = toConnectData(text);
         final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, createNonBackedText(text));
@@ -127,18 +127,18 @@ class S3BackedConverterTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"true", "false"})
-    void shouldConvertNonBackedNullToConnectData(final String isKey) {
-        this.initSetup(Boolean.parseBoolean(isKey), 5000, "s3://bucket/base");
+    @ValueSource(booleans = {true, false})
+    void shouldConvertNonBackedNullToConnectData(final boolean isKey) {
+        this.initSetup(isKey, 5000, "s3://bucket/base");
         final SchemaAndValue expected = STRING_CONVERTER.toConnectData(null, null);
         final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, null);
         assertThat(schemaAndValue).isEqualTo(expected);
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"true", "false"})
-    void shouldConvertBackedToConnectData(final String isKey) {
-        this.initSetup(Boolean.parseBoolean(isKey), 0, "s3://bucket/base");
+    @ValueSource(booleans = {true, false})
+    void shouldConvertBackedToConnectData(final boolean isKey) {
+        this.initSetup(isKey, 0, "s3://bucket/base");
         final String bucket = "bucket";
         final String key = "key";
         final String text = "test";
@@ -150,9 +150,9 @@ class S3BackedConverterTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"true", "false"})
-    void shouldConvertBackedNullToConnectData(final String isKey) {
-        this.initSetup(Boolean.parseBoolean(isKey), 0, "s3://bucket/base");
+    @ValueSource(booleans = {true, false})
+    void shouldConvertBackedNullToConnectData(final boolean isKey) {
+        this.initSetup(isKey, 0, "s3://bucket/base");
         final SchemaAndValue expected = STRING_CONVERTER.toConnectData(null, null);
         final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, null);
         assertThat(schemaAndValue).isEqualTo(expected);
@@ -187,9 +187,9 @@ class S3BackedConverterTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"true", "false"})
-    void shouldCreateBackedNullData(final String isKey) {
-        this.initSetup(Boolean.parseBoolean(isKey), 0, "s3://bucket/base");
+    @ValueSource(booleans = {true, false})
+    void shouldCreateBackedNullData(final boolean isKey) {
+        this.initSetup(isKey, 0, "s3://bucket/base");
 
         final SchemaAndValue data = STRING_CONVERTER.toConnectData(null, null);
         final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
@@ -197,9 +197,9 @@ class S3BackedConverterTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"true", "false"})
-    void shouldCreateNonBackedData(final String isKey) {
-        this.initSetup(Boolean.parseBoolean(isKey), 5000, "s3://bucket/base");
+    @ValueSource(booleans = {true, false})
+    void shouldCreateNonBackedData(final boolean isKey) {
+        this.initSetup(isKey, 5000, "s3://bucket/base");
 
         final String text = "test";
         final SchemaAndValue data = toConnectData(text);
@@ -208,9 +208,9 @@ class S3BackedConverterTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"true", "false"})
-    void shouldCreateNonBackedNullData(final String isKey) {
-        this.initSetup(Boolean.parseBoolean(isKey), 5000, "s3://bucket/base");
+    @ValueSource(booleans = {true, false})
+    void shouldCreateNonBackedNullData(final boolean isKey) {
+        this.initSetup(isKey, 5000, "s3://bucket/base");
 
         final SchemaAndValue data = STRING_CONVERTER.toConnectData(null, null);
         final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
