@@ -11,6 +11,7 @@ dependencies {
 
     implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.26")
     api(group = "com.amazonaws", name = "aws-java-sdk-s3", version = "1.11.636")
+    implementation(group = "com.google.guava", name = "guava", version = "28.2-jre")
 
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = "5.4.0")
     testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = "5.4.0")

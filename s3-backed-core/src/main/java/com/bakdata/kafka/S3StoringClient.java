@@ -33,7 +33,6 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import java.util.UUID;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +53,7 @@ class S3StoringClient {
     private final @NonNull AmazonS3 s3;
     private final AmazonS3URI basePath;
     private final int maxSize;
+    private final @NonNull IdGenerator idGenerator;
 
     private static String toString(final String s) {
         return s == null ? "" : s;
@@ -81,9 +81,10 @@ class S3StoringClient {
         return metadata;
     }
 
-    private String createS3Key(final String topic, final boolean isKey) {
+    private String createS3Key(final String topic, final boolean isKey, final byte[] bytes) {
         final String prefix = isKey ? KEY_PREFIX : VALUE_PREFIX;
-        return toString(this.basePath.getKey()) + topic + "/" + prefix + "/" + UUID.randomUUID();
+        final String id = this.idGenerator.generateId(bytes);
+        return toString(this.basePath.getKey()) + topic + "/" + prefix + "/" + id;
     }
 
     private boolean needsS3Backing(final byte[] bytes) {
@@ -92,7 +93,7 @@ class S3StoringClient {
 
     byte[] storeBytes(final String topic, final byte[] bytes, final boolean isKey) {
         if (this.needsS3Backing(bytes)) {
-            final String key = this.createS3Key(topic, isKey);
+            final String key = this.createS3Key(topic, isKey, bytes);
             final String uri = this.uploadToS3(key, bytes);
             return serialize(uri);
         } else {
