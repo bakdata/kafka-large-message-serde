@@ -102,9 +102,8 @@ class S3BackedSerializerTest {
 
     private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
             final String type) {
-        final String uri = deserializeUri(s3BackedText);
-        assertThat(uri).startsWith(basePath + OUTPUT_TOPIC + "/" + type + "/");
-        final AmazonS3URI amazonS3URI = new AmazonS3URI(uri);
+        final AmazonS3URI amazonS3URI = deserializeUri(s3BackedText);
+        assertThat(amazonS3URI).asString().startsWith(basePath + OUTPUT_TOPIC + "/" + type + "/");
         final byte[] bytes = readBytes(amazonS3URI);
         final String deserialized = STRING_DESERIALIZER
                 .deserialize(null, bytes);

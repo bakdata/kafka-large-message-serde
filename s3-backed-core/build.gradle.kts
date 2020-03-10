@@ -27,5 +27,4 @@ dependencies {
     }
     testImplementation(group = "log4j", name = "log4j", version = "1.2.17")
     testImplementation(group = "org.slf4j", name = "slf4j-log4j12", version = "1.7.26")
-    testImplementation(group = "com.google.guava", name = "guava", version = "28.2-jre")
 }

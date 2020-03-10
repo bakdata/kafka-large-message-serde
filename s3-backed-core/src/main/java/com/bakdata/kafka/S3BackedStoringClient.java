@@ -84,6 +84,7 @@ class S3BackedStoringClient {
     private String createS3Key(final String topic, final boolean isKey, final byte[] bytes) {
         Objects.requireNonNull(this.basePath, "Base path must not be null");
         Objects.requireNonNull(topic, "Topic must not be null");
+        Objects.requireNonNull(this.idGenerator, "Id generator must not be null");
         final String prefix = isKey ? KEY_PREFIX : VALUE_PREFIX;
         final String id = this.idGenerator.generateId(bytes);
         return toString(this.basePath.getKey()) + topic + "/" + prefix + "/" + id;

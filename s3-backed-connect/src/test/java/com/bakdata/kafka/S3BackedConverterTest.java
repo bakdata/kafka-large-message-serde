@@ -101,9 +101,8 @@ class S3BackedConverterTest {
 
     private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
             final String type) {
-        final String uri = deserializeUri(s3BackedText);
-        assertThat(uri).startsWith(basePath + TOPIC + "/" + type + "/");
-        final AmazonS3URI amazonS3URI = new AmazonS3URI(uri);
+        final AmazonS3URI amazonS3URI = deserializeUri(s3BackedText);
+        assertThat(amazonS3URI).asString().startsWith(basePath + TOPIC + "/" + type + "/");
         final byte[] bytes = readBytes(amazonS3URI);
         final String deserialized = Serdes.String().deserializer()
                 .deserialize(null, bytes);
