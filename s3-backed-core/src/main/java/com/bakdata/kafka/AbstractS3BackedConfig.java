@@ -104,7 +104,7 @@ public class AbstractS3BackedConfig extends AbstractConfig {
                         Importance.LOW, S3_ENABLE_PATH_STYLE_ACCESS_DOC)
                 .define(MAX_BYTE_SIZE_CONFIG, Type.INT, MAX_BYTE_SIZE_DEFAULT, Importance.MEDIUM, MAX_BYTE_SIZE_DOC)
                 .define(BASE_PATH_CONFIG, Type.STRING, BASE_PATH_DEFAULT, Importance.HIGH, BASE_PATH_DOC)
-                .define(ID_GENERATOR_CONFIG, Type.CLASS, ID_GENERATOR_DEFAULT, Importance.HIGH, ID_GENERATOR_DOC);
+                .define(ID_GENERATOR_CONFIG, Type.CLASS, ID_GENERATOR_DEFAULT, Importance.MEDIUM, ID_GENERATOR_DOC);
     }
 
     S3BackedRetrievingClient getS3Retriever() {

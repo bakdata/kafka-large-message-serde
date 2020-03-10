@@ -69,6 +69,13 @@ The following configuration options are available:
   * Type: int
   * Default: 1000000
   * Importance: medium
+  
+``s3backed.id.generator``
+  Class to use for generating unique S3 object IDs. Available generators are: `com.bakdata.kafka.RandomUUIDGenerator`, `com.bakdata.kafka.Sha256HashIdGenerator`, `com.bakdata.kafka.MurmurHashIdGenerator`.
+
+  * Type: class
+  * Default: `com.bakdata.kafka.RandomUUIDGenerator`
+  * Importance: medium
 
 ``s3backed.access.key``
   AWS access key to use for connecting to S3. Leave empty if AWS credential provider chain should be used.
