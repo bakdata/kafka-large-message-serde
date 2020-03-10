@@ -198,6 +198,7 @@ class S3BackedStoringClientTest {
                 .s3(s3)
                 .basePath(new AmazonS3URI(basePath))
                 .maxSize(0)
+                .idGenerator(new RandomUUIDGenerator())
                 .build();
         assertThatExceptionOfType(SerializationException.class)
                 .isThrownBy(() -> storer
