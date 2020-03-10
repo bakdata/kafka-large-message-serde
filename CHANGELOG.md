@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.1.2](https://github.com/bakdata/kafka-s3-backed-serde/tree/1.1.2) (2020-03-10)
+[Full Changelog](https://github.com/bakdata/kafka-s3-backed-serde/compare/1.1.1...1.1.2)
+
+**Merged pull requests:**
+
+- Make ID generator configurable [\#8](https://github.com/bakdata/kafka-s3-backed-serde/pull/8) ([@philipp94831](https://github.com/philipp94831))
+
 ## [1.1.1](https://github.com/bakdata/kafka-s3-backed-serde/tree/1.1.1) (2020-03-02)
 [Full Changelog](https://github.com/bakdata/kafka-s3-backed-serde/compare/1.1.0...1.1.1)
 
