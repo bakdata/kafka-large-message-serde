@@ -11,6 +11,7 @@ dependencies {
 
     implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.26")
     api(group = "com.amazonaws", name = "aws-java-sdk-s3", version = "1.11.636")
+    implementation(group = "com.google.guava", name = "guava", version = "28.2-jre")
 
     val junitVersion: String by project
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
@@ -26,5 +27,4 @@ dependencies {
     }
     testImplementation(group = "log4j", name = "log4j", version = "1.2.17")
     testImplementation(group = "org.slf4j", name = "slf4j-log4j12", version = "1.7.26")
-    testImplementation(group = "com.google.guava", name = "guava", version = "28.2-jre")
 }

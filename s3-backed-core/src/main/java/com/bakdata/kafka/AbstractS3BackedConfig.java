@@ -51,8 +51,9 @@ import java.util.Optional;
  *     <li> S3 access key
  *     <li> S3 secret key
  *     <li> S3 enable path-style access
- *     <li> maximum message size
+ *     <li> maximum serialized message size in bytes
  *     <li> S3 base path
+ *     <li> id generator
  * </ul>
  */
 public class AbstractS3BackedConfig extends AbstractConfig {
@@ -84,6 +85,11 @@ public class AbstractS3BackedConfig extends AbstractConfig {
     public static final String BASE_PATH_DOC = "Base path to store data. Must include bucket and any prefix that "
             + "should be used, e.g., 's3://my-bucket/my/prefix/'.";
     public static final String BASE_PATH_DEFAULT = "";
+    public static final String ID_GENERATOR_CONFIG = PREFIX + "id.generator";
+    public static final String ID_GENERATOR_DOC = "Class to use for generating unique S3 object IDs. Available "
+            + "generators are: " + RandomUUIDGenerator.class.getName() + ", " + Sha256HashIdGenerator.class.getName()
+            + ", " + MurmurHashIdGenerator.class.getName() + ".";
+    public static final Class<? extends IdGenerator> ID_GENERATOR_DEFAULT = RandomUUIDGenerator.class;
 
     public AbstractS3BackedConfig(final ConfigDef config, final Map<?, ?> originals) {
         super(config, originals);
@@ -98,7 +104,8 @@ public class AbstractS3BackedConfig extends AbstractConfig {
                 .define(S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, Type.BOOLEAN, S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT,
                         Importance.LOW, S3_ENABLE_PATH_STYLE_ACCESS_DOC)
                 .define(MAX_BYTE_SIZE_CONFIG, Type.INT, MAX_BYTE_SIZE_DEFAULT, Importance.MEDIUM, MAX_BYTE_SIZE_DOC)
-                .define(BASE_PATH_CONFIG, Type.STRING, BASE_PATH_DEFAULT, Importance.HIGH, BASE_PATH_DOC);
+                .define(BASE_PATH_CONFIG, Type.STRING, BASE_PATH_DEFAULT, Importance.HIGH, BASE_PATH_DOC)
+                .define(ID_GENERATOR_CONFIG, Type.CLASS, ID_GENERATOR_DEFAULT, Importance.MEDIUM, ID_GENERATOR_DOC);
     }
 
     S3BackedRetrievingClient getS3Retriever() {
@@ -112,6 +119,7 @@ public class AbstractS3BackedConfig extends AbstractConfig {
                 .s3(s3)
                 .basePath(this.getBasePath())
                 .maxSize(this.getMaxSize())
+                .idGenerator(this.getConfiguredInstance(ID_GENERATOR_CONFIG, IdGenerator.class))
                 .build();
     }
 

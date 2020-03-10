@@ -50,11 +50,18 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.STRICT_STUBS)
 class S3BackedStoringClientTest {
 
     @RegisterExtension
@@ -63,6 +70,8 @@ class S3BackedStoringClientTest {
     private static final String TOPIC = "output";
     private static final Deserializer<String> STRING_DESERIALIZER = Serdes.String().deserializer();
     private static final Serializer<String> STRING_SERIALIZER = Serdes.String().serializer();
+    @Mock
+    static IdGenerator idGenerator;
 
     private static Map<String, Object> createProperties(final Map<String, Object> properties) {
         return ImmutableMap.<String, Object>builder()
@@ -77,12 +86,15 @@ class S3BackedStoringClientTest {
 
     private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
             final String type) {
-        final String uri = deserializeUri(s3BackedText);
-        assertThat(uri).startsWith(basePath + TOPIC + "/" + type + "/");
-        final AmazonS3URI amazonS3URI = new AmazonS3URI(uri);
+        final AmazonS3URI uri = deserializeUri(s3BackedText);
+        expectBackedText(basePath, expected, uri, type);
+    }
+
+    private static void expectBackedText(final String basePath, final String expected, final AmazonS3URI amazonS3URI,
+            final String type) {
+        assertThat(amazonS3URI).asString().startsWith(basePath + TOPIC + "/" + type + "/");
         final byte[] bytes = readBytes(amazonS3URI);
-        final String deserialized = STRING_DESERIALIZER
-                .deserialize(null, bytes);
+        final String deserialized = STRING_DESERIALIZER.deserialize(null, bytes);
         assertThat(deserialized).isEqualTo(expected);
     }
 
@@ -186,12 +198,35 @@ class S3BackedStoringClientTest {
                 .s3(s3)
                 .basePath(new AmazonS3URI(basePath))
                 .maxSize(0)
+                .idGenerator(new RandomUUIDGenerator())
                 .build();
         assertThatExceptionOfType(SerializationException.class)
                 .isThrownBy(() -> storer
                         .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), isKey))
                 .withMessageStartingWith("Error backing message on S3")
                 .withCauseInstanceOf(IOException.class);
+    }
+
+    @Test
+    void shouldUseConfiguredIdGenerator() {
+        final String bucket = "bucket";
+        final String basePath = "s3://" + bucket + "/base/";
+        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
+                .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractS3BackedConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractS3BackedConfig.ID_GENERATOR_CONFIG, MockIdGenerator.class)
+                .build();
+        final AmazonS3 s3Client = S3_MOCK.createS3Client();
+        s3Client.createBucket(bucket);
+        final S3BackedStoringClient storer = createStorer(properties);
+        when(idGenerator.generateId("foo".getBytes())).thenReturn("bar");
+        assertThat(storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), true))
+                .satisfies(s3BackedText -> {
+                    final AmazonS3URI uri = deserializeUri(s3BackedText);
+                    expectBackedText(basePath, "foo", uri, "keys");
+                    assertThat(uri).asString().endsWith("bar");
+                });
+        s3Client.deleteBucket(bucket);
     }
 
     @ParameterizedTest
@@ -229,8 +264,6 @@ class S3BackedStoringClientTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldThrowExceptionOnNullBasePath(final boolean isKey) {
-        final String bucket = "bucket";
-        final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
                 .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
                 .build();
@@ -241,4 +274,27 @@ class S3BackedStoringClientTest {
                 .withMessage("Base path must not be null");
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldThrowExceptionOnNullIdGenerator(final boolean isKey) {
+        final String bucket = "bucket";
+        final String basePath = "s3://" + bucket + "/base/";
+        final AmazonS3 s3 = mock(AmazonS3.class);
+        final S3BackedStoringClient storer = S3BackedStoringClient.builder()
+                .s3(s3)
+                .basePath(new AmazonS3URI(basePath))
+                .maxSize(0)
+                .build();
+        assertThatNullPointerException()
+                .isThrownBy(() -> storer
+                        .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), isKey))
+                .withMessage("Id generator must not be null");
+    }
+
+    public static class MockIdGenerator implements IdGenerator {
+        @Override
+        public String generateId(final byte[] bytes) {
+            return idGenerator.generateId(bytes);
+        }
+    }
 }
