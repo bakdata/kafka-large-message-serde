@@ -27,6 +27,11 @@ package com.bakdata.kafka;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
+/**
+ * {@link IdGenerator} that uses the murmur3 algorithm to generate an id from the hash of the bytes.
+ *
+ * @see Hashing#murmur3_128()
+ */
 public class MurmurHashIdGenerator implements IdGenerator {
 
     private static final HashFunction MURMUR_3_128 = Hashing.murmur3_128();

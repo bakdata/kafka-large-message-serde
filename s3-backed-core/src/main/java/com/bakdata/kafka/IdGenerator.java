@@ -24,8 +24,19 @@
 
 package com.bakdata.kafka;
 
+/**
+ * An {@code IdGenerator} generates an id from bytes. This id should be unique for two different inputs but must not be
+ * consistent for the same input.
+ */
 @FunctionalInterface
 public interface IdGenerator {
 
+    /**
+     * Generates an id from bytes. This id should be unique for two different inputs but must not be consistent for the
+     * same input.
+     *
+     * @param bytes bytes to generate id from
+     * @return id
+     */
     String generateId(byte[] bytes);
 }

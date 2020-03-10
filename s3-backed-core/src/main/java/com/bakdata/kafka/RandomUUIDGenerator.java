@@ -26,9 +26,15 @@ package com.bakdata.kafka;
 
 import java.util.UUID;
 
+/**
+ * {@link IdGenerator} that uses random UUIDs to generate an id. The bytes are ignored and the result is therefore
+ * inconsistent for the same input.
+ *
+ * @see UUID#randomUUID()
+ */
 public class RandomUUIDGenerator implements IdGenerator {
     @Override
-    public String generateId(byte[] bytes) {
+    public String generateId(final byte[] bytes) {
         return UUID.randomUUID().toString();
     }
 }

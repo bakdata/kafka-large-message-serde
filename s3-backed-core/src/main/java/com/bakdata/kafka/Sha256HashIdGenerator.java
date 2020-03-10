@@ -27,6 +27,11 @@ package com.bakdata.kafka;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
+/**
+ * {@link IdGenerator} that uses the SHA-256 algorithm to generate an id from the hash of the bytes.
+ *
+ * @see Hashing#sha256()
+ */
 public class Sha256HashIdGenerator implements IdGenerator {
 
     private static final HashFunction SHA_256 = Hashing.sha256();
