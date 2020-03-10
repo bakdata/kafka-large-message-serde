@@ -24,7 +24,7 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.S3StoringClient.serialize;
+import static com.bakdata.kafka.S3BackedStoringClient.serialize;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
@@ -132,6 +132,23 @@ class S3BackedDeserializerTest {
     }
 
     @Test
+    void shouldReadNullValue() {
+        this.createTopology(S3BackedDeserializerTest::createValueTopology);
+        this.topology.input()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.ByteArray())
+                .add(1, null);
+        final List<ProducerRecord<Integer, String>> records = Seq.seq(this.topology.streamOutput()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.String()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .extracting(ProducerRecord::value)
+                .containsExactlyInAnyOrder(new String[]{null});
+    }
+
+    @Test
     void shouldReadNonBackedTextKey() {
         this.createTopology(S3BackedDeserializerTest::createKeyTopology);
         this.topology.input()
@@ -146,6 +163,23 @@ class S3BackedDeserializerTest {
                 .hasSize(1)
                 .extracting(ProducerRecord::key)
                 .containsExactlyInAnyOrder("foo");
+    }
+
+    @Test
+    void shouldReadNullKey() {
+        this.createTopology(S3BackedDeserializerTest::createKeyTopology);
+        this.topology.input()
+                .withKeySerde(Serdes.ByteArray())
+                .withValueSerde(Serdes.Integer())
+                .add(null, 1);
+        final List<ProducerRecord<String, Integer>> records = Seq.seq(this.topology.streamOutput()
+                .withKeySerde(Serdes.String())
+                .withValueSerde(Serdes.Integer()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .extracting(ProducerRecord::key)
+                .containsExactlyInAnyOrder(new String[]{null});
     }
 
     @Test

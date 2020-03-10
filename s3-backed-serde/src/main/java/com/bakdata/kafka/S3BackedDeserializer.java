@@ -45,7 +45,7 @@ import org.apache.kafka.common.serialization.Serde;
 @NoArgsConstructor
 @Slf4j
 public class S3BackedDeserializer<T> implements Deserializer<T> {
-    private S3RetrievingClient client;
+    private S3BackedRetrievingClient client;
     private Deserializer<? extends T> deserializer;
 
     @Override

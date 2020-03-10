@@ -24,8 +24,8 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.S3RetrievingClient.deserializeUri;
-import static com.bakdata.kafka.S3RetrievingClient.getBytes;
+import static com.bakdata.kafka.S3BackedRetrievingClient.deserializeUri;
+import static com.bakdata.kafka.S3BackedRetrievingClient.getBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
@@ -100,8 +100,8 @@ class S3BackedSerializerTest {
         return builder.build();
     }
 
-    private static void expectBackedText(final String basePath, final String expected,
-            final byte[] s3BackedText, final String type) {
+    private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
+            final String type) {
         final String uri = deserializeUri(s3BackedText);
         assertThat(uri).startsWith(basePath + OUTPUT_TOPIC + "/" + type + "/");
         final AmazonS3URI amazonS3URI = new AmazonS3URI(uri);
@@ -159,6 +159,25 @@ class S3BackedSerializerTest {
     }
 
     @Test
+    void shouldWriteNonBackedNullKey() {
+        final Properties properties = new Properties();
+        properties.put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
+        this.createTopology(S3BackedSerializerTest::createKeyTopology, properties);
+        this.topology.input()
+                .withKeySerde(Serdes.String())
+                .withValueSerde(Serdes.Integer())
+                .add(null, 1);
+        final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
+                .withKeySerde(Serdes.ByteArray())
+                .withValueSerde(Serdes.Integer()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .extracting(ProducerRecord::key)
+                .anySatisfy(s3BackedText -> assertThat(s3BackedText).isNull());
+    }
+
+    @Test
     void shouldWriteNonBackedTextValue() {
         final Properties properties = new Properties();
         properties.put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
@@ -175,6 +194,25 @@ class S3BackedSerializerTest {
                 .hasSize(1)
                 .extracting(ProducerRecord::value)
                 .anySatisfy(s3BackedText -> expectNonBackedText("foo", s3BackedText));
+    }
+
+    @Test
+    void shouldWriteNonBackedNullValue() {
+        final Properties properties = new Properties();
+        properties.put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
+        this.createTopology(S3BackedSerializerTest::createValueTopology, properties);
+        this.topology.input()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.String())
+                .add(1, null);
+        final List<ProducerRecord<Integer, byte[]>> records = Seq.seq(this.topology.streamOutput()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.ByteArray()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .extracting(ProducerRecord::value)
+                .anySatisfy(s3BackedText -> assertThat(s3BackedText).isNull());
     }
 
     @Test
@@ -203,6 +241,25 @@ class S3BackedSerializerTest {
     }
 
     @Test
+    void shouldWriteBackedNullKey() {
+        final Properties properties = new Properties();
+        properties.put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0);
+        this.createTopology(S3BackedSerializerTest::createKeyTopology, properties);
+        this.topology.input()
+                .withKeySerde(Serdes.String())
+                .withValueSerde(Serdes.Integer())
+                .add(null, 1);
+        final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
+                .withKeySerde(Serdes.ByteArray())
+                .withValueSerde(Serdes.Integer()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .extracting(ProducerRecord::key)
+                .anySatisfy(s3BackedText -> assertThat(s3BackedText).isNull());
+    }
+
+    @Test
     void shouldWriteBackedTextValue() {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
@@ -225,6 +282,25 @@ class S3BackedSerializerTest {
                 .extracting(ProducerRecord::value)
                 .anySatisfy(s3BackedText -> expectBackedText(basePath, "foo", s3BackedText, "values"));
         s3Client.deleteBucket(bucket);
+    }
+
+    @Test
+    void shouldWriteBackedNullValue() {
+        final Properties properties = new Properties();
+        properties.put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0);
+        this.createTopology(S3BackedSerializerTest::createValueTopology, properties);
+        this.topology.input()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.String())
+                .add(1, null);
+        final List<ProducerRecord<Integer, byte[]>> records = Seq.seq(this.topology.streamOutput()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.ByteArray()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .extracting(ProducerRecord::value)
+                .anySatisfy(s3BackedText -> assertThat(s3BackedText).isNull());
     }
 
 }

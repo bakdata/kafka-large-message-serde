@@ -48,7 +48,7 @@ import org.apache.kafka.common.serialization.Serializer;
 @NoArgsConstructor
 @Slf4j
 public class S3BackedSerializer<T> implements Serializer<T> {
-    private S3StoringClient client;
+    private S3BackedStoringClient client;
     private Serializer<? super T> serializer;
     private boolean isKey;
 

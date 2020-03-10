@@ -25,8 +25,8 @@
 package com.bakdata.kafka;
 
 
-import static com.bakdata.kafka.S3RetrievingClient.deserializeUri;
-import static com.bakdata.kafka.S3RetrievingClient.getBytes;
+import static com.bakdata.kafka.S3BackedRetrievingClient.deserializeUri;
+import static com.bakdata.kafka.S3BackedRetrievingClient.getBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
@@ -50,6 +50,8 @@ import org.apache.kafka.connect.storage.Converter;
 import org.apache.kafka.connect.storage.StringConverter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class S3BackedConverterTest {
     @RegisterExtension
@@ -64,7 +66,7 @@ class S3BackedConverterTest {
 
     private static byte[] createBackedText(final String bucket, final String key) {
         final String uri = "s3://" + bucket + "/" + key;
-        return S3StoringClient.serialize(uri);
+        return S3BackedStoringClient.serialize(uri);
     }
 
     private static byte[] readBytes(final AmazonS3URI amazonS3URI) {
@@ -94,7 +96,7 @@ class S3BackedConverterTest {
     }
 
     private static byte[] createNonBackedText(final String text) {
-        return S3StoringClient.serialize(STRING_SERIALIZER.serialize(null, text));
+        return S3BackedStoringClient.serialize(STRING_SERIALIZER.serialize(null, text));
     }
 
     private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
@@ -114,18 +116,29 @@ class S3BackedConverterTest {
                 .isEqualTo(expected);
     }
 
-    @Test
-    void shouldConvertNonBackedToConnectData() {
-        this.initSetup(false, 5000, "s3://bucket/base");
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldConvertNonBackedToConnectData(final boolean isKey) {
+        this.initSetup(isKey, 5000, "s3://bucket/base");
         final String text = "test";
         final SchemaAndValue expected = toConnectData(text);
         final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, createNonBackedText(text));
         assertThat(schemaAndValue).isEqualTo(expected);
     }
 
-    @Test
-    void shouldConvertBackedToConnectData() {
-        this.initSetup(false, 0, "s3://bucket/base");
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldConvertNonBackedNullToConnectData(final boolean isKey) {
+        this.initSetup(isKey, 5000, "s3://bucket/base");
+        final SchemaAndValue expected = STRING_CONVERTER.toConnectData(null, null);
+        final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, null);
+        assertThat(schemaAndValue).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldConvertBackedToConnectData(final boolean isKey) {
+        this.initSetup(isKey, 0, "s3://bucket/base");
         final String bucket = "bucket";
         final String key = "key";
         final String text = "test";
@@ -133,6 +146,15 @@ class S3BackedConverterTest {
         final SchemaAndValue expected = toConnectData(text);
         this.store(bucket, key, text, TOPIC);
         final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, createBackedText(bucket, key));
+        assertThat(schemaAndValue).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldConvertBackedNullToConnectData(final boolean isKey) {
+        this.initSetup(isKey, 0, "s3://bucket/base");
+        final SchemaAndValue expected = STRING_CONVERTER.toConnectData(null, null);
+        final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, null);
         assertThat(schemaAndValue).isEqualTo(expected);
     }
 
@@ -164,14 +186,35 @@ class S3BackedConverterTest {
         expectBackedText(basePath, text, bytes, "values");
     }
 
-    @Test
-    void shouldCreateNonBackedData() {
-        this.initSetup(false, 5000, "s3://bucket/base");
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldCreateBackedNullData(final boolean isKey) {
+        this.initSetup(isKey, 0, "s3://bucket/base");
+
+        final SchemaAndValue data = STRING_CONVERTER.toConnectData(null, null);
+        final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
+        assertThat(bytes).isNull();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldCreateNonBackedData(final boolean isKey) {
+        this.initSetup(isKey, 5000, "s3://bucket/base");
 
         final String text = "test";
         final SchemaAndValue data = toConnectData(text);
         final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
         expectNonBackedText(text, bytes);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldCreateNonBackedNullData(final boolean isKey) {
+        this.initSetup(isKey, 5000, "s3://bucket/base");
+
+        final SchemaAndValue data = STRING_CONVERTER.toConnectData(null, null);
+        final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
+        assertThat(bytes).isNull();
     }
 
     private void store(final String bucket, final String key, final String s, final String topic) {

@@ -43,7 +43,7 @@ import org.apache.kafka.common.errors.SerializationException;
  */
 @Slf4j
 @Builder
-class S3StoringClient {
+class S3BackedStoringClient {
 
     static final byte IS_NOT_BACKED = 0;
     static final byte IS_BACKED = 1;
@@ -82,6 +82,8 @@ class S3StoringClient {
     }
 
     private String createS3Key(final String topic, final boolean isKey, final byte[] bytes) {
+        Objects.requireNonNull(this.basePath, "Base path must not be null");
+        Objects.requireNonNull(topic, "Topic must not be null");
         final String prefix = isKey ? KEY_PREFIX : VALUE_PREFIX;
         final String id = this.idGenerator.generateId(bytes);
         return toString(this.basePath.getKey()) + topic + "/" + prefix + "/" + id;
@@ -92,6 +94,9 @@ class S3StoringClient {
     }
 
     byte[] storeBytes(final String topic, final byte[] bytes, final boolean isKey) {
+        if (bytes == null) {
+            return null;
+        }
         if (this.needsS3Backing(bytes)) {
             final String key = this.createS3Key(topic, isKey, bytes);
             final String uri = this.uploadToS3(key, bytes);
@@ -102,7 +107,6 @@ class S3StoringClient {
     }
 
     private String uploadToS3(final String key, final byte[] bytes) {
-        Objects.requireNonNull(this.basePath);
         final String bucket = this.basePath.getBucket();
         try (final InputStream content = new ByteArrayInputStream(bytes)) {
             final ObjectMetadata metadata = createMetadata(bytes);
