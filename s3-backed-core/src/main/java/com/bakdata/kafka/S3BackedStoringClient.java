@@ -53,7 +53,7 @@ class S3BackedStoringClient {
     private final @NonNull AmazonS3 s3;
     private final AmazonS3URI basePath;
     private final int maxSize;
-    private final @NonNull IdGenerator idGenerator;
+    private final IdGenerator idGenerator;
 
     private static String toString(final String s) {
         return s == null ? "" : s;

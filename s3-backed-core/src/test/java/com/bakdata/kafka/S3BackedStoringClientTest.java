@@ -275,15 +275,15 @@ class S3BackedStoringClientTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void shouldThrowExceptionOnIdGenerator(final boolean isKey) {
+    void shouldThrowExceptionOnNullIdGenerator(final boolean isKey) {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
-        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractS3BackedConfig.ID_GENERATOR_CONFIG, null)
-                .put(AbstractS3BackedConfig.BASE_PATH_CONFIG, basePath)
+        final AmazonS3 s3 = mock(AmazonS3.class);
+        final S3BackedStoringClient storer = S3BackedStoringClient.builder()
+                .s3(s3)
+                .basePath(new AmazonS3URI(basePath))
+                .maxSize(0)
                 .build();
-        final S3BackedStoringClient storer = createStorer(properties);
         assertThatNullPointerException()
                 .isThrownBy(() -> storer
                         .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), isKey))
