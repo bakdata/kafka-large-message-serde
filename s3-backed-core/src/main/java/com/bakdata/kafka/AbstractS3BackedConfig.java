@@ -51,8 +51,9 @@ import java.util.Optional;
  *     <li> S3 access key
  *     <li> S3 secret key
  *     <li> S3 enable path-style access
- *     <li> maximum message size
+ *     <li> maximum serialized message size in bytes
  *     <li> S3 base path
+ *     <li> id generator
  * </ul>
  */
 public class AbstractS3BackedConfig extends AbstractConfig {
