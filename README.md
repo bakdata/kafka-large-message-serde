@@ -78,18 +78,40 @@ The following configuration options are available:
   * Importance: medium
 
 ``s3backed.access.key``
-  AWS access key to use for connecting to S3. Leave empty if AWS credential provider chain should be used.
+  AWS access key to use for connecting to S3. Leave empty if AWS credential provider chain or STS Assume Role provider should be used.
 
   * Type: password
   * Default: ""
   * Importance: low
 
 ``s3backed.secret.key``
-  AWS secret key to use for connecting to S3. Leave empty if AWS credential provider chain should be used.
+  AWS secret key to use for connecting to S3. Leave empty if AWS credential provider chain or STS Assume Role provider should be used.
 
   * Type: password
   * Default: ""
   * Importance: low
+
+ ``s3backed.sts.role.arn``
+   AWS STS role ARN to use for connecting to S3. Leave empty if AWS Basic provider or AWS credential provider chain should be used.
+
+   * Type: string
+   * Default: ""
+   * Importance: low
+
+  
+ ``s3backed.role.external.id``
+   AWS STS role external ID used when retrieving session credentials under an assumed role. Leave empty if AWS Basic provider or AWS credential provider chain should be used.
+
+   * Type: string
+   * Default: ""
+   * Importance: low
+
+ ``s3backed.role.session.name``
+   AWS STS role session name to use when starting a session. Leave empty if AWS Basic provider or AWS credential provider chain should be used.
+
+   * Type: string
+   * Default: ""
+   * Importance: low
 
 ``s3backed.region``
   S3 region to use. Must be configured in conjunction with s3backed.endpoint. Leave empty if default S3 region should be used.
