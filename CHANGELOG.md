@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.1.4](https://github.com/bakdata/kafka-s3-backed-serde/tree/1.1.4) (2021-04-21)
+[Full Changelog](https://github.com/bakdata/kafka-s3-backed-serde/compare/1.1.3...1.1.4)
+
+**Merged pull requests:**
+
+- Fix creation of AWS credentials provider [\#12](https://github.com/bakdata/kafka-s3-backed-serde/pull/12) ([@torbsto](https://github.com/torbsto))
+- Update gradle plugins [\#11](https://github.com/bakdata/kafka-s3-backed-serde/pull/11) ([@philipp94831](https://github.com/philipp94831))
+
 ## [1.1.3](https://github.com/bakdata/kafka-s3-backed-serde/tree/1.1.3) (2021-04-21)
 [Full Changelog](https://github.com/bakdata/kafka-s3-backed-serde/compare/1.1.2...1.1.3)
 
