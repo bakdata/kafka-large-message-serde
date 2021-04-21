@@ -11,6 +11,7 @@ dependencies {
 
     implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.26")
     api(group = "com.amazonaws", name = "aws-java-sdk-s3", version = "1.11.636")
+    api(group = "com.amazonaws", name = "aws-java-sdk-sts", version = "1.11.636")
     implementation(group = "com.google.guava", name = "guava", version = "28.2-jre")
 
     val junitVersion: String by project
