@@ -1,5 +1,16 @@
 # Change Log
 
+## [1.1.3](https://github.com/bakdata/kafka-s3-backed-serde/tree/1.1.3) (2021-04-21)
+[Full Changelog](https://github.com/bakdata/kafka-s3-backed-serde/compare/1.1.2...1.1.3)
+
+**Closed issues:**
+
+- Can't build project  [\#9](https://github.com/bakdata/kafka-s3-backed-serde/issues/9)
+
+**Merged pull requests:**
+
+- Adding STSAssumeRoleSessionCredentialsProvider [\#10](https://github.com/bakdata/kafka-s3-backed-serde/pull/10) ([@Tomczik76](https://github.com/Tomczik76))
+
 ## [1.1.2](https://github.com/bakdata/kafka-s3-backed-serde/tree/1.1.2) (2020-03-10)
 [Full Changelog](https://github.com/bakdata/kafka-s3-backed-serde/compare/1.1.1...1.1.2)
 
