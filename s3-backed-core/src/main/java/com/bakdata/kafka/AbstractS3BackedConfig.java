@@ -32,10 +32,10 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import io.confluent.common.config.AbstractConfig;
 import io.confluent.common.config.ConfigDef;
 import io.confluent.common.config.ConfigDef.Importance;
@@ -52,6 +52,7 @@ import java.util.Optional;
  *     <li> S3 region
  *     <li> S3 access key
  *     <li> S3 secret key
+ *     <li> AWS security token service
  *     <li> S3 enable path-style access
  *     <li> maximum serialized message size in bytes
  *     <li> S3 base path
@@ -75,16 +76,16 @@ public class AbstractS3BackedConfig extends AbstractConfig {
     public static final String S3_SECRET_KEY_CONFIG = PREFIX + "secret.key";
     public static final String S3_SECRET_KEY_DOC = "AWS secret key to use for connecting to S3. Leave empty if AWS"
             + " credential provider chain or STS Assume Role provider should be used.";
-    public static final String S3_ROLE_EXTERNAL_ID_CONFIG = "sts.role.external.id";
+    public static final String S3_ROLE_EXTERNAL_ID_CONFIG = PREFIX + "sts.role.external.id";
     public static final String S3_ROLE_EXTERNAL_ID_CONFIG_DOC = "AWS STS role external ID used when retrieving session"
             + " credentials under an assumed role. Leave empty if AWS Basic provider or AWS credential provider chain"
             + " should be used.";
     public static final String S3_ROLE_EXTERNAL_ID_CONFIG_DEFAULT = "";
-    public static final String S3_ROLE_ARN_CONFIG = "sts.role.arn";
+    public static final String S3_ROLE_ARN_CONFIG = PREFIX + "sts.role.arn";
     public static final String S3_ROLE_ARN_CONFIG_DOC = "AWS STS role ARN to use for connecting to S3. Leave empty if"
             + " AWS Basic provider or AWS credential provider chain should be used.";
     public static final String S3_ROLE_ARN_CONFIG_DEFAULT = "";
-    public static final String S3_ROLE_SESSION_NAME_CONFIG = "sts.role.session.name";
+    public static final String S3_ROLE_SESSION_NAME_CONFIG = PREFIX + "sts.role.session.name";
     public static final String S3_ROLE_SESSION_NAME_CONFIG_DOC = "AWS STS role session name to use when starting a"
             + " session. Leave empty if AWS Basic provider or AWS credential provider chain should be used.";
     public static final String S3_ROLE_SESSION_NAME_CONFIG_DEFAULT = "";
@@ -121,9 +122,12 @@ public class AbstractS3BackedConfig extends AbstractConfig {
                 .define(MAX_BYTE_SIZE_CONFIG, Type.INT, MAX_BYTE_SIZE_DEFAULT, Importance.MEDIUM, MAX_BYTE_SIZE_DOC)
                 .define(BASE_PATH_CONFIG, Type.STRING, BASE_PATH_DEFAULT, Importance.HIGH, BASE_PATH_DOC)
                 .define(ID_GENERATOR_CONFIG, Type.CLASS, ID_GENERATOR_DEFAULT, Importance.MEDIUM, ID_GENERATOR_DOC)
-                .define(S3_ROLE_EXTERNAL_ID_CONFIG, ConfigDef.Type.STRING, S3_ROLE_EXTERNAL_ID_CONFIG_DEFAULT, ConfigDef.Importance.LOW, S3_ROLE_EXTERNAL_ID_CONFIG_DOC)
-                .define(S3_ROLE_ARN_CONFIG, ConfigDef.Type.STRING, S3_ROLE_ARN_CONFIG_DEFAULT, ConfigDef.Importance.LOW, S3_ROLE_ARN_CONFIG_DOC)
-                .define(S3_ROLE_SESSION_NAME_CONFIG, ConfigDef.Type.STRING, S3_ROLE_SESSION_NAME_CONFIG_DEFAULT, ConfigDef.Importance.LOW, S3_ROLE_SESSION_NAME_CONFIG_DOC);
+                .define(S3_ROLE_EXTERNAL_ID_CONFIG, Type.STRING, S3_ROLE_EXTERNAL_ID_CONFIG_DEFAULT, Importance.LOW,
+                        S3_ROLE_EXTERNAL_ID_CONFIG_DOC)
+                .define(S3_ROLE_ARN_CONFIG, Type.STRING, S3_ROLE_ARN_CONFIG_DEFAULT, Importance.LOW,
+                        S3_ROLE_ARN_CONFIG_DOC)
+                .define(S3_ROLE_SESSION_NAME_CONFIG, Type.STRING, S3_ROLE_SESSION_NAME_CONFIG_DEFAULT, Importance.LOW,
+                        S3_ROLE_SESSION_NAME_CONFIG_DOC);
     }
 
     S3BackedRetrievingClient getS3Retriever() {
@@ -174,8 +178,8 @@ public class AbstractS3BackedConfig extends AbstractConfig {
     private Optional<AWSCredentialsProvider> getCredentialsProvider() {
         final String accessKey = this.getPassword(S3_ACCESS_KEY_CONFIG).value();
         final String secretKey = this.getPassword(S3_SECRET_KEY_CONFIG).value();
-        
-        if (!isEmpty(accessKey) || !isEmpty(secretKey)) {
+
+        if (!isEmpty(accessKey) && !isEmpty(secretKey)) {
             final AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
             return Optional.of(new AWSStaticCredentialsProvider(credentials));
         }
@@ -184,12 +188,10 @@ public class AbstractS3BackedConfig extends AbstractConfig {
         final String roleArn = this.getString(S3_ROLE_ARN_CONFIG);
         final String roleSessionName = this.getString(S3_ROLE_SESSION_NAME_CONFIG);
 
-        if (!isEmpty(roleExternalId) || !isEmpty(roleArn) || !isEmpty(roleSessionName)) {
-            final AWSSecurityTokenServiceClientBuilder clientBuilder =
-                    AWSSecurityTokenServiceClientBuilder.standard();
+        if (!isEmpty(roleExternalId) && !isEmpty(roleArn) && !isEmpty(roleSessionName)) {
             final AWSCredentialsProvider provider =
                     new STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, roleSessionName)
-                            .withStsClient(clientBuilder.defaultClient())
+                            .withStsClient(AWSSecurityTokenServiceClientBuilder.defaultClient())
                             .withExternalId(roleExternalId)
                             .build();
 
