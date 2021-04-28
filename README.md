@@ -14,7 +14,7 @@ You can add kafka-s3-backed-serde via Maven Central.
 
 #### Gradle
 ```gradle
-compile group: 'com.bakdata.kafka', name: 's3-backed-serde', version: '1.1.0'
+compile group: 'com.bakdata.kafka', name: 's3-backed-serde', version: '1.1.6'
 ```
 
 #### Maven
@@ -22,7 +22,7 @@ compile group: 'com.bakdata.kafka', name: 's3-backed-serde', version: '1.1.0'
 <dependency>
     <groupId>com.bakdata.kafka</groupId>
     <artifactId>s3-backed-serde</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.6</version>
 </dependency>
 ```
 
@@ -141,7 +141,7 @@ You can add kafka-s3-backed-connect via Maven Central.
 
 #### Gradle
 ```gradle
-compile group: 'com.bakdata.kafka', name: 's3-backed-connect', version: '1.1.0'
+compile group: 'com.bakdata.kafka', name: 's3-backed-connect', version: '1.1.6'
 ```
 
 #### Maven
@@ -149,7 +149,7 @@ compile group: 'com.bakdata.kafka', name: 's3-backed-connect', version: '1.1.0'
 <dependency>
     <groupId>com.bakdata.kafka</groupId>
     <artifactId>s3-backed-connect</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.6</version>
 </dependency>
 ```
 
@@ -168,6 +168,8 @@ you can configure the following:
   * Type: class
   * Default: `org.apache.kafka.connect.converters.ByteArrayConverter`
   * Importance: high
+
+For general guidance on how to configure Kafka Connect converters, please have a look at the [official documentation](https://docs.confluent.io/home/connect/configuring.html).
 
 ## Development
 
