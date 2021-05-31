@@ -114,9 +114,11 @@ public class S3BackedStoringClient {
     public void deleteAllFiles(final String topic) {
         final String prefix = this.createTopicPrefix(topic);
         final String bucketName = this.basePath.getBucket();
+        log.info("Deleting S3 backed files for topic '{}'", topic);
         // https://docs.aws.amazon.com/AmazonS3/latest/userguide/delete-bucket.html#delete-empty-bucket
         this.deleteObjects(bucketName, prefix);
         this.deleteVersions(bucketName, prefix);
+        log.info("Finished deleting S3 backed files for topic '{}'", topic);
     }
 
     private void deleteObjects(final String bucketName, final String prefix) {
