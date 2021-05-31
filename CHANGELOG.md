@@ -1,5 +1,18 @@
 # Change Log
 
+## [1.1.5](https://github.com/bakdata/kafka-s3-backed-serde/tree/1.1.5) (2021-05-31)
+[Full Changelog](https://github.com/bakdata/kafka-s3-backed-serde/compare/1.1.4...1.1.5)
+
+**Closed issues:**
+
+- Kafka Connect Rest API properties and Connect Env Vars not being honored [\#13](https://github.com/bakdata/kafka-s3-backed-serde/issues/13)
+
+**Merged pull requests:**
+
+- Add logging to file deletion [\#16](https://github.com/bakdata/kafka-s3-backed-serde/pull/16) ([@philipp94831](https://github.com/philipp94831))
+- Add API to delete all files associated with a Kafka topic [\#15](https://github.com/bakdata/kafka-s3-backed-serde/pull/15) ([@philipp94831](https://github.com/philipp94831))
+- Clarify connect configuration in README [\#14](https://github.com/bakdata/kafka-s3-backed-serde/pull/14) ([@philipp94831](https://github.com/philipp94831))
+
 ## [1.1.4](https://github.com/bakdata/kafka-s3-backed-serde/tree/1.1.4) (2021-04-21)
 [Full Changelog](https://github.com/bakdata/kafka-s3-backed-serde/compare/1.1.3...1.1.4)
 
