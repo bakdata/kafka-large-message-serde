@@ -42,7 +42,6 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.util.IOUtils;
 import com.google.common.collect.ImmutableMap;
-import io.confluent.common.config.ConfigDef;
 import java.io.IOException;
 import java.util.Map;
 import org.apache.kafka.common.errors.SerializationException;
@@ -115,8 +114,7 @@ class S3BackedStoringClientTest {
 
     private static S3BackedStoringClient createStorer(final Map<String, Object> baseProperties) {
         final Map<String, Object> properties = createProperties(baseProperties);
-        final ConfigDef configDef = AbstractS3BackedConfig.baseConfigDef();
-        final AbstractS3BackedConfig config = new AbstractS3BackedConfig(configDef, properties);
+        final AbstractS3BackedConfig config = new AbstractS3BackedConfig(properties);
         return config.getS3Storer();
     }
 
@@ -182,6 +180,26 @@ class S3BackedStoringClientTest {
         final S3BackedStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), false))
                 .satisfies(s3BackedText -> expectBackedText(basePath, "foo", s3BackedText, "values"));
+        s3Client.deleteBucket(bucket);
+    }
+
+    @Test
+    void shouldDeleteFiles() {
+        final String bucket = "bucket";
+        final String basePath = "s3://" + bucket + "/base/";
+        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
+                .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractS3BackedConfig.BASE_PATH_CONFIG, basePath)
+                .build();
+        final AmazonS3 s3Client = S3_MOCK.createS3Client();
+        s3Client.createBucket(bucket);
+        final S3BackedStoringClient storer = createStorer(properties);
+        storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), true);
+        storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), false);
+        storer.storeBytes("foo", STRING_SERIALIZER.serialize(null, "foo"), true);
+        assertThat(s3Client.listObjects(bucket, "base/").getObjectSummaries()).hasSize(3);
+        storer.deleteAllFiles(TOPIC);
+        assertThat(s3Client.listObjects(bucket, "base/").getObjectSummaries()).hasSize(1);
         s3Client.deleteBucket(bucket);
     }
 

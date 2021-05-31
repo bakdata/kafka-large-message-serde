@@ -45,7 +45,7 @@ import org.apache.kafka.common.errors.SerializationException;
  */
 @Slf4j
 @RequiredArgsConstructor
-class S3BackedRetrievingClient {
+public class S3BackedRetrievingClient {
 
     private final @NonNull AmazonS3 s3;
 
@@ -62,7 +62,13 @@ class S3BackedRetrievingClient {
         return bytes;
     }
 
-    byte[] retrieveBytes(final byte[] data) {
+    /**
+     * Retrieve a payload that may have been stored on Amazon S3
+     *
+     * @param data payload
+     * @return actual payload retrieved from Amazon S3
+     */
+    public byte[] retrieveBytes(final byte[] data) {
         if (data == null) {
             return null;
         }
