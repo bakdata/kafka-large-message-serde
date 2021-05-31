@@ -108,11 +108,16 @@ public class AbstractS3BackedConfig extends AbstractConfig {
     public static final Class<? extends IdGenerator> ID_GENERATOR_DEFAULT = RandomUUIDGenerator.class;
     private static final ConfigDef config = baseConfigDef();
 
-    public AbstractS3BackedConfig(final ConfigDef config, final Map<?, ?> originals) {
+    /**
+     * Create a new configuration from the given properties
+     *
+     * @param originals properties for configuring this config
+     */
+    public AbstractS3BackedConfig(final Map<?, ?> originals) {
         super(config, originals);
     }
 
-    public AbstractS3BackedConfig(final Map<?, ?> originals) {
+    protected AbstractS3BackedConfig(final ConfigDef config, final Map<?, ?> originals) {
         super(config, originals);
     }
 
