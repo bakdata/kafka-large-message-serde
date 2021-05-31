@@ -171,6 +171,17 @@ you can configure the following:
 
 For general guidance on how to configure Kafka Connect converters, please have a look at the [official documentation](https://docs.confluent.io/home/connect/configuring.html).
 
+### Cleaning up the bucket
+
+We also provide a method for cleaning up all files on Amazon S3 associated with a topic:
+
+```java
+final Map<String, Object> properties = ...;
+final AbstractS3BackedConfig config = new AbstractS3BackedConfig(properties);
+final S3BackedStoringClient storer = config.getS3Storer()
+storer.deleteAllFiles("topic");
+```
+
 ## Development
 
 If you want to contribute to this project, you can simply clone the repository and build it via Gradle.
