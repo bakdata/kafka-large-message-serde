@@ -106,8 +106,18 @@ public class AbstractS3BackedConfig extends AbstractConfig {
             + "generators are: " + RandomUUIDGenerator.class.getName() + ", " + Sha256HashIdGenerator.class.getName()
             + ", " + MurmurHashIdGenerator.class.getName() + ".";
     public static final Class<? extends IdGenerator> ID_GENERATOR_DEFAULT = RandomUUIDGenerator.class;
+    private static final ConfigDef config = baseConfigDef();
 
-    public AbstractS3BackedConfig(final ConfigDef config, final Map<?, ?> originals) {
+    /**
+     * Create a new configuration from the given properties
+     *
+     * @param originals properties for configuring this config
+     */
+    public AbstractS3BackedConfig(final Map<?, ?> originals) {
+        super(config, originals);
+    }
+
+    protected AbstractS3BackedConfig(final ConfigDef config, final Map<?, ?> originals) {
         super(config, originals);
     }
 
@@ -130,12 +140,12 @@ public class AbstractS3BackedConfig extends AbstractConfig {
                         S3_ROLE_SESSION_NAME_CONFIG_DOC);
     }
 
-    S3BackedRetrievingClient getS3Retriever() {
+    public S3BackedRetrievingClient getS3Retriever() {
         final AmazonS3 s3 = this.createS3Client();
         return new S3BackedRetrievingClient(s3);
     }
 
-    S3BackedStoringClient getS3Storer() {
+    public S3BackedStoringClient getS3Storer() {
         final AmazonS3 s3 = this.createS3Client();
         return S3BackedStoringClient.builder()
                 .s3(s3)
