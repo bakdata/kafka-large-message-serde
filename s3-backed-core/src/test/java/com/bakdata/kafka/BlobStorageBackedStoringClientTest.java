@@ -24,8 +24,8 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.S3BackedRetrievingClient.deserializeUri;
-import static com.bakdata.kafka.S3BackedRetrievingClient.getBytes;
+import static com.bakdata.kafka.BlobStorageBackedRetrievingClient.deserializeUri;
+import static com.bakdata.kafka.BlobStorageBackedRetrievingClient.getBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
@@ -61,7 +61,7 @@ import org.mockito.stubbing.Answer;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.STRICT_STUBS)
-class S3BackedStoringClientTest {
+class BlobStorageBackedStoringClientTest {
 
     @RegisterExtension
     static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
@@ -75,30 +75,30 @@ class S3BackedStoringClientTest {
     private static Map<String, Object> createProperties(final Map<String, Object> properties) {
         return ImmutableMap.<String, Object>builder()
                 .putAll(properties)
-                .put(AbstractS3BackedConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
-                .put(AbstractS3BackedConfig.S3_REGION_CONFIG, "us-east-1")
-                .put(AbstractS3BackedConfig.S3_ACCESS_KEY_CONFIG, "foo")
-                .put(AbstractS3BackedConfig.S3_SECRET_KEY_CONFIG, "bar")
-                .put(AbstractS3BackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true)
+                .put(AbstractBlobStorageBackedConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
+                .put(AbstractBlobStorageBackedConfig.S3_REGION_CONFIG, "us-east-1")
+                .put(AbstractBlobStorageBackedConfig.S3_ACCESS_KEY_CONFIG, "foo")
+                .put(AbstractBlobStorageBackedConfig.S3_SECRET_KEY_CONFIG, "bar")
+                .put(AbstractBlobStorageBackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true)
                 .build();
     }
 
     private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
             final String type) {
-        final AmazonS3URI uri = deserializeUri(s3BackedText);
+        final BlobStorageURI uri = deserializeUri(s3BackedText);
         expectBackedText(basePath, expected, uri, type);
     }
 
-    private static void expectBackedText(final String basePath, final String expected, final AmazonS3URI amazonS3URI,
+    private static void expectBackedText(final String basePath, final String expected, final BlobStorageURI uri,
             final String type) {
-        assertThat(amazonS3URI).asString().startsWith(basePath + TOPIC + "/" + type + "/");
-        final byte[] bytes = readBytes(amazonS3URI);
+        assertThat(uri).asString().startsWith(basePath + TOPIC + "/" + type + "/");
+        final byte[] bytes = readBytes(uri);
         final String deserialized = STRING_DESERIALIZER.deserialize(null, bytes);
         assertThat(deserialized).isEqualTo(expected);
     }
 
-    private static byte[] readBytes(final AmazonS3URI amazonS3URI) {
-        try (final S3Object object = S3_MOCK.createS3Client().getObject(amazonS3URI.getBucket(), amazonS3URI.getKey());
+    private static byte[] readBytes(final BlobStorageURI uri) {
+        try (final S3Object object = S3_MOCK.createS3Client().getObject(uri.getBucket(), uri.getKey());
                 final S3ObjectInputStream objectContent = object.getObjectContent()) {
             return IOUtils.toByteArray(objectContent);
         } catch (final IOException e) {
@@ -112,19 +112,19 @@ class S3BackedStoringClientTest {
                 .isEqualTo(expected);
     }
 
-    private static S3BackedStoringClient createStorer(final Map<String, Object> baseProperties) {
+    private static BlobStorageBackedStoringClient createStorer(final Map<String, Object> baseProperties) {
         final Map<String, Object> properties = createProperties(baseProperties);
-        final AbstractS3BackedConfig config = new AbstractS3BackedConfig(properties);
-        return config.getS3Storer();
+        final AbstractBlobStorageBackedConfig config = new AbstractBlobStorageBackedConfig(properties);
+        return config.getStorer();
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldWriteNonBackedText(final boolean isKey) {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE)
+                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE)
                 .build();
-        final S3BackedStoringClient storer = createStorer(properties);
+        final BlobStorageBackedStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(null, STRING_SERIALIZER.serialize(null, "foo"), isKey))
                 .satisfies(s3BackedText -> expectNonBackedText("foo", s3BackedText));
     }
@@ -133,9 +133,9 @@ class S3BackedStoringClientTest {
     @ValueSource(booleans = {true, false})
     void shouldWriteNonBackedNull(final boolean isKey) {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE)
+                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE)
                 .build();
-        final S3BackedStoringClient storer = createStorer(properties);
+        final BlobStorageBackedStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(null, null, isKey))
                 .isNull();
     }
@@ -145,12 +145,12 @@ class S3BackedStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractS3BackedConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath)
                 .build();
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);
-        final S3BackedStoringClient storer = createStorer(properties);
+        final BlobStorageBackedStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), true))
                 .satisfies(s3BackedText -> expectBackedText(basePath, "foo", s3BackedText, "keys"));
         s3Client.deleteBucket(bucket);
@@ -160,9 +160,9 @@ class S3BackedStoringClientTest {
     @ValueSource(booleans = {true, false})
     void shouldWriteBackedNull(final boolean isKey) {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
                 .build();
-        final S3BackedStoringClient storer = createStorer(properties);
+        final BlobStorageBackedStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(null, null, isKey))
                 .isNull();
     }
@@ -172,12 +172,12 @@ class S3BackedStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractS3BackedConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath)
                 .build();
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);
-        final S3BackedStoringClient storer = createStorer(properties);
+        final BlobStorageBackedStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), false))
                 .satisfies(s3BackedText -> expectBackedText(basePath, "foo", s3BackedText, "values"));
         s3Client.deleteBucket(bucket);
@@ -188,12 +188,12 @@ class S3BackedStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractS3BackedConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath)
                 .build();
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);
-        final S3BackedStoringClient storer = createStorer(properties);
+        final BlobStorageBackedStoringClient storer = createStorer(properties);
         storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), true);
         storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), false);
         storer.storeBytes("foo", STRING_SERIALIZER.serialize(null, "foo"), true);
@@ -212,9 +212,9 @@ class S3BackedStoringClientTest {
         when(s3.putObject(eq(bucket), any(), any(), any())).then((Answer<S3Object>) invocation -> {
             throw new IOException();
         });
-        final S3BackedStoringClient storer = S3BackedStoringClient.builder()
-                .s3(s3)
-                .basePath(new AmazonS3URI(basePath))
+        final BlobStorageBackedStoringClient storer = BlobStorageBackedStoringClient.builder()
+                .client(new S3Client(s3))
+                .basePath(new BlobStorageURI(new AmazonS3URI(basePath).getURI()))
                 .maxSize(0)
                 .idGenerator(new RandomUUIDGenerator())
                 .build();
@@ -230,17 +230,17 @@ class S3BackedStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractS3BackedConfig.BASE_PATH_CONFIG, basePath)
-                .put(AbstractS3BackedConfig.ID_GENERATOR_CONFIG, MockIdGenerator.class)
+                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractBlobStorageBackedConfig.ID_GENERATOR_CONFIG, MockIdGenerator.class)
                 .build();
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);
-        final S3BackedStoringClient storer = createStorer(properties);
+        final BlobStorageBackedStoringClient storer = createStorer(properties);
         when(idGenerator.generateId("foo".getBytes())).thenReturn("bar");
         assertThat(storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), true))
                 .satisfies(s3BackedText -> {
-                    final AmazonS3URI uri = deserializeUri(s3BackedText);
+                    final BlobStorageURI uri = deserializeUri(s3BackedText);
                     expectBackedText(basePath, "foo", uri, "keys");
                     assertThat(uri).asString().endsWith("bar");
                 });
@@ -253,10 +253,10 @@ class S3BackedStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractS3BackedConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath)
                 .build();
-        final S3BackedStoringClient storer = createStorer(properties);
+        final BlobStorageBackedStoringClient storer = createStorer(properties);
         assertThatExceptionOfType(AmazonS3Exception.class)
                 .isThrownBy(() -> storer
                         .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), isKey))
@@ -269,10 +269,10 @@ class S3BackedStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractS3BackedConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath)
                 .build();
-        final S3BackedStoringClient storer = createStorer(properties);
+        final BlobStorageBackedStoringClient storer = createStorer(properties);
         assertThatNullPointerException()
                 .isThrownBy(() -> storer
                         .storeBytes(null, STRING_SERIALIZER.serialize(null, "foo"), isKey))
@@ -283,9 +283,9 @@ class S3BackedStoringClientTest {
     @ValueSource(booleans = {true, false})
     void shouldThrowExceptionOnNullBasePath(final boolean isKey) {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
                 .build();
-        final S3BackedStoringClient storer = createStorer(properties);
+        final BlobStorageBackedStoringClient storer = createStorer(properties);
         assertThatNullPointerException()
                 .isThrownBy(() -> storer
                         .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), isKey))
@@ -298,9 +298,9 @@ class S3BackedStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final AmazonS3 s3 = mock(AmazonS3.class);
-        final S3BackedStoringClient storer = S3BackedStoringClient.builder()
-                .s3(s3)
-                .basePath(new AmazonS3URI(basePath))
+        final BlobStorageBackedStoringClient storer = BlobStorageBackedStoringClient.builder()
+                .client(new S3Client(s3))
+                .basePath(new BlobStorageURI(new AmazonS3URI(basePath).getURI()))
                 .maxSize(0)
                 .build();
         assertThatNullPointerException()

@@ -24,35 +24,30 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.S3BackedStoringClient.CHARSET;
-import static com.bakdata.kafka.S3BackedStoringClient.IS_BACKED;
-import static com.bakdata.kafka.S3BackedStoringClient.IS_NOT_BACKED;
+import static com.bakdata.kafka.BlobStorageBackedStoringClient.CHARSET;
+import static com.bakdata.kafka.BlobStorageBackedStoringClient.IS_BACKED;
+import static com.bakdata.kafka.BlobStorageBackedStoringClient.IS_NOT_BACKED;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3URI;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.util.IOUtils;
-import java.io.IOException;
-import java.io.InputStream;
+import java.net.URI;
 import java.util.Objects;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.errors.SerializationException;
 
 /**
- * Client for retrieving actual bytes of messages stored with {@link S3BackedStoringClient}.
+ * Client for retrieving actual bytes of messages stored with {@link BlobStorageBackedStoringClient}.
  */
 @Slf4j
 @RequiredArgsConstructor
-public class S3BackedRetrievingClient {
+public class BlobStorageBackedRetrievingClient {
 
-    private final @NonNull AmazonS3 s3;
+    private final @NonNull BlobStorageClient client;
 
-    static AmazonS3URI deserializeUri(final byte[] data) {
+    static BlobStorageURI deserializeUri(final byte[] data) {
         final byte[] uriBytes = getBytes(data);
-        final String uri = new String(uriBytes, CHARSET);
-        return new AmazonS3URI(uri);
+        final String rawUri = new String(uriBytes, CHARSET);
+        final URI uri = URI.create(rawUri);
+        return new BlobStorageURI(uri);
     }
 
     static byte[] getBytes(final byte[] data) {
@@ -63,10 +58,10 @@ public class S3BackedRetrievingClient {
     }
 
     /**
-     * Retrieve a payload that may have been stored on Amazon S3
+     * Retrieve a payload that may have been stored on blob storage
      *
      * @param data payload
-     * @return actual payload retrieved from Amazon S3
+     * @return actual payload retrieved from blob storage
      */
     public byte[] retrieveBytes(final byte[] data) {
         if (data == null) {
@@ -82,15 +77,10 @@ public class S3BackedRetrievingClient {
     }
 
     private byte[] retrieveBackedBytes(final byte[] data) {
-        Objects.requireNonNull(this.s3);
-        final AmazonS3URI s3URI = deserializeUri(data);
-        try (final S3Object s3Object = this.s3.getObject(s3URI.getBucket(), s3URI.getKey());
-                final InputStream in = s3Object.getObjectContent()) {
-            final byte[] bytes = IOUtils.toByteArray(in);
-            log.debug("Extracted large message from S3: {}", s3URI);
-            return bytes;
-        } catch (final IOException e) {
-            throw new SerializationException("Cannot handle S3 backed message: " + s3URI, e);
-        }
+        Objects.requireNonNull(this.client);
+        final BlobStorageURI uri = deserializeUri(data);
+        final byte[] bytes = this.client.getObject(uri.getBucket(), uri.getKey());
+        log.debug("Extracted large message from blob storage: {}", uri);
+        return bytes;
     }
 }

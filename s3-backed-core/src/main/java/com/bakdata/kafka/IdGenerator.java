@@ -26,14 +26,15 @@ package com.bakdata.kafka;
 
 /**
  * An {@code IdGenerator} generates an id from bytes. This id should be unique for two different inputs but must not be
- * consistent for the same input. The id is used as part of an S3 object key in {@link S3BackedStoringClient}.
+ * consistent for the same input. The id is used as part of a blob storage object key in {@link
+ * BlobStorageBackedStoringClient}.
  */
 @FunctionalInterface
 public interface IdGenerator {
 
     /**
      * Generates an id from bytes. This id should be unique for two different inputs but must not be consistent for the
-     * same input. The id is used as part of an S3 object key in {@link S3BackedStoringClient}.
+     * same input. The id is used as part of a blob storage object key in {@link BlobStorageBackedStoringClient}.
      * <p>
      * For restrictions regarding allowed characters, please refer to
      * <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html#object-key-guidelines">the

@@ -32,7 +32,7 @@ import org.apache.kafka.connect.converters.ByteArrayConverter;
 import org.apache.kafka.connect.storage.Converter;
 
 /**
- * This class provides configuration options for {@link S3BackedConverter}. It offers configuration of the following
+ * This class provides configuration options for {@link BlobStorageBackedConverter}. It offers configuration of the following
  * properties:
  * <p>
  * <ul>
@@ -46,14 +46,14 @@ import org.apache.kafka.connect.storage.Converter;
  *     <li> S3 base path
  * </ul>
  */
-public class S3BackedConverterConfig extends AbstractS3BackedConfig {
+public class BlobStorageBackedConverterConfig extends AbstractBlobStorageBackedConfig {
     public static final String CONVERTER_CLASS_CONFIG = PREFIX + "converter";
     public static final Class<? extends Converter> CONVERTER_CLASS_DEFAULT = ByteArrayConverter.class;
     public static final String CONVERTER_CLASS_DOC =
             "Converter to use. All converter configurations are also delegated to this converter.";
     private static final ConfigDef config = configDef();
 
-    protected S3BackedConverterConfig(final Map<?, ?> originals) {
+    protected BlobStorageBackedConverterConfig(final Map<?, ?> originals) {
         super(config, originals);
     }
 

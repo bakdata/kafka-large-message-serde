@@ -24,7 +24,7 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.S3BackedStoringClient.serialize;
+import static com.bakdata.kafka.BlobStorageBackedStoringClient.serialize;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
@@ -53,7 +53,7 @@ import org.mockito.stubbing.Answer;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.STRICT_STUBS)
-class S3BackedRetrievingTest {
+class BlobStorageBackedRetrievingTest {
 
     @RegisterExtension
     static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
@@ -62,11 +62,11 @@ class S3BackedRetrievingTest {
 
     private static Map<String, Object> createProperties() {
         return ImmutableMap.<String, Object>builder()
-                .put(AbstractS3BackedConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
-                .put(AbstractS3BackedConfig.S3_REGION_CONFIG, "us-east-1")
-                .put(AbstractS3BackedConfig.S3_ACCESS_KEY_CONFIG, "foo")
-                .put(AbstractS3BackedConfig.S3_SECRET_KEY_CONFIG, "bar")
-                .put(AbstractS3BackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true)
+                .put(AbstractBlobStorageBackedConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
+                .put(AbstractBlobStorageBackedConfig.S3_REGION_CONFIG, "us-east-1")
+                .put(AbstractBlobStorageBackedConfig.S3_ACCESS_KEY_CONFIG, "foo")
+                .put(AbstractBlobStorageBackedConfig.S3_SECRET_KEY_CONFIG, "bar")
+                .put(AbstractBlobStorageBackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true)
                 .build();
     }
 
@@ -83,23 +83,23 @@ class S3BackedRetrievingTest {
         return serialize(uri);
     }
 
-    private static S3BackedRetrievingClient createRetriever() {
+    private static BlobStorageBackedRetrievingClient createRetriever() {
         final Map<String, Object> properties = createProperties();
-        final ConfigDef configDef = AbstractS3BackedConfig.baseConfigDef();
-        final AbstractS3BackedConfig config = new AbstractS3BackedConfig(configDef, properties);
-        return config.getS3Retriever();
+        final ConfigDef configDef = AbstractBlobStorageBackedConfig.baseConfigDef();
+        final AbstractBlobStorageBackedConfig config = new AbstractBlobStorageBackedConfig(configDef, properties);
+        return config.getRetriever();
     }
 
     @Test
     void shouldReadNonBackedText() {
-        final S3BackedRetrievingClient retriever = createRetriever();
+        final BlobStorageBackedRetrievingClient retriever = createRetriever();
         assertThat(retriever.retrieveBytes(createNonBackedText("foo")))
                 .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
     }
 
     @Test
     void shouldReadNull() {
-        final S3BackedRetrievingClient retriever = createRetriever();
+        final BlobStorageBackedRetrievingClient retriever = createRetriever();
         assertThat(retriever.retrieveBytes(null))
                 .isNull();
     }
@@ -110,7 +110,7 @@ class S3BackedRetrievingTest {
         S3_MOCK.createS3Client().createBucket(bucket);
         final String key = "key";
         store(bucket, key, "foo");
-        final S3BackedRetrievingClient retriever = createRetriever();
+        final BlobStorageBackedRetrievingClient retriever = createRetriever();
         assertThat(retriever.retrieveBytes(createBackedText(bucket, key)))
                 .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
         S3_MOCK.createS3Client().deleteBucket(bucket);
@@ -118,7 +118,7 @@ class S3BackedRetrievingTest {
 
     @Test
     void shouldThrowExceptionOnErroneousFlag() {
-        final S3BackedRetrievingClient retriever = createRetriever();
+        final BlobStorageBackedRetrievingClient retriever = createRetriever();
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> retriever.retrieveBytes(new byte[]{2}))
                 .withMessage("Message can only be marked as backed or non-backed");
@@ -132,7 +132,7 @@ class S3BackedRetrievingTest {
         when(s3.getObject(bucket, key)).then((Answer<S3Object>) invocation -> {
             throw new IOException();
         });
-        final S3BackedRetrievingClient retriever = new S3BackedRetrievingClient(s3);
+        final BlobStorageBackedRetrievingClient retriever = new BlobStorageBackedRetrievingClient(new S3Client(s3));
         assertThatExceptionOfType(SerializationException.class)
                 .isThrownBy(() -> retriever.retrieveBytes(createBackedText(bucket, key)))
                 .withMessageStartingWith("Cannot handle S3 backed message:")
@@ -145,7 +145,7 @@ class S3BackedRetrievingTest {
         final String bucket = "bucket";
         S3_MOCK.createS3Client().createBucket(bucket);
         final String key = "key";
-        final S3BackedRetrievingClient retriever = createRetriever();
+        final BlobStorageBackedRetrievingClient retriever = createRetriever();
         assertThatExceptionOfType(AmazonS3Exception.class)
                 .isThrownBy(() -> retriever.retrieveBytes(createBackedText(bucket, key)))
                 .withMessageStartingWith("The specified key does not exist.");
@@ -156,7 +156,7 @@ class S3BackedRetrievingTest {
     void shouldThrowExceptionOnMissingBucket() {
         final String bucket = "bucket";
         final String key = "key";
-        final S3BackedRetrievingClient retriever = createRetriever();
+        final BlobStorageBackedRetrievingClient retriever = createRetriever();
         assertThatExceptionOfType(AmazonS3Exception.class)
                 .isThrownBy(() -> retriever.retrieveBytes(createBackedText(bucket, key)))
                 .withMessageStartingWith("The specified bucket does not exist.");

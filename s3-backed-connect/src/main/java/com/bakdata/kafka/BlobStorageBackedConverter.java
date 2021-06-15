@@ -30,21 +30,21 @@ import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.storage.Converter;
 
 /**
- * Kafka {@code Converter} that serializes large messages on Amazon S3.
+ * Kafka {@code Converter} that serializes large messages on blob storage.
  * <p>
- * For configuration options, see {@link S3BackedConverterConfig}.
+ * For configuration options, see {@link BlobStorageBackedConverterConfig}.
  */
-public class S3BackedConverter implements Converter {
+public class BlobStorageBackedConverter implements Converter {
     private Converter converter;
-    private S3BackedStoringClient storingClient;
-    private S3BackedRetrievingClient retrievingClient;
+    private BlobStorageBackedStoringClient storingClient;
+    private BlobStorageBackedRetrievingClient retrievingClient;
     private boolean isKey;
 
     @Override
     public void configure(final Map<String, ?> configs, final boolean isKey) {
-        final S3BackedConverterConfig config = new S3BackedConverterConfig(configs);
-        this.storingClient = config.getS3Storer();
-        this.retrievingClient = config.getS3Retriever();
+        final BlobStorageBackedConverterConfig config = new BlobStorageBackedConverterConfig(configs);
+        this.storingClient = config.getStorer();
+        this.retrievingClient = config.getRetriever();
         this.isKey = isKey;
         this.converter = config.getConverter();
         this.converter.configure(configs, isKey);

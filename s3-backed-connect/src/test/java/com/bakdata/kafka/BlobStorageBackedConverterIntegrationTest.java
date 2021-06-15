@@ -51,7 +51,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-class S3BackedConverterIntegrationTest {
+class BlobStorageBackedConverterIntegrationTest {
     public static final String BUCKET_NAME = "testbucket";
     public static final String S3_KEY_NAME = "contentkey";
     public static final String TOPIC = "input";
@@ -115,7 +115,7 @@ class S3BackedConverterIntegrationTest {
         properties.put(FileStreamSinkConnector.FILE_CONFIG, this.outputFile.toString());
         properties.put("key.ignore", false);
         properties.put(ConnectorConfig.KEY_CONVERTER_CLASS_CONFIG, StringConverter.class.getName());
-        properties.put(ConnectorConfig.VALUE_CONVERTER_CLASS_CONFIG, S3BackedConverter.class.getName());
+        properties.put(ConnectorConfig.VALUE_CONVERTER_CLASS_CONFIG, BlobStorageBackedConverter.class.getName());
         this.createS3BackedProperties().forEach((key, value) -> properties.put("value.converter." + key, value));
         return properties;
     }
@@ -123,25 +123,25 @@ class S3BackedConverterIntegrationTest {
     private Properties createProducerProperties(final boolean shouldBack) {
         final Properties properties = new Properties();
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, S3BackedSerializer.class);
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, BlobStorageBackedSerializer.class);
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, this.kafkaCluster.getBrokerList());
-        properties.put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(shouldBack ? 0 : Integer.MAX_VALUE));
+        properties.put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(shouldBack ? 0 : Integer.MAX_VALUE));
         properties.putAll(this.createS3BackedProperties());
         return properties;
     }
 
     private Properties createS3BackedProperties() {
         final Properties properties = new Properties();
-        properties.put(AbstractS3BackedConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort());
-        properties.put(AbstractS3BackedConfig.S3_REGION_CONFIG, "us-east-1");
-        properties.put(AbstractS3BackedConfig.S3_ACCESS_KEY_CONFIG, "foo");
-        properties.put(AbstractS3BackedConfig.S3_SECRET_KEY_CONFIG, "bar");
-        properties.put(AbstractS3BackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
-        properties.put(S3BackedSerdeConfig.KEY_SERDE_CLASS_CONFIG, StringSerde.class.getName());
-        properties.put(S3BackedSerdeConfig.VALUE_SERDE_CLASS_CONFIG, StringSerde.class.getName());
+        properties.put(AbstractBlobStorageBackedConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort());
+        properties.put(AbstractBlobStorageBackedConfig.S3_REGION_CONFIG, "us-east-1");
+        properties.put(AbstractBlobStorageBackedConfig.S3_ACCESS_KEY_CONFIG, "foo");
+        properties.put(AbstractBlobStorageBackedConfig.S3_SECRET_KEY_CONFIG, "bar");
+        properties.put(AbstractBlobStorageBackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
+        properties.put(BlobStorageBackedSerdeConfig.KEY_SERDE_CLASS_CONFIG, StringSerde.class.getName());
+        properties.put(BlobStorageBackedSerdeConfig.VALUE_SERDE_CLASS_CONFIG, StringSerde.class.getName());
         properties.put(
-                AbstractS3BackedConfig.BASE_PATH_CONFIG, String.format("s3://%s/%s", BUCKET_NAME, S3_KEY_NAME));
-        properties.put(S3BackedConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName());
+                AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, String.format("s3://%s/%s", BUCKET_NAME, S3_KEY_NAME));
+        properties.put(BlobStorageBackedConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName());
         return properties;
     }
 }

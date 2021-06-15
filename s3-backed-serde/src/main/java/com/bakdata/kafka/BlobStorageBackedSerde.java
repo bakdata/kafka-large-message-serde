@@ -31,24 +31,25 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 
 /**
- * Kafka {@code Serde} that serializes large messages on Amazon S3.
+ * Kafka {@code Serde} that serializes large messages on blob storage.
  * <p>
- * It uses {@link S3BackedSerializer} for serialization and {@link S3BackedDeserializer} for deserialization.
+ * It uses {@link BlobStorageBackedSerializer} for serialization and {@link BlobStorageBackedDeserializer} for
+ * deserialization.
  * <p>
- * For configuration options, see {@link S3BackedSerdeConfig}.
+ * For configuration options, see {@link BlobStorageBackedSerdeConfig}.
  *
  * @param <T> type of records that can be (de-)serialized by this instance
  */
-public class S3BackedSerde<T> implements Serde<T> {
+public class BlobStorageBackedSerde<T> implements Serde<T> {
     @Delegate
     private final Serde<T> inner;
 
     /**
      * Default constructor
      */
-    public S3BackedSerde() {
-        final Serializer<T> serializer = new S3BackedSerializer<>();
-        final Deserializer<T> deserializer = new S3BackedDeserializer<>();
+    public BlobStorageBackedSerde() {
+        final Serializer<T> serializer = new BlobStorageBackedSerializer<>();
+        final Deserializer<T> deserializer = new BlobStorageBackedDeserializer<>();
         this.inner = Serdes.serdeFrom(serializer, deserializer);
     }
 }

@@ -25,13 +25,12 @@
 package com.bakdata.kafka;
 
 
-import static com.bakdata.kafka.S3BackedRetrievingClient.deserializeUri;
-import static com.bakdata.kafka.S3BackedRetrievingClient.getBytes;
+import static com.bakdata.kafka.BlobStorageBackedRetrievingClient.deserializeUri;
+import static com.bakdata.kafka.BlobStorageBackedRetrievingClient.getBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
@@ -53,7 +52,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-class S3BackedConverterTest {
+class BlobStorageBackedConverterTest {
     @RegisterExtension
     static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
             .withSecureConnection(false).build();
@@ -62,15 +61,15 @@ class S3BackedConverterTest {
     private static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
     private static final Deserializer<String> STRING_DESERIALIZER = new StringDeserializer();
     private final AmazonS3 s3Client = S3_MOCK.createS3Client();
-    private S3BackedConverter converter = null;
+    private BlobStorageBackedConverter converter = null;
 
     private static byte[] createBackedText(final String bucket, final String key) {
         final String uri = "s3://" + bucket + "/" + key;
-        return S3BackedStoringClient.serialize(uri);
+        return BlobStorageBackedStoringClient.serialize(uri);
     }
 
-    private static byte[] readBytes(final AmazonS3URI amazonS3URI) {
-        try (final S3Object object = S3_MOCK.createS3Client().getObject(amazonS3URI.getBucket(), amazonS3URI.getKey());
+    private static byte[] readBytes(final BlobStorageURI uri) {
+        try (final S3Object object = S3_MOCK.createS3Client().getObject(uri.getBucket(), uri.getKey());
                 final S3ObjectInputStream objectContent = object.getObjectContent()) {
             return IOUtils.toByteArray(objectContent);
         } catch (final IOException e) {
@@ -80,14 +79,14 @@ class S3BackedConverterTest {
 
     private static Map<String, String> createProperties(final int maxSize, final String basePath) {
         return ImmutableMap.<String, String>builder()
-                .put(AbstractS3BackedConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
-                .put(AbstractS3BackedConfig.S3_REGION_CONFIG, "us-east-1")
-                .put(AbstractS3BackedConfig.S3_ACCESS_KEY_CONFIG, "foo")
-                .put(AbstractS3BackedConfig.S3_SECRET_KEY_CONFIG, "bar")
-                .put(AbstractS3BackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, "true")
-                .put(AbstractS3BackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(maxSize))
-                .put(AbstractS3BackedConfig.BASE_PATH_CONFIG, basePath)
-                .put(S3BackedConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName())
+                .put(AbstractBlobStorageBackedConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
+                .put(AbstractBlobStorageBackedConfig.S3_REGION_CONFIG, "us-east-1")
+                .put(AbstractBlobStorageBackedConfig.S3_ACCESS_KEY_CONFIG, "foo")
+                .put(AbstractBlobStorageBackedConfig.S3_SECRET_KEY_CONFIG, "bar")
+                .put(AbstractBlobStorageBackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, "true")
+                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(maxSize))
+                .put(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath)
+                .put(BlobStorageBackedConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName())
                 .build();
     }
 
@@ -96,14 +95,14 @@ class S3BackedConverterTest {
     }
 
     private static byte[] createNonBackedText(final String text) {
-        return S3BackedStoringClient.serialize(STRING_SERIALIZER.serialize(null, text));
+        return BlobStorageBackedStoringClient.serialize(STRING_SERIALIZER.serialize(null, text));
     }
 
     private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
             final String type) {
-        final AmazonS3URI amazonS3URI = deserializeUri(s3BackedText);
-        assertThat(amazonS3URI).asString().startsWith(basePath + TOPIC + "/" + type + "/");
-        final byte[] bytes = readBytes(amazonS3URI);
+        final BlobStorageURI uri = deserializeUri(s3BackedText);
+        assertThat(uri).asString().startsWith(basePath + TOPIC + "/" + type + "/");
+        final byte[] bytes = readBytes(uri);
         final String deserialized = Serdes.String().deserializer()
                 .deserialize(null, bytes);
         assertThat(deserialized).isEqualTo(expected);
@@ -223,7 +222,7 @@ class S3BackedConverterTest {
 
     private void initSetup(final boolean isKey, final int maxSize, final String basePath) {
         final Map<String, String> properties = createProperties(maxSize, basePath);
-        this.converter = new S3BackedConverter();
+        this.converter = new BlobStorageBackedConverter();
         this.converter.configure(properties, isKey);
     }
 }

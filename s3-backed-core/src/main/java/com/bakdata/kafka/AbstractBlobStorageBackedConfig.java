@@ -59,8 +59,8 @@ import java.util.Optional;
  *     <li> id generator
  * </ul>
  */
-public class AbstractS3BackedConfig extends AbstractConfig {
-    public static final String PREFIX = "s3backed.";
+public class AbstractBlobStorageBackedConfig extends AbstractConfig {
+    public static final String PREFIX = "blob.storage.backed.";
     public static final String S3_ENDPOINT_CONFIG = PREFIX + "endpoint";
     public static final String S3_ENDPOINT_DEFAULT = "";
     public static final String S3_REGION_CONFIG = PREFIX + "region";
@@ -113,11 +113,11 @@ public class AbstractS3BackedConfig extends AbstractConfig {
      *
      * @param originals properties for configuring this config
      */
-    public AbstractS3BackedConfig(final Map<?, ?> originals) {
+    public AbstractBlobStorageBackedConfig(final Map<?, ?> originals) {
         super(config, originals);
     }
 
-    protected AbstractS3BackedConfig(final ConfigDef config, final Map<?, ?> originals) {
+    protected AbstractBlobStorageBackedConfig(final ConfigDef config, final Map<?, ?> originals) {
         super(config, originals);
     }
 
@@ -140,19 +140,25 @@ public class AbstractS3BackedConfig extends AbstractConfig {
                         S3_ROLE_SESSION_NAME_CONFIG_DOC);
     }
 
-    public S3BackedRetrievingClient getS3Retriever() {
-        final AmazonS3 s3 = this.createS3Client();
-        return new S3BackedRetrievingClient(s3);
+    public BlobStorageBackedRetrievingClient getRetriever() {
+        final BlobStorageClient client = this.getClient();
+        return new BlobStorageBackedRetrievingClient(client);
     }
 
-    public S3BackedStoringClient getS3Storer() {
-        final AmazonS3 s3 = this.createS3Client();
-        return S3BackedStoringClient.builder()
-                .s3(s3)
+    public BlobStorageBackedStoringClient getStorer() {
+        final BlobStorageClient client = this.getClient();
+        return BlobStorageBackedStoringClient.builder()
+                .client(client)
                 .basePath(this.getBasePath())
                 .maxSize(this.getMaxSize())
                 .idGenerator(this.getConfiguredInstance(ID_GENERATOR_CONFIG, IdGenerator.class))
                 .build();
+    }
+
+    private BlobStorageClient getClient() {
+        //TODO detect storage backend
+        final AmazonS3 s3 = this.createS3Client();
+        return new S3Client(s3);
     }
 
     private AmazonS3 createS3Client() {
@@ -165,9 +171,9 @@ public class AbstractS3BackedConfig extends AbstractConfig {
         return clientBuilder.build();
     }
 
-    private AmazonS3URI getBasePath() {
+    private BlobStorageURI getBasePath() {
         final String basePath = this.getString(BASE_PATH_CONFIG);
-        return isEmpty(basePath) ? null : new AmazonS3URI(basePath);
+        return isEmpty(basePath) ? null : new BlobStorageURI(new AmazonS3URI(basePath).getURI());
     }
 
     private int getMaxSize() {
