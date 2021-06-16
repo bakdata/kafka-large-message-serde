@@ -10,6 +10,10 @@ public class BlobStorageURI {
     private static final Pattern LEADING_SLASH = Pattern.compile("^/");
     private final @NonNull URI uri;
 
+    public String getScheme() {
+        return this.uri.getScheme();
+    }
+
     public String getBucket() {
         return this.uri.getHost();
     }

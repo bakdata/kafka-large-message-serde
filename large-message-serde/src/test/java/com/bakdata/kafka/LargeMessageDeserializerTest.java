@@ -57,7 +57,8 @@ class LargeMessageDeserializerTest {
     private static final String OUTPUT_TOPIC = "output";
     private TestTopology<Integer, String> topology = null;
 
-    private static Properties createProperties(final Properties properties) {
+    private static Properties createProperties() {
+        final Properties properties = new Properties();
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy");
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         properties.setProperty(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG,
@@ -103,12 +104,7 @@ class LargeMessageDeserializerTest {
     }
 
     private void createTopology(final Function<? super Properties, ? extends Topology> topologyFactory) {
-        this.createTopology(topologyFactory, new Properties());
-    }
-
-    private void createTopology(final Function<? super Properties, ? extends Topology> topologyFactory,
-            final Properties properties) {
-        this.topology = new TestTopology<>(topologyFactory, createProperties(properties));
+        this.topology = new TestTopology<>(topologyFactory, createProperties());
         this.topology.start();
     }
 
@@ -193,10 +189,7 @@ class LargeMessageDeserializerTest {
         S3_MOCK.createS3Client().createBucket(bucket);
         final String key = "key";
         store(bucket, key, "foo");
-        final String basePath = "s3://" + bucket + "/base/";
-        final Properties properties = new Properties();
-        properties.setProperty(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
-        this.createTopology(LargeMessageDeserializerTest::createValueTopology, properties);
+        this.createTopology(LargeMessageDeserializerTest::createValueTopology);
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.ByteArray())
@@ -217,10 +210,7 @@ class LargeMessageDeserializerTest {
         S3_MOCK.createS3Client().createBucket(bucket);
         final String key = "key";
         store(bucket, key, "foo");
-        final String basePath = "s3://" + bucket + "/base/";
-        final Properties properties = new Properties();
-        properties.setProperty(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
-        this.createTopology(LargeMessageDeserializerTest::createKeyTopology, properties);
+        this.createTopology(LargeMessageDeserializerTest::createKeyTopology);
         this.topology.input()
                 .withKeySerde(Serdes.ByteArray())
                 .withValueSerde(Serdes.Integer())

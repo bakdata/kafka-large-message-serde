@@ -25,7 +25,6 @@
 package com.bakdata.kafka;
 
 import static com.bakdata.kafka.LargeMessageStoringClient.serialize;
-import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
@@ -41,6 +40,7 @@ import io.confluent.common.config.ConfigDef;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Map;
+import java.util.function.Supplier;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
@@ -61,9 +61,8 @@ class LargeMessageRetrievingClientTest {
             .withSecureConnection(false).build();
     private static final Serializer<String> STRING_SERIALIZER = Serdes.String().serializer();
 
-    private static Map<String, Object> createProperties(final Map<String, Object> properties) {
+    private static Map<String, Object> createProperties() {
         return ImmutableMap.<String, Object>builder()
-                .putAll(properties)
                 .put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
                 .put(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1")
                 .put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo")
@@ -86,11 +85,7 @@ class LargeMessageRetrievingClientTest {
     }
 
     private static LargeMessageRetrievingClient createRetriever() {
-        return createRetriever(emptyMap());
-    }
-
-    private static LargeMessageRetrievingClient createRetriever(final Map<String, Object> baseProperties) {
-        final Map<String, Object> properties = createProperties(baseProperties);
+        final Map<String, Object> properties = createProperties();
         final ConfigDef configDef = AbstractLargeMessageConfig.baseConfigDef();
         final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(configDef, properties);
         return config.getRetriever();
@@ -116,10 +111,7 @@ class LargeMessageRetrievingClientTest {
         S3_MOCK.createS3Client().createBucket(bucket);
         final String key = "key";
         store(bucket, key, "foo");
-        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, "s3://" + bucket)
-                .build();
-        final LargeMessageRetrievingClient retriever = createRetriever(properties);
+        final LargeMessageRetrievingClient retriever = createRetriever();
         assertThat(retriever.retrieveBytes(createBackedText(bucket, key)))
                 .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
         S3_MOCK.createS3Client().deleteBucket(bucket);
@@ -141,7 +133,9 @@ class LargeMessageRetrievingClientTest {
         when(s3.getObject(bucket, key)).then((Answer<S3Object>) invocation -> {
             throw new IOException();
         });
-        final LargeMessageRetrievingClient retriever = new LargeMessageRetrievingClient(new AmazonS3Client(s3));
+        final Map<String, Supplier<BlobStorageClient>> clients =
+                ImmutableMap.of(AmazonS3Client.SCHEME, () -> new AmazonS3Client(s3));
+        final LargeMessageRetrievingClient retriever = new LargeMessageRetrievingClient(clients);
         assertThatExceptionOfType(SerializationException.class)
                 .isThrownBy(() -> retriever.retrieveBytes(createBackedText(bucket, key)))
                 .withMessageStartingWith("Cannot handle S3 backed message:")
@@ -154,10 +148,7 @@ class LargeMessageRetrievingClientTest {
         final String bucket = "bucket";
         S3_MOCK.createS3Client().createBucket(bucket);
         final String key = "key";
-        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, "s3://" + bucket)
-                .build();
-        final LargeMessageRetrievingClient retriever = createRetriever(properties);
+        final LargeMessageRetrievingClient retriever = createRetriever();
         assertThatExceptionOfType(AmazonS3Exception.class)
                 .isThrownBy(() -> retriever.retrieveBytes(createBackedText(bucket, key)))
                 .withMessageStartingWith("The specified key does not exist.");
@@ -168,10 +159,7 @@ class LargeMessageRetrievingClientTest {
     void shouldThrowExceptionOnMissingBucket() {
         final String bucket = "bucket";
         final String key = "key";
-        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, "s3://" + bucket)
-                .build();
-        final LargeMessageRetrievingClient retriever = createRetriever(properties);
+        final LargeMessageRetrievingClient retriever = createRetriever();
         assertThatExceptionOfType(AmazonS3Exception.class)
                 .isThrownBy(() -> retriever.retrieveBytes(createBackedText(bucket, key)))
                 .withMessageStartingWith("The specified bucket does not exist.");

@@ -1,6 +1,6 @@
 [![Build Status](https://dev.azure.com/bakdata/public/_apis/build/status/bakdata.kafka-s3-backed-serde?branchName=master)](https://dev.azure.com/bakdata/public/_build/latest?definitionId=20&branchName=master)
-[![Sonarcloud status](https://sonarcloud.io/api/project_badges/measure?project=com.bakdata.kafka%3As3-backed&metric=alert_status)](https://sonarcloud.io/dashboard?id=com.bakdata.kafka%3As3-backed)
-[![Code coverage](https://sonarcloud.io/api/project_badges/measure?project=com.bakdata.kafka%3As3-backed&metric=coverage)](https://sonarcloud.io/dashboard?id=com.bakdata.kafka%3As3-backed)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=com.bakdata.kafka%3Alarge-message&metric=alert_status)](https://sonarcloud.io/dashboard?id=com.bakdata.kafka%3Alarge-message)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=com.bakdata.kafka%3Alarge-message&metric=coverage)](https://sonarcloud.io/dashboard?id=com.bakdata.kafka%3Alarge-message)
 [![Maven](https://img.shields.io/maven-central/v/com.bakdata.kafka/large-message-serde.svg)](https://search.maven.org/search?q=g:com.bakdata.kafka%20AND%20a:large-message-serde&core=gav)
 
 # kafka-large-message-serde

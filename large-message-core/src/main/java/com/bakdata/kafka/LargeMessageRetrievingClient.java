@@ -29,7 +29,11 @@ import static com.bakdata.kafka.LargeMessageStoringClient.IS_BACKED;
 import static com.bakdata.kafka.LargeMessageStoringClient.IS_NOT_BACKED;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +45,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class LargeMessageRetrievingClient {
 
-    private final @NonNull BlobStorageClient client;
+    private final @NonNull Map<String, Supplier<BlobStorageClient>> clientFactories;
+    private final @NonNull Map<String, BlobStorageClient> clientCache = new HashMap<>();
 
     static BlobStorageURI deserializeUri(final byte[] data) {
         final byte[] uriBytes = getBytes(data);
@@ -77,10 +82,22 @@ public class LargeMessageRetrievingClient {
     }
 
     private byte[] retrieveBackedBytes(final byte[] data) {
-        Objects.requireNonNull(this.client);
         final BlobStorageURI uri = deserializeUri(data);
-        final byte[] bytes = this.client.getObject(uri.getBucket(), uri.getKey());
+        final BlobStorageClient client = this.getClient(uri);
+        Objects.requireNonNull(client);
+        final byte[] bytes = client.getObject(uri.getBucket(), uri.getKey());
         log.debug("Extracted large message from blob storage: {}", uri);
         return bytes;
+    }
+
+    private BlobStorageClient getClient(final BlobStorageURI uri) {
+        final String scheme = uri.getScheme();
+        return this.clientCache.computeIfAbsent(scheme, this::createClient);
+    }
+
+    private BlobStorageClient createClient(final String scheme) {
+        return Optional.ofNullable(this.clientFactories.get(scheme))
+                .map(Supplier::get)
+                .orElseThrow(() -> AbstractLargeMessageConfig.unknownScheme(scheme));
     }
 }
