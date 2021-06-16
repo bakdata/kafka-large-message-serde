@@ -32,80 +32,84 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
-import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
 import io.confluent.common.config.AbstractConfig;
 import io.confluent.common.config.ConfigDef;
 import io.confluent.common.config.ConfigDef.Importance;
 import io.confluent.common.config.ConfigDef.Type;
+import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * This class provides default configuration options for S3 backed data. It offers configuration of the following
- * properties:
+ * This class provides default configuration options for blob storage backed data. It offers configuration of the
+ * following properties:
  * <p>
  * <ul>
+ *     <li> maximum serialized message size in bytes
+ *     <li> base path
+ *     <li> id generator
  *     <li> S3 endpoint
  *     <li> S3 region
  *     <li> S3 access key
  *     <li> S3 secret key
  *     <li> AWS security token service
  *     <li> S3 enable path-style access
- *     <li> maximum serialized message size in bytes
- *     <li> S3 base path
- *     <li> id generator
  * </ul>
  */
-public class AbstractBlobStorageBackedConfig extends AbstractConfig {
-    public static final String PREFIX = "blob.storage.backed.";
-    public static final String S3_ENDPOINT_CONFIG = PREFIX + "endpoint";
+@Slf4j
+public class AbstractLargeMessageConfig extends AbstractConfig {
+    public static final String PREFIX = "large.message.";
+    public static final String MAX_BYTE_SIZE_CONFIG = PREFIX + "max.byte.size";
+    public static final String MAX_BYTE_SIZE_DOC =
+            "Maximum serialized message size in bytes before messages are stored on blob storage.";
+    public static final int MAX_BYTE_SIZE_DEFAULT = 1000 * 1000;
+    public static final String BASE_PATH_CONFIG = PREFIX + "base.path";
+    public static final String BASE_PATH_DOC = "Base path to store data. Must include bucket and any prefix that "
+            + "should be used, e.g., 's3://my-bucket/my/prefix/'. Available protocols: 's3', 'wasbs'";
+    public static final String BASE_PATH_DEFAULT = "";
+    public static final String ID_GENERATOR_CONFIG = PREFIX + "id.generator";
+    public static final String ID_GENERATOR_DOC = "Class to use for generating unique object IDs. Available "
+            + "generators are: " + RandomUUIDGenerator.class.getName() + ", " + Sha256HashIdGenerator.class.getName()
+            + ", " + MurmurHashIdGenerator.class.getName() + ".";
+    public static final Class<? extends IdGenerator> ID_GENERATOR_DEFAULT = RandomUUIDGenerator.class;
+    public static final String S3_PREFIX = PREFIX + "s3.";
+    public static final String S3_ENDPOINT_CONFIG = S3_PREFIX + "endpoint";
     public static final String S3_ENDPOINT_DEFAULT = "";
-    public static final String S3_REGION_CONFIG = PREFIX + "region";
+    public static final String S3_REGION_CONFIG = S3_PREFIX + "region";
     public static final String S3_ENDPOINT_DOC = "Endpoint to use for connection to Amazon S3. Must be configured in"
             + " conjunction with " + S3_REGION_CONFIG + ". Leave empty if default S3 endpoint should be used.";
     public static final String S3_REGION_DOC = "S3 region to use. Must be configured in conjunction"
             + " with " + S3_ENDPOINT_CONFIG + ". Leave empty if default S3 region should be used.";
     public static final String S3_REGION_DEFAULT = "";
-    public static final String S3_ACCESS_KEY_CONFIG = PREFIX + "access.key";
+    public static final String S3_ACCESS_KEY_CONFIG = S3_PREFIX + "access.key";
     public static final String S3_ACCESS_KEY_DOC = "AWS access key to use for connecting to S3. Leave empty if AWS"
             + " credential provider chain or STS Assume Role provider should be used.";
     public static final String S3_ACCESS_KEY_DEFAULT = "";
-    public static final String S3_SECRET_KEY_CONFIG = PREFIX + "secret.key";
+    public static final String S3_SECRET_KEY_CONFIG = S3_PREFIX + "secret.key";
     public static final String S3_SECRET_KEY_DOC = "AWS secret key to use for connecting to S3. Leave empty if AWS"
             + " credential provider chain or STS Assume Role provider should be used.";
-    public static final String S3_ROLE_EXTERNAL_ID_CONFIG = PREFIX + "sts.role.external.id";
+    public static final String S3_ROLE_EXTERNAL_ID_CONFIG = S3_PREFIX + "sts.role.external.id";
     public static final String S3_ROLE_EXTERNAL_ID_CONFIG_DOC = "AWS STS role external ID used when retrieving session"
             + " credentials under an assumed role. Leave empty if AWS Basic provider or AWS credential provider chain"
             + " should be used.";
     public static final String S3_ROLE_EXTERNAL_ID_CONFIG_DEFAULT = "";
-    public static final String S3_ROLE_ARN_CONFIG = PREFIX + "sts.role.arn";
+    public static final String S3_ROLE_ARN_CONFIG = S3_PREFIX + "sts.role.arn";
     public static final String S3_ROLE_ARN_CONFIG_DOC = "AWS STS role ARN to use for connecting to S3. Leave empty if"
             + " AWS Basic provider or AWS credential provider chain should be used.";
     public static final String S3_ROLE_ARN_CONFIG_DEFAULT = "";
-    public static final String S3_ROLE_SESSION_NAME_CONFIG = PREFIX + "sts.role.session.name";
+    public static final String S3_ROLE_SESSION_NAME_CONFIG = S3_PREFIX + "sts.role.session.name";
     public static final String S3_ROLE_SESSION_NAME_CONFIG_DOC = "AWS STS role session name to use when starting a"
             + " session. Leave empty if AWS Basic provider or AWS credential provider chain should be used.";
     public static final String S3_ROLE_SESSION_NAME_CONFIG_DEFAULT = "";
     public static final String S3_SECRET_KEY_DEFAULT = "";
-    public static final String S3_ENABLE_PATH_STYLE_ACCESS_CONFIG = PREFIX + "path.style.access";
+    public static final String S3_ENABLE_PATH_STYLE_ACCESS_CONFIG = S3_PREFIX + "path.style.access";
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_DOC = "Enable path-style access for S3 client.";
     public static final boolean S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT = false;
-    public static final String MAX_BYTE_SIZE_CONFIG = PREFIX + "max.byte.size";
-    public static final String MAX_BYTE_SIZE_DOC =
-            "Maximum serialized message size in bytes before messages are stored on S3.";
-    public static final int MAX_BYTE_SIZE_DEFAULT = 1000 * 1000;
-    public static final String BASE_PATH_CONFIG = PREFIX + "base.path";
-    public static final String BASE_PATH_DOC = "Base path to store data. Must include bucket and any prefix that "
-            + "should be used, e.g., 's3://my-bucket/my/prefix/'.";
-    public static final String BASE_PATH_DEFAULT = "";
-    public static final String ID_GENERATOR_CONFIG = PREFIX + "id.generator";
-    public static final String ID_GENERATOR_DOC = "Class to use for generating unique S3 object IDs. Available "
-            + "generators are: " + RandomUUIDGenerator.class.getName() + ", " + Sha256HashIdGenerator.class.getName()
-            + ", " + MurmurHashIdGenerator.class.getName() + ".";
-    public static final Class<? extends IdGenerator> ID_GENERATOR_DEFAULT = RandomUUIDGenerator.class;
     private static final ConfigDef config = baseConfigDef();
 
     /**
@@ -113,25 +117,25 @@ public class AbstractBlobStorageBackedConfig extends AbstractConfig {
      *
      * @param originals properties for configuring this config
      */
-    public AbstractBlobStorageBackedConfig(final Map<?, ?> originals) {
+    public AbstractLargeMessageConfig(final Map<?, ?> originals) {
         super(config, originals);
     }
 
-    protected AbstractBlobStorageBackedConfig(final ConfigDef config, final Map<?, ?> originals) {
+    protected AbstractLargeMessageConfig(final ConfigDef config, final Map<?, ?> originals) {
         super(config, originals);
     }
 
     protected static ConfigDef baseConfigDef() {
         return new ConfigDef()
+                .define(MAX_BYTE_SIZE_CONFIG, Type.INT, MAX_BYTE_SIZE_DEFAULT, Importance.MEDIUM, MAX_BYTE_SIZE_DOC)
+                .define(BASE_PATH_CONFIG, Type.STRING, BASE_PATH_DEFAULT, Importance.HIGH, BASE_PATH_DOC)
+                .define(ID_GENERATOR_CONFIG, Type.CLASS, ID_GENERATOR_DEFAULT, Importance.MEDIUM, ID_GENERATOR_DOC)
                 .define(S3_ENDPOINT_CONFIG, Type.STRING, S3_ENDPOINT_DEFAULT, Importance.LOW, S3_ENDPOINT_DOC)
                 .define(S3_REGION_CONFIG, Type.STRING, S3_REGION_DEFAULT, Importance.LOW, S3_REGION_DOC)
                 .define(S3_ACCESS_KEY_CONFIG, Type.PASSWORD, S3_ACCESS_KEY_DEFAULT, Importance.LOW, S3_ACCESS_KEY_DOC)
                 .define(S3_SECRET_KEY_CONFIG, Type.PASSWORD, S3_SECRET_KEY_DEFAULT, Importance.LOW, S3_SECRET_KEY_DOC)
                 .define(S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, Type.BOOLEAN, S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT,
                         Importance.LOW, S3_ENABLE_PATH_STYLE_ACCESS_DOC)
-                .define(MAX_BYTE_SIZE_CONFIG, Type.INT, MAX_BYTE_SIZE_DEFAULT, Importance.MEDIUM, MAX_BYTE_SIZE_DOC)
-                .define(BASE_PATH_CONFIG, Type.STRING, BASE_PATH_DEFAULT, Importance.HIGH, BASE_PATH_DOC)
-                .define(ID_GENERATOR_CONFIG, Type.CLASS, ID_GENERATOR_DEFAULT, Importance.MEDIUM, ID_GENERATOR_DOC)
                 .define(S3_ROLE_EXTERNAL_ID_CONFIG, Type.STRING, S3_ROLE_EXTERNAL_ID_CONFIG_DEFAULT, Importance.LOW,
                         S3_ROLE_EXTERNAL_ID_CONFIG_DOC)
                 .define(S3_ROLE_ARN_CONFIG, Type.STRING, S3_ROLE_ARN_CONFIG_DEFAULT, Importance.LOW,
@@ -140,14 +144,14 @@ public class AbstractBlobStorageBackedConfig extends AbstractConfig {
                         S3_ROLE_SESSION_NAME_CONFIG_DOC);
     }
 
-    public BlobStorageBackedRetrievingClient getRetriever() {
+    public LargeMessageRetrievingClient getRetriever() {
         final BlobStorageClient client = this.getClient();
-        return new BlobStorageBackedRetrievingClient(client);
+        return new LargeMessageRetrievingClient(client);
     }
 
-    public BlobStorageBackedStoringClient getStorer() {
+    public LargeMessageStoringClient getStorer() {
         final BlobStorageClient client = this.getClient();
-        return BlobStorageBackedStoringClient.builder()
+        return LargeMessageStoringClient.builder()
                 .client(client)
                 .basePath(this.getBasePath())
                 .maxSize(this.getMaxSize())
@@ -156,24 +160,45 @@ public class AbstractBlobStorageBackedConfig extends AbstractConfig {
     }
 
     private BlobStorageClient getClient() {
-        //TODO detect storage backend
-        final AmazonS3 s3 = this.createS3Client();
-        return new S3Client(s3);
+        final Optional<URI> uri = this.getBasePathUri();
+        return uri.map(this::getClient)
+                .orElseGet(MissingStorageClient::new);
     }
 
-    private AmazonS3 createS3Client() {
+    private BlobStorageClient getClient(final URI uri) {
+        final String scheme = uri.getScheme();
+        switch (scheme) {
+            case AmazonS3Client.SCHEME:
+                return this.createS3Client();
+            case AzureBlobStorageClient.SCHEME:
+                return this.createAzureClient();
+            default:
+                throw new IllegalArgumentException("Unknown scheme for handling large messages: '" + scheme + "'");
+        }
+    }
+
+    private BlobStorageClient createAzureClient() {
+        final BlobServiceClient blobServiceClient = new BlobServiceClientBuilder().buildClient();
+        return new AzureBlobStorageClient(blobServiceClient);
+    }
+
+    private BlobStorageClient createS3Client() {
         final AmazonS3ClientBuilder clientBuilder = AmazonS3ClientBuilder.standard();
         this.getEndpointConfiguration().ifPresent(clientBuilder::setEndpointConfiguration);
         this.getCredentialsProvider().ifPresent(clientBuilder::setCredentials);
         if (this.enablePathStyleAccess()) {
             clientBuilder.enablePathStyleAccess();
         }
-        return clientBuilder.build();
+        return new AmazonS3Client(clientBuilder.build());
     }
 
     private BlobStorageURI getBasePath() {
+        return this.getBasePathUri().map(BlobStorageURI::new).orElse(null);
+    }
+
+    private Optional<URI> getBasePathUri() {
         final String basePath = this.getString(BASE_PATH_CONFIG);
-        return isEmpty(basePath) ? null : new BlobStorageURI(new AmazonS3URI(basePath).getURI());
+        return isEmpty(basePath) ? Optional.empty() : Optional.of(URI.create(basePath));
     }
 
     private int getMaxSize() {
@@ -216,4 +241,5 @@ public class AbstractBlobStorageBackedConfig extends AbstractConfig {
 
         return Optional.empty();
     }
+
 }

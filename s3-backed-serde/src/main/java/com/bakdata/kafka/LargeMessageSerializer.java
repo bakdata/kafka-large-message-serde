@@ -28,45 +28,50 @@ import java.util.Map;
 import java.util.Objects;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serializer;
 
 /**
- * Kafka {@code Deserializer} that deserializes messages serialized by {@link BlobStorageBackedSerializer}.
+ * Kafka {@code Serializer} that serializes large messages on blob storage in order to cope with messages exceeding the
+ * broker side maximum message size, usually indicated by
+ * {@link org.apache.kafka.common.errors.RecordTooLargeException}.
  * <p>
- * A message that is deserialized by this deserializer flags if it contains the actual message or if the actual message
- * is backed on blob storage. If the message is backed on blob storage, the actual message is downloaded. In any case,
- * the deserialization is delegated to a proper deserializer of this message type.
+ * Each message is serialized by a proper serializer for the message type. If the message size exceeds a defined
+ * threshold, the payload is uploaded to blob storage. The message forwarded to Kafka contains a flag if the message has
+ * been backed or not. In case it was backed, the flag is followed by the URI of the blob storage object. If the message
+ * was not backed, it contains the actual serialized message.
  * <p>
- * For configuration options, see {@link BlobStorageBackedSerdeConfig}.
+ * For configuration options, see {@link LargeMessageSerdeConfig}.
  *
- * @param <T> type of records that can be deserialized by this instance
+ * @param <T> type of records that can be serialized by this instance
  */
 @NoArgsConstructor
 @Slf4j
-public class BlobStorageBackedDeserializer<T> implements Deserializer<T> {
-    private BlobStorageBackedRetrievingClient client;
-    private Deserializer<? extends T> deserializer;
+public class LargeMessageSerializer<T> implements Serializer<T> {
+    private LargeMessageStoringClient client;
+    private Serializer<? super T> serializer;
+    private boolean isKey;
 
     @Override
     public void configure(final Map<String, ?> configs, final boolean isKey) {
-        final BlobStorageBackedSerdeConfig serdeConfig = new BlobStorageBackedSerdeConfig(configs);
+        final LargeMessageSerdeConfig serdeConfig = new LargeMessageSerdeConfig(configs);
         final Serde<T> serde = isKey ? serdeConfig.getKeySerde() : serdeConfig.getValueSerde();
-        this.deserializer = serde.deserializer();
-        this.client = serdeConfig.getRetriever();
-        this.deserializer.configure(configs, isKey);
+        this.serializer = serde.serializer();
+        this.client = serdeConfig.getStorer();
+        this.serializer.configure(configs, isKey);
+        this.isKey = isKey;
     }
 
     @Override
-    public T deserialize(final String topic, final byte[] data) {
-        Objects.requireNonNull(this.deserializer);
+    public byte[] serialize(final String topic, final T data) {
+        Objects.requireNonNull(this.serializer);
         Objects.requireNonNull(this.client);
-        final byte[] bytes = this.client.retrieveBytes(data);
-        return this.deserializer.deserialize(topic, bytes);
+        final byte[] bytes = this.serializer.serialize(topic, data);
+        return this.client.storeBytes(topic, bytes, this.isKey);
     }
 
     @Override
     public void close() {
-        this.deserializer.close();
+        this.serializer.close();
     }
 }

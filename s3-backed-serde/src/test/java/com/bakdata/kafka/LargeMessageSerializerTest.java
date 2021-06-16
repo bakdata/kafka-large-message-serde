@@ -24,8 +24,8 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.BlobStorageBackedRetrievingClient.deserializeUri;
-import static com.bakdata.kafka.BlobStorageBackedRetrievingClient.getBytes;
+import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
+import static com.bakdata.kafka.LargeMessageRetrievingClient.getBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
@@ -54,7 +54,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-class BlobStorageBackedSerializerTest {
+class LargeMessageSerializerTest {
 
     @RegisterExtension
     static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
@@ -67,21 +67,21 @@ class BlobStorageBackedSerializerTest {
     private static Properties createProperties(final Properties properties) {
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy");
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
-        properties.setProperty(AbstractBlobStorageBackedConfig.S3_ENDPOINT_CONFIG,
+        properties.setProperty(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG,
                 "http://localhost:" + S3_MOCK.getHttpPort());
-        properties.setProperty(AbstractBlobStorageBackedConfig.S3_REGION_CONFIG, "us-east-1");
-        properties.setProperty(AbstractBlobStorageBackedConfig.S3_ACCESS_KEY_CONFIG, "foo");
-        properties.setProperty(AbstractBlobStorageBackedConfig.S3_SECRET_KEY_CONFIG, "bar");
-        properties.put(AbstractBlobStorageBackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
-        properties.put(BlobStorageBackedSerdeConfig.KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
-        properties.put(BlobStorageBackedSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
+        properties.setProperty(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1");
+        properties.setProperty(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo");
+        properties.setProperty(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar");
+        properties.put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
+        properties.put(LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
+        properties.put(LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         return properties;
     }
 
     private static Topology createValueTopology(final Properties properties) {
         final StreamsBuilder builder = new StreamsBuilder();
         final Map<String, Object> configs = new StreamsConfig(properties).originals();
-        final Serde<String> serde = new BlobStorageBackedSerde<>();
+        final Serde<String> serde = new LargeMessageSerde<>();
         serde.configure(configs, false);
         final KStream<Integer, String> input =
                 builder.stream(INPUT_TOPIC, Consumed.with(Serdes.Integer(), Serdes.String()));
@@ -92,7 +92,7 @@ class BlobStorageBackedSerializerTest {
     private static Topology createKeyTopology(final Properties properties) {
         final StreamsBuilder builder = new StreamsBuilder();
         final Map<String, Object> configs = new StreamsConfig(properties).originals();
-        final Serde<String> serde = new BlobStorageBackedSerde<>();
+        final Serde<String> serde = new LargeMessageSerde<>();
         serde.configure(configs, true);
         final KStream<String, Integer> input =
                 builder.stream(INPUT_TOPIC, Consumed.with(Serdes.String(), Serdes.Integer()));
@@ -141,8 +141,8 @@ class BlobStorageBackedSerializerTest {
     @Test
     void shouldWriteNonBackedTextKey() {
         final Properties properties = new Properties();
-        properties.put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
-        this.createTopology(BlobStorageBackedSerializerTest::createKeyTopology, properties);
+        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
+        this.createTopology(LargeMessageSerializerTest::createKeyTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.String())
                 .withValueSerde(Serdes.Integer())
@@ -160,8 +160,8 @@ class BlobStorageBackedSerializerTest {
     @Test
     void shouldWriteNonBackedNullKey() {
         final Properties properties = new Properties();
-        properties.put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
-        this.createTopology(BlobStorageBackedSerializerTest::createKeyTopology, properties);
+        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
+        this.createTopology(LargeMessageSerializerTest::createKeyTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.String())
                 .withValueSerde(Serdes.Integer())
@@ -179,8 +179,8 @@ class BlobStorageBackedSerializerTest {
     @Test
     void shouldWriteNonBackedTextValue() {
         final Properties properties = new Properties();
-        properties.put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
-        this.createTopology(BlobStorageBackedSerializerTest::createValueTopology, properties);
+        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
+        this.createTopology(LargeMessageSerializerTest::createValueTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.String())
@@ -198,8 +198,8 @@ class BlobStorageBackedSerializerTest {
     @Test
     void shouldWriteNonBackedNullValue() {
         final Properties properties = new Properties();
-        properties.put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
-        this.createTopology(BlobStorageBackedSerializerTest::createValueTopology, properties);
+        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
+        this.createTopology(LargeMessageSerializerTest::createValueTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.String())
@@ -219,9 +219,9 @@ class BlobStorageBackedSerializerTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Properties properties = new Properties();
-        properties.put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0);
-        properties.setProperty(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath);
-        this.createTopology(BlobStorageBackedSerializerTest::createKeyTopology, properties);
+        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0);
+        properties.setProperty(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
+        this.createTopology(LargeMessageSerializerTest::createKeyTopology, properties);
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);
         this.topology.input()
@@ -242,8 +242,8 @@ class BlobStorageBackedSerializerTest {
     @Test
     void shouldWriteBackedNullKey() {
         final Properties properties = new Properties();
-        properties.put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0);
-        this.createTopology(BlobStorageBackedSerializerTest::createKeyTopology, properties);
+        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0);
+        this.createTopology(LargeMessageSerializerTest::createKeyTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.String())
                 .withValueSerde(Serdes.Integer())
@@ -263,9 +263,9 @@ class BlobStorageBackedSerializerTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Properties properties = new Properties();
-        properties.put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0);
-        properties.setProperty(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath);
-        this.createTopology(BlobStorageBackedSerializerTest::createValueTopology, properties);
+        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0);
+        properties.setProperty(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
+        this.createTopology(LargeMessageSerializerTest::createValueTopology, properties);
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);
         this.topology.input()
@@ -286,8 +286,8 @@ class BlobStorageBackedSerializerTest {
     @Test
     void shouldWriteBackedNullValue() {
         final Properties properties = new Properties();
-        properties.put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0);
-        this.createTopology(BlobStorageBackedSerializerTest::createValueTopology, properties);
+        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0);
+        this.createTopology(LargeMessageSerializerTest::createValueTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.String())

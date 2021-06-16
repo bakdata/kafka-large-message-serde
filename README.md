@@ -157,7 +157,7 @@ For other build tools or versions, refer to the [latest version in MvnRepository
 
 #### Usage
 
-To use it with your Kafka Connect jobs, just configure your converter as `com.bakdata.kafka.BlobStorageBackedConverter`.
+To use it with your Kafka Connect jobs, just configure your converter as `com.bakdata.kafka.LargeMessageConverter`.
 
 In addition to the configurations available for the serde (except `s3backed.key.serde` and `s3backed.value.serde`),
 you can configure the following:

@@ -24,9 +24,9 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.BlobStorageBackedStoringClient.CHARSET;
-import static com.bakdata.kafka.BlobStorageBackedStoringClient.IS_BACKED;
-import static com.bakdata.kafka.BlobStorageBackedStoringClient.IS_NOT_BACKED;
+import static com.bakdata.kafka.LargeMessageStoringClient.CHARSET;
+import static com.bakdata.kafka.LargeMessageStoringClient.IS_BACKED;
+import static com.bakdata.kafka.LargeMessageStoringClient.IS_NOT_BACKED;
 
 import java.net.URI;
 import java.util.Objects;
@@ -35,11 +35,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Client for retrieving actual bytes of messages stored with {@link BlobStorageBackedStoringClient}.
+ * Client for retrieving actual bytes of messages stored with {@link LargeMessageStoringClient}.
  */
 @Slf4j
 @RequiredArgsConstructor
-public class BlobStorageBackedRetrievingClient {
+public class LargeMessageRetrievingClient {
 
     private final @NonNull BlobStorageClient client;
 

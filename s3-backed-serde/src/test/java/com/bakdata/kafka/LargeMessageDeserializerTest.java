@@ -24,7 +24,7 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.BlobStorageBackedStoringClient.serialize;
+import static com.bakdata.kafka.LargeMessageStoringClient.serialize;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
@@ -48,7 +48,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-class BlobStorageBackedDeserializerTest {
+class LargeMessageDeserializerTest {
 
     @RegisterExtension
     static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
@@ -57,23 +57,23 @@ class BlobStorageBackedDeserializerTest {
     private static final String OUTPUT_TOPIC = "output";
     private TestTopology<Integer, String> topology = null;
 
-    private static Properties createProperties() {
-        final Properties properties = new Properties();
+    private static Properties createProperties(final Properties properties) {
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy");
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
-        properties.setProperty(AbstractBlobStorageBackedConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort());
-        properties.setProperty(AbstractBlobStorageBackedConfig.S3_REGION_CONFIG, "us-east-1");
-        properties.setProperty(AbstractBlobStorageBackedConfig.S3_ACCESS_KEY_CONFIG, "foo");
-        properties.setProperty(AbstractBlobStorageBackedConfig.S3_SECRET_KEY_CONFIG, "bar");
-        properties.put(AbstractBlobStorageBackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
-        properties.put(BlobStorageBackedSerdeConfig.KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
-        properties.put(BlobStorageBackedSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
+        properties.setProperty(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG,
+                "http://localhost:" + S3_MOCK.getHttpPort());
+        properties.setProperty(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1");
+        properties.setProperty(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo");
+        properties.setProperty(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar");
+        properties.put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
+        properties.put(LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
+        properties.put(LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         return properties;
     }
 
     private static Topology createKeyTopology(final Properties properties) {
         final StreamsBuilder builder = new StreamsBuilder();
-        final Serde<String> serde = new BlobStorageBackedSerde<>();
+        final Serde<String> serde = new LargeMessageSerde<>();
         serde.configure(new StreamsConfig(properties).originals(), true);
         final KStream<String, Integer> input = builder.stream(INPUT_TOPIC, Consumed.with(serde, Serdes.Integer()));
         input.to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.Integer()));
@@ -82,7 +82,7 @@ class BlobStorageBackedDeserializerTest {
 
     private static Topology createValueTopology(final Properties properties) {
         final StreamsBuilder builder = new StreamsBuilder();
-        final Serde<String> serde = new BlobStorageBackedSerde<>();
+        final Serde<String> serde = new LargeMessageSerde<>();
         serde.configure(new StreamsConfig(properties).originals(), false);
         final KStream<Integer, String> input = builder.stream(INPUT_TOPIC, Consumed.with(Serdes.Integer(), serde));
         input.to(OUTPUT_TOPIC, Produced.with(Serdes.Integer(), Serdes.String()));
@@ -103,7 +103,12 @@ class BlobStorageBackedDeserializerTest {
     }
 
     private void createTopology(final Function<? super Properties, ? extends Topology> topologyFactory) {
-        this.topology = new TestTopology<>(topologyFactory, createProperties());
+        this.createTopology(topologyFactory, new Properties());
+    }
+
+    private void createTopology(final Function<? super Properties, ? extends Topology> topologyFactory,
+            final Properties properties) {
+        this.topology = new TestTopology<>(topologyFactory, createProperties(properties));
         this.topology.start();
     }
 
@@ -116,7 +121,7 @@ class BlobStorageBackedDeserializerTest {
 
     @Test
     void shouldReadNonBackedTextValue() {
-        this.createTopology(BlobStorageBackedDeserializerTest::createValueTopology);
+        this.createTopology(LargeMessageDeserializerTest::createValueTopology);
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.ByteArray())
@@ -133,7 +138,7 @@ class BlobStorageBackedDeserializerTest {
 
     @Test
     void shouldReadNullValue() {
-        this.createTopology(BlobStorageBackedDeserializerTest::createValueTopology);
+        this.createTopology(LargeMessageDeserializerTest::createValueTopology);
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.ByteArray())
@@ -150,7 +155,7 @@ class BlobStorageBackedDeserializerTest {
 
     @Test
     void shouldReadNonBackedTextKey() {
-        this.createTopology(BlobStorageBackedDeserializerTest::createKeyTopology);
+        this.createTopology(LargeMessageDeserializerTest::createKeyTopology);
         this.topology.input()
                 .withKeySerde(Serdes.ByteArray())
                 .withValueSerde(Serdes.Integer())
@@ -167,7 +172,7 @@ class BlobStorageBackedDeserializerTest {
 
     @Test
     void shouldReadNullKey() {
-        this.createTopology(BlobStorageBackedDeserializerTest::createKeyTopology);
+        this.createTopology(LargeMessageDeserializerTest::createKeyTopology);
         this.topology.input()
                 .withKeySerde(Serdes.ByteArray())
                 .withValueSerde(Serdes.Integer())
@@ -188,7 +193,10 @@ class BlobStorageBackedDeserializerTest {
         S3_MOCK.createS3Client().createBucket(bucket);
         final String key = "key";
         store(bucket, key, "foo");
-        this.createTopology(BlobStorageBackedDeserializerTest::createValueTopology);
+        final String basePath = "s3://" + bucket + "/base/";
+        final Properties properties = new Properties();
+        properties.setProperty(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
+        this.createTopology(LargeMessageDeserializerTest::createValueTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.ByteArray())
@@ -209,7 +217,10 @@ class BlobStorageBackedDeserializerTest {
         S3_MOCK.createS3Client().createBucket(bucket);
         final String key = "key";
         store(bucket, key, "foo");
-        this.createTopology(BlobStorageBackedDeserializerTest::createKeyTopology);
+        final String basePath = "s3://" + bucket + "/base/";
+        final Properties properties = new Properties();
+        properties.setProperty(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
+        this.createTopology(LargeMessageDeserializerTest::createKeyTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.ByteArray())
                 .withValueSerde(Serdes.Integer())

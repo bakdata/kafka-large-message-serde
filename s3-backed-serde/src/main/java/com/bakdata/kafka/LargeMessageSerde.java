@@ -33,23 +33,23 @@ import org.apache.kafka.common.serialization.Serializer;
 /**
  * Kafka {@code Serde} that serializes large messages on blob storage.
  * <p>
- * It uses {@link BlobStorageBackedSerializer} for serialization and {@link BlobStorageBackedDeserializer} for
+ * It uses {@link LargeMessageSerializer} for serialization and {@link LargeMessageDeserializer} for
  * deserialization.
  * <p>
- * For configuration options, see {@link BlobStorageBackedSerdeConfig}.
+ * For configuration options, see {@link LargeMessageSerdeConfig}.
  *
  * @param <T> type of records that can be (de-)serialized by this instance
  */
-public class BlobStorageBackedSerde<T> implements Serde<T> {
+public class LargeMessageSerde<T> implements Serde<T> {
     @Delegate
     private final Serde<T> inner;
 
     /**
      * Default constructor
      */
-    public BlobStorageBackedSerde() {
-        final Serializer<T> serializer = new BlobStorageBackedSerializer<>();
-        final Deserializer<T> deserializer = new BlobStorageBackedDeserializer<>();
+    public LargeMessageSerde() {
+        final Serializer<T> serializer = new LargeMessageSerializer<>();
+        final Deserializer<T> deserializer = new LargeMessageDeserializer<>();
         this.inner = Serdes.serdeFrom(serializer, deserializer);
     }
 }

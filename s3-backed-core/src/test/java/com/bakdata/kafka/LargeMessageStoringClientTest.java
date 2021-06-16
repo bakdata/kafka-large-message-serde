@@ -24,8 +24,8 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.BlobStorageBackedRetrievingClient.deserializeUri;
-import static com.bakdata.kafka.BlobStorageBackedRetrievingClient.getBytes;
+import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
+import static com.bakdata.kafka.LargeMessageRetrievingClient.getBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
@@ -61,7 +61,7 @@ import org.mockito.stubbing.Answer;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.STRICT_STUBS)
-class BlobStorageBackedStoringClientTest {
+class LargeMessageStoringClientTest {
 
     @RegisterExtension
     static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
@@ -75,11 +75,11 @@ class BlobStorageBackedStoringClientTest {
     private static Map<String, Object> createProperties(final Map<String, Object> properties) {
         return ImmutableMap.<String, Object>builder()
                 .putAll(properties)
-                .put(AbstractBlobStorageBackedConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
-                .put(AbstractBlobStorageBackedConfig.S3_REGION_CONFIG, "us-east-1")
-                .put(AbstractBlobStorageBackedConfig.S3_ACCESS_KEY_CONFIG, "foo")
-                .put(AbstractBlobStorageBackedConfig.S3_SECRET_KEY_CONFIG, "bar")
-                .put(AbstractBlobStorageBackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true)
+                .put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
+                .put(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1")
+                .put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo")
+                .put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar")
+                .put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true)
                 .build();
     }
 
@@ -112,9 +112,9 @@ class BlobStorageBackedStoringClientTest {
                 .isEqualTo(expected);
     }
 
-    private static BlobStorageBackedStoringClient createStorer(final Map<String, Object> baseProperties) {
+    private static LargeMessageStoringClient createStorer(final Map<String, Object> baseProperties) {
         final Map<String, Object> properties = createProperties(baseProperties);
-        final AbstractBlobStorageBackedConfig config = new AbstractBlobStorageBackedConfig(properties);
+        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
         return config.getStorer();
     }
 
@@ -122,9 +122,9 @@ class BlobStorageBackedStoringClientTest {
     @ValueSource(booleans = {true, false})
     void shouldWriteNonBackedText(final boolean isKey) {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE)
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE)
                 .build();
-        final BlobStorageBackedStoringClient storer = createStorer(properties);
+        final LargeMessageStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(null, STRING_SERIALIZER.serialize(null, "foo"), isKey))
                 .satisfies(s3BackedText -> expectNonBackedText("foo", s3BackedText));
     }
@@ -133,9 +133,9 @@ class BlobStorageBackedStoringClientTest {
     @ValueSource(booleans = {true, false})
     void shouldWriteNonBackedNull(final boolean isKey) {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE)
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE)
                 .build();
-        final BlobStorageBackedStoringClient storer = createStorer(properties);
+        final LargeMessageStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(null, null, isKey))
                 .isNull();
     }
@@ -145,12 +145,12 @@ class BlobStorageBackedStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
                 .build();
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);
-        final BlobStorageBackedStoringClient storer = createStorer(properties);
+        final LargeMessageStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), true))
                 .satisfies(s3BackedText -> expectBackedText(basePath, "foo", s3BackedText, "keys"));
         s3Client.deleteBucket(bucket);
@@ -160,9 +160,9 @@ class BlobStorageBackedStoringClientTest {
     @ValueSource(booleans = {true, false})
     void shouldWriteBackedNull(final boolean isKey) {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
                 .build();
-        final BlobStorageBackedStoringClient storer = createStorer(properties);
+        final LargeMessageStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(null, null, isKey))
                 .isNull();
     }
@@ -172,12 +172,12 @@ class BlobStorageBackedStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
                 .build();
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);
-        final BlobStorageBackedStoringClient storer = createStorer(properties);
+        final LargeMessageStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), false))
                 .satisfies(s3BackedText -> expectBackedText(basePath, "foo", s3BackedText, "values"));
         s3Client.deleteBucket(bucket);
@@ -188,12 +188,12 @@ class BlobStorageBackedStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
                 .build();
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);
-        final BlobStorageBackedStoringClient storer = createStorer(properties);
+        final LargeMessageStoringClient storer = createStorer(properties);
         storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), true);
         storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), false);
         storer.storeBytes("foo", STRING_SERIALIZER.serialize(null, "foo"), true);
@@ -212,8 +212,8 @@ class BlobStorageBackedStoringClientTest {
         when(s3.putObject(eq(bucket), any(), any(), any())).then((Answer<S3Object>) invocation -> {
             throw new IOException();
         });
-        final BlobStorageBackedStoringClient storer = BlobStorageBackedStoringClient.builder()
-                .client(new S3Client(s3))
+        final LargeMessageStoringClient storer = LargeMessageStoringClient.builder()
+                .client(new AmazonS3Client(s3))
                 .basePath(new BlobStorageURI(new AmazonS3URI(basePath).getURI()))
                 .maxSize(0)
                 .idGenerator(new RandomUUIDGenerator())
@@ -230,13 +230,13 @@ class BlobStorageBackedStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath)
-                .put(AbstractBlobStorageBackedConfig.ID_GENERATOR_CONFIG, MockIdGenerator.class)
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractLargeMessageConfig.ID_GENERATOR_CONFIG, MockIdGenerator.class)
                 .build();
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);
-        final BlobStorageBackedStoringClient storer = createStorer(properties);
+        final LargeMessageStoringClient storer = createStorer(properties);
         when(idGenerator.generateId("foo".getBytes())).thenReturn("bar");
         assertThat(storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), true))
                 .satisfies(s3BackedText -> {
@@ -253,10 +253,10 @@ class BlobStorageBackedStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
                 .build();
-        final BlobStorageBackedStoringClient storer = createStorer(properties);
+        final LargeMessageStoringClient storer = createStorer(properties);
         assertThatExceptionOfType(AmazonS3Exception.class)
                 .isThrownBy(() -> storer
                         .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), isKey))
@@ -269,10 +269,10 @@ class BlobStorageBackedStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
                 .build();
-        final BlobStorageBackedStoringClient storer = createStorer(properties);
+        final LargeMessageStoringClient storer = createStorer(properties);
         assertThatNullPointerException()
                 .isThrownBy(() -> storer
                         .storeBytes(null, STRING_SERIALIZER.serialize(null, "foo"), isKey))
@@ -283,9 +283,9 @@ class BlobStorageBackedStoringClientTest {
     @ValueSource(booleans = {true, false})
     void shouldThrowExceptionOnNullBasePath(final boolean isKey) {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
                 .build();
-        final BlobStorageBackedStoringClient storer = createStorer(properties);
+        final LargeMessageStoringClient storer = createStorer(properties);
         assertThatNullPointerException()
                 .isThrownBy(() -> storer
                         .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), isKey))
@@ -298,8 +298,8 @@ class BlobStorageBackedStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final AmazonS3 s3 = mock(AmazonS3.class);
-        final BlobStorageBackedStoringClient storer = BlobStorageBackedStoringClient.builder()
-                .client(new S3Client(s3))
+        final LargeMessageStoringClient storer = LargeMessageStoringClient.builder()
+                .client(new AmazonS3Client(s3))
                 .basePath(new BlobStorageURI(new AmazonS3URI(basePath).getURI()))
                 .maxSize(0)
                 .build();

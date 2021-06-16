@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Builder
-public class BlobStorageBackedStoringClient {
+public class LargeMessageStoringClient {
 
     static final byte IS_NOT_BACKED = 0;
     static final byte IS_BACKED = 1;
@@ -74,7 +74,7 @@ public class BlobStorageBackedStoringClient {
      * @param topic name of the topic the bytes are associated with
      * @param bytes payload
      * @param isKey whether the bytes represent the key of a message
-     * @return bytes representing the payload. Can be read using {@link BlobStorageBackedRetrievingClient}
+     * @return bytes representing the payload. Can be read using {@link LargeMessageRetrievingClient}
      */
     public byte[] storeBytes(final String topic, final byte[] bytes, final boolean isKey) {
         if (bytes == null) {

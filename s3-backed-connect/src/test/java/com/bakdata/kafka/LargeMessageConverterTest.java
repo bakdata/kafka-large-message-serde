@@ -25,8 +25,8 @@
 package com.bakdata.kafka;
 
 
-import static com.bakdata.kafka.BlobStorageBackedRetrievingClient.deserializeUri;
-import static com.bakdata.kafka.BlobStorageBackedRetrievingClient.getBytes;
+import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
+import static com.bakdata.kafka.LargeMessageRetrievingClient.getBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
@@ -52,7 +52,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-class BlobStorageBackedConverterTest {
+class LargeMessageConverterTest {
     @RegisterExtension
     static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
             .withSecureConnection(false).build();
@@ -61,11 +61,11 @@ class BlobStorageBackedConverterTest {
     private static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
     private static final Deserializer<String> STRING_DESERIALIZER = new StringDeserializer();
     private final AmazonS3 s3Client = S3_MOCK.createS3Client();
-    private BlobStorageBackedConverter converter = null;
+    private LargeMessageConverter converter = null;
 
     private static byte[] createBackedText(final String bucket, final String key) {
         final String uri = "s3://" + bucket + "/" + key;
-        return BlobStorageBackedStoringClient.serialize(uri);
+        return LargeMessageStoringClient.serialize(uri);
     }
 
     private static byte[] readBytes(final BlobStorageURI uri) {
@@ -79,14 +79,14 @@ class BlobStorageBackedConverterTest {
 
     private static Map<String, String> createProperties(final int maxSize, final String basePath) {
         return ImmutableMap.<String, String>builder()
-                .put(AbstractBlobStorageBackedConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
-                .put(AbstractBlobStorageBackedConfig.S3_REGION_CONFIG, "us-east-1")
-                .put(AbstractBlobStorageBackedConfig.S3_ACCESS_KEY_CONFIG, "foo")
-                .put(AbstractBlobStorageBackedConfig.S3_SECRET_KEY_CONFIG, "bar")
-                .put(AbstractBlobStorageBackedConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, "true")
-                .put(AbstractBlobStorageBackedConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(maxSize))
-                .put(AbstractBlobStorageBackedConfig.BASE_PATH_CONFIG, basePath)
-                .put(BlobStorageBackedConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName())
+                .put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
+                .put(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1")
+                .put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo")
+                .put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar")
+                .put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, "true")
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(maxSize))
+                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
+                .put(LargeMessageConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName())
                 .build();
     }
 
@@ -95,7 +95,7 @@ class BlobStorageBackedConverterTest {
     }
 
     private static byte[] createNonBackedText(final String text) {
-        return BlobStorageBackedStoringClient.serialize(STRING_SERIALIZER.serialize(null, text));
+        return LargeMessageStoringClient.serialize(STRING_SERIALIZER.serialize(null, text));
     }
 
     private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
@@ -222,7 +222,7 @@ class BlobStorageBackedConverterTest {
 
     private void initSetup(final boolean isKey, final int maxSize, final String basePath) {
         final Map<String, String> properties = createProperties(maxSize, basePath);
-        this.converter = new BlobStorageBackedConverter();
+        this.converter = new LargeMessageConverter();
         this.converter.configure(properties, isKey);
     }
 }

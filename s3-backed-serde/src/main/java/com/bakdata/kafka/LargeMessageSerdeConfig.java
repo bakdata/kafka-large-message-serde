@@ -32,7 +32,7 @@ import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes.ByteArraySerde;
 
 /**
- * This class provides configuration options for {@link BlobStorageBackedSerde}. It offers configuration of the following
+ * This class provides configuration options for {@link LargeMessageSerde}. It offers configuration of the following
  * properties:
  * <p>
  * <ul>
@@ -47,7 +47,7 @@ import org.apache.kafka.common.serialization.Serdes.ByteArraySerde;
  *     <li> S3 base path
  * </ul>
  */
-public class BlobStorageBackedSerdeConfig extends AbstractBlobStorageBackedConfig {
+public class LargeMessageSerdeConfig extends AbstractLargeMessageConfig {
     public static final String KEY_SERDE_CLASS_CONFIG = PREFIX + "key.serde";
     public static final String KEY_SERDE_CLASS_DOC =
             "Key serde class to use. All serde configurations are also delegated to this serde.";
@@ -58,7 +58,7 @@ public class BlobStorageBackedSerdeConfig extends AbstractBlobStorageBackedConfi
     public static final Class<? extends Serde<?>> VALUE_SERDE_CLASS_DEFAULT = ByteArraySerde.class;
     private static final ConfigDef config = configDef();
 
-    BlobStorageBackedSerdeConfig(final Map<?, ?> originals) {
+    LargeMessageSerdeConfig(final Map<?, ?> originals) {
         super(config, originals);
     }
 

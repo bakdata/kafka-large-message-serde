@@ -32,17 +32,17 @@ import org.apache.kafka.connect.storage.Converter;
 /**
  * Kafka {@code Converter} that serializes large messages on blob storage.
  * <p>
- * For configuration options, see {@link BlobStorageBackedConverterConfig}.
+ * For configuration options, see {@link LargeMessageConverterConfig}.
  */
-public class BlobStorageBackedConverter implements Converter {
+public class LargeMessageConverter implements Converter {
     private Converter converter;
-    private BlobStorageBackedStoringClient storingClient;
-    private BlobStorageBackedRetrievingClient retrievingClient;
+    private LargeMessageStoringClient storingClient;
+    private LargeMessageRetrievingClient retrievingClient;
     private boolean isKey;
 
     @Override
     public void configure(final Map<String, ?> configs, final boolean isKey) {
-        final BlobStorageBackedConverterConfig config = new BlobStorageBackedConverterConfig(configs);
+        final LargeMessageConverterConfig config = new LargeMessageConverterConfig(configs);
         this.storingClient = config.getStorer();
         this.retrievingClient = config.getRetriever();
         this.isKey = isKey;

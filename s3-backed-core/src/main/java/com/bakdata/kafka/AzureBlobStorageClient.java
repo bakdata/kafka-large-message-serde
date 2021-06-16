@@ -11,12 +11,13 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class AzureClient implements BlobStorageClient {
+public class AzureBlobStorageClient implements BlobStorageClient {
 
+    public static final String SCHEME = "wasbs";
     private final @NonNull BlobServiceClient blobServiceClient;
 
     private static String asURI(final String bucket, final String key) {
-        return "abfs://" + bucket + "/" + key;
+        return SCHEME + "://" + bucket + "/" + key;
     }
 
     @Override
