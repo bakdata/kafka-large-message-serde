@@ -1,14 +1,14 @@
-description = "Kafka Connect converter that stores large messages on Amazon S3"
+description = "Kafka Connect converter that stores large messages on a blob storage, such as Amazon S3 and Azure Blob Storage"
 
 
 
 dependencies {
-    api(project(":s3-backed-core"))
+    api(project(":large-message-core"))
     val kafkaVersion: String by project
     api(group = "org.apache.kafka", name = "connect-api", version = kafkaVersion)
     compileOnly(group = "org.apache.kafka", name = "connect-runtime", version = kafkaVersion)
 
-    testImplementation(project(":s3-backed-serde"))
+    testImplementation(project(":large-message-serde"))
     val junitVersion: String by project
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", version = junitVersion)

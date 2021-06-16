@@ -1,32 +1,33 @@
 [![Build Status](https://dev.azure.com/bakdata/public/_apis/build/status/bakdata.kafka-s3-backed-serde?branchName=master)](https://dev.azure.com/bakdata/public/_build/latest?definitionId=20&branchName=master)
 [![Sonarcloud status](https://sonarcloud.io/api/project_badges/measure?project=com.bakdata.kafka%3As3-backed&metric=alert_status)](https://sonarcloud.io/dashboard?id=com.bakdata.kafka%3As3-backed)
 [![Code coverage](https://sonarcloud.io/api/project_badges/measure?project=com.bakdata.kafka%3As3-backed&metric=coverage)](https://sonarcloud.io/dashboard?id=com.bakdata.kafka%3As3-backed)
-[![Maven](https://img.shields.io/maven-central/v/com.bakdata.kafka/s3-backed-serde.svg)](https://search.maven.org/search?q=g:com.bakdata.kafka%20AND%20a:s3-backed-serde&core=gav)
+[![Maven](https://img.shields.io/maven-central/v/com.bakdata.kafka/large-message-serde.svg)](https://search.maven.org/search?q=g:com.bakdata.kafka%20AND%20a:large-message-serde&core=gav)
 
-# kafka-s3-backed-serde
-A Kafka Serde that reads and writes records from and to S3 transparently.
+# kafka-large-message-serde
+A Kafka Serde that reads and writes records from and to a blob storage, such as Amazon S3 and Azure Blob Storage, transparently.
+Formerly known as kafka-s3-backed-serde.
 
 ## Getting Started
 
 ### Serde
 
-You can add kafka-s3-backed-serde via Maven Central.
+You can add kafka-large-message-serde via Maven Central.
 
 #### Gradle
 ```gradle
-compile group: 'com.bakdata.kafka', name: 's3-backed-serde', version: '1.1.6'
+compile group: 'com.bakdata.kafka', name: 'large-message-serde', version: '2.0.0'
 ```
 
 #### Maven
 ```xml
 <dependency>
     <groupId>com.bakdata.kafka</groupId>
-    <artifactId>s3-backed-serde</artifactId>
-    <version>1.1.6</version>
+    <artifactId>large-message-serde</artifactId>
+    <version>2.0.0</version>
 </dependency>
 ```
 
-For other build tools or versions, refer to the [latest version in MvnRepository](https://mvnrepository.com/artifact/com.bakdata.kafka/s3-backed-serde/latest).
+For other build tools or versions, refer to the [latest version in MvnRepository](https://mvnrepository.com/artifact/com.bakdata.kafka/large-message-serde/latest).
 
 Make sure to also add [Confluent Maven Repository](http://packages.confluent.io/maven/) to your build file.
 
@@ -35,63 +36,65 @@ Make sure to also add [Confluent Maven Repository](http://packages.confluent.io/
 You can use it from your Kafka Streams application like any other Serde
 
 ```java
-final Serde<String> serde = new S3BackedSerde<>();
-serde.configure(Map.of(AbstractS3BackedConfig.BASE_PATH_CONFIG, "s3://my-bucket/",
-        S3BackedSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class), false);
+final Serde<String> serde = new LargeMessageSerde<>();
+serde.configure(Map.of(AbstractLargeMessageConfig.BASE_PATH_CONFIG, "s3://my-bucket/",
+        LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class), false);
 ```
 
 The following configuration options are available:
 
-``s3backed.key.serde``
+TODO Update
+
+``large.message.key.serde``
   Key serde class to use. All serde configurations are also delegated to this serde.
 
   * Type: class
   * Default: `org.apache.kafka.common.serialization.Serdes$ByteArraySerde`
   * Importance: high
 
-``s3backed.value.serde``
+``large.message.value.serde``
   Value serde class to use. All serde configurations are also delegated to this serde.
 
   * Type: class
   * Default: `org.apache.kafka.common.serialization.Serdes$ByteArraySerde`
   * Importance: high
 
-``s3backed.base.path``
+``large.message.base.path``
   Base path to store data. Must include bucket and any prefix that should be used, e.g., `s3://my-bucket/my/prefix/`.
 
   * Type: string
   * Default: ""
   * Importance: high
 
-``s3backed.max.byte.size``
+``large.message.max.byte.size``
   Maximum serialized message size in bytes before messages are stored on S3.
 
   * Type: int
   * Default: 1000000
   * Importance: medium
   
-``s3backed.id.generator``
+``large.message.id.generator``
   Class to use for generating unique S3 object IDs. Available generators are: `com.bakdata.kafka.RandomUUIDGenerator`, `com.bakdata.kafka.Sha256HashIdGenerator`, `com.bakdata.kafka.MurmurHashIdGenerator`.
 
   * Type: class
   * Default: `com.bakdata.kafka.RandomUUIDGenerator`
   * Importance: medium
 
-``s3backed.access.key``
+``large.message.s3.access.key``
   AWS access key to use for connecting to S3. Leave empty if AWS credential provider chain or STS Assume Role provider should be used.
 
   * Type: password
   * Default: ""
   * Importance: low
 
-``s3backed.secret.key``
+``large.message.s3.secret.key``
   AWS secret key to use for connecting to S3. Leave empty if AWS credential provider chain or STS Assume Role provider should be used.
 
   * Type: password
   * Default: ""
   * Importance: low
 
- ``s3backed.sts.role.arn``
+ ``large.message.s3.sts.role.arn``
    AWS STS role ARN to use for connecting to S3. Leave empty if AWS Basic provider or AWS credential provider chain should be used.
 
    * Type: string
@@ -99,35 +102,35 @@ The following configuration options are available:
    * Importance: low
 
   
- ``s3backed.role.external.id``
+ ``large.message.s3.role.external.id``
    AWS STS role external ID used when retrieving session credentials under an assumed role. Leave empty if AWS Basic provider or AWS credential provider chain should be used.
 
    * Type: string
    * Default: ""
    * Importance: low
 
- ``s3backed.role.session.name``
+ ``large.message.s3.role.session.name``
    AWS STS role session name to use when starting a session. Leave empty if AWS Basic provider or AWS credential provider chain should be used.
 
    * Type: string
    * Default: ""
    * Importance: low
 
-``s3backed.region``
+``large.message.s3.region``
   S3 region to use. Must be configured in conjunction with s3backed.endpoint. Leave empty if default S3 region should be used.
 
   * Type: string
   * Default: ""
   * Importance: low
 
-``s3backed.endpoint``
+``large.message.s3.endpoint``
   Endpoint to use for connection to Amazon S3. Must be configured in conjunction with s3backed.region. Leave empty if default S3 endpoint should be used.
 
   * Type: string
   * Default: ""
   * Importance: low
 
-``s3backed.path.style.access``
+``large.message.s3.path.style.access``
   Enable path-style access for S3 client.
 
   * Type: boolean
@@ -137,32 +140,32 @@ The following configuration options are available:
 ### Kafka Connect
 
 This serde also comes with support for Kafka Connect.
-You can add kafka-s3-backed-connect via Maven Central.
+You can add kafka-large-message-connect via Maven Central.
 
 #### Gradle
 ```gradle
-compile group: 'com.bakdata.kafka', name: 's3-backed-connect', version: '1.1.6'
+compile group: 'com.bakdata.kafka', name: 'large-message-connect', version: '1.1.6'
 ```
 
 #### Maven
 ```xml
 <dependency>
     <groupId>com.bakdata.kafka</groupId>
-    <artifactId>s3-backed-connect</artifactId>
-    <version>1.1.6</version>
+    <artifactId>large-message-connect</artifactId>
+    <version>2.0.0</version>
 </dependency>
 ```
 
-For other build tools or versions, refer to the [latest version in MvnRepository](https://mvnrepository.com/artifact/com.bakdata.kafka/s3-backed-connect/latest).
+For other build tools or versions, refer to the [latest version in MvnRepository](https://mvnrepository.com/artifact/com.bakdata.kafka/large-message-connect/latest).
 
 #### Usage
 
 To use it with your Kafka Connect jobs, just configure your converter as `com.bakdata.kafka.LargeMessageConverter`.
 
-In addition to the configurations available for the serde (except `s3backed.key.serde` and `s3backed.value.serde`),
+In addition to the configurations available for the serde (except `large.message.key.serde` and `large.message.value.serde`),
 you can configure the following:
 
-``s3backed.converter``
+``large.message.converter``
   Converter to use. All converter configurations are also delegated to this converter.
 
   * Type: class
@@ -173,12 +176,12 @@ For general guidance on how to configure Kafka Connect converters, please have a
 
 ### Cleaning up the bucket
 
-We also provide a method for cleaning up all files on Amazon S3 associated with a topic:
+We also provide a method for cleaning up all files on the blob storage associated with a topic:
 
 ```java
 final Map<String, Object> properties = ...;
-final AbstractS3BackedConfig config = new AbstractS3BackedConfig(properties);
-final S3BackedStoringClient storer = config.getS3Storer()
+final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
+final LargeMessageStoringClient storer = config.getStorer()
 storer.deleteAllFiles("topic");
 ```
 
@@ -188,8 +191,8 @@ If you want to contribute to this project, you can simply clone the repository a
 All dependencies should be included in the Gradle files, there are no external prerequisites.
 
 ```bash
-> git clone git@github.com:bakdata/kafka-s3-backed-serde.git
-> cd kafka-s3-backed-serde && ./gradlew build
+> git clone git@github.com:bakdata/kafka-large-message-serde.git
+> cd kafka-large-message-serde && ./gradlew build
 ```
 
 Please note, that we have [code styles](https://github.com/bakdata/bakdata-code-styles) for Java.
@@ -204,4 +207,4 @@ Just open an issue beforehand and let us know what you want to do and why.
 
 ## License
 This project is licensed under the MIT license.
-Have a look at the [LICENSE](https://github.com/bakdata/kafka-s3-backed-serde/blob/master/LICENSE) for more details.
+Have a look at the [LICENSE](https://github.com/bakdata/kafka-large-message-serde/blob/master/LICENSE) for more details.

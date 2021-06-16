@@ -1,4 +1,4 @@
-description = "Base module for Kafka plugins that store large messages on Amazon S3"
+description = "Base module for Kafka plugins that store large messages on a blob storage, such as Amazon S3 and Azure Blob Storage"
 
 
 

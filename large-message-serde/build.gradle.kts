@@ -1,9 +1,9 @@
-description = "Kafka serde that stores large messages on Amazon S3"
+description = "Kafka serde that stores large messages on a blob storage, such as Amazon S3 and Azure Blob Storage"
 
 
 
 dependencies {
-    api(project(":s3-backed-core"))
+    api(project(":large-message-core"))
 
     val junitVersion: String by project
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
