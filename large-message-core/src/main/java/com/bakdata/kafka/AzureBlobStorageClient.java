@@ -11,9 +11,9 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class AzureBlobStorageClient implements BlobStorageClient {
+class AzureBlobStorageClient implements BlobStorageClient {
 
-    public static final String SCHEME = "wasbs";
+    static final String SCHEME = "abs";
     private final @NonNull BlobServiceClient blobServiceClient;
 
     private static String asURI(final String bucket, final String key) {

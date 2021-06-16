@@ -36,13 +36,13 @@ import static org.mockito.Mockito.when;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.util.IOUtils;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -214,7 +214,7 @@ class LargeMessageStoringClientTest {
         });
         final LargeMessageStoringClient storer = LargeMessageStoringClient.builder()
                 .client(new AmazonS3Client(s3))
-                .basePath(new BlobStorageURI(new AmazonS3URI(basePath).getURI()))
+                .basePath(new BlobStorageURI(URI.create(basePath)))
                 .maxSize(0)
                 .idGenerator(new RandomUUIDGenerator())
                 .build();
@@ -300,7 +300,7 @@ class LargeMessageStoringClientTest {
         final AmazonS3 s3 = mock(AmazonS3.class);
         final LargeMessageStoringClient storer = LargeMessageStoringClient.builder()
                 .client(new AmazonS3Client(s3))
-                .basePath(new BlobStorageURI(new AmazonS3URI(basePath).getURI()))
+                .basePath(new BlobStorageURI(URI.create(basePath)))
                 .maxSize(0)
                 .build();
         assertThatNullPointerException()

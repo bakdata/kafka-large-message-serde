@@ -18,9 +18,9 @@ import org.apache.kafka.common.errors.SerializationException;
 
 @Slf4j
 @RequiredArgsConstructor
-public class AmazonS3Client implements BlobStorageClient {
+class AmazonS3Client implements BlobStorageClient {
 
-    public static final String SCHEME = "s3";
+    static final String SCHEME = "s3";
     private final @NonNull AmazonS3 s3;
 
     private static ObjectMetadata createMetadata(final byte[] bytes) {

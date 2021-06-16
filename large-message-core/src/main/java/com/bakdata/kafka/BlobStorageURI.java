@@ -6,7 +6,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class BlobStorageURI {
+class BlobStorageURI {
     private static final Pattern LEADING_SLASH = Pattern.compile("^/");
     private final @NonNull URI uri;
 

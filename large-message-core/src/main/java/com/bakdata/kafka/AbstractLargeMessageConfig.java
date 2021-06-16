@@ -114,9 +114,8 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final boolean S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT = false;
     public static final String AZURE_PREFIX = PREFIX + "wasbs.";
     public static final String AZURE_CONNECTION_STRING_CONFIG = AZURE_PREFIX + "connection.string";
-    public static final String AZURE_CONNECTION_STRING_DOC =
-            "Azure connection string for connection to blob storage. Leave empty if Azure"
-                    + " credential provider chain should be used.";
+    public static final String AZURE_CONNECTION_STRING_DOC = "Azure connection string for connection to blob storage. "
+            + "Leave empty if Azure credential provider chain should be used.";
     public static final String AZURE_CONNECTION_STRING_DEFAULT = "";
     private static final ConfigDef config = baseConfigDef();
     private final Map<String, Supplier<BlobStorageClient>> clientFactories =
@@ -185,7 +184,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         return uri
                 .map(BlobStorageURI::getScheme)
                 .map(this::createClient)
-                .orElseGet(MissingStorageClient::new);
+                .orElseGet(NoBlobStorageClient::new);
     }
 
     private BlobStorageClient createClient(final String scheme) {

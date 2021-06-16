@@ -1,6 +1,6 @@
 package com.bakdata.kafka;
 
-class MissingStorageClient implements BlobStorageClient {
+class NoBlobStorageClient implements BlobStorageClient {
     @Override
     public void deleteAllFiles(final String bucket, final String prefix) {
         throw new UnsupportedOperationException();
