@@ -220,10 +220,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
 
     private Optional<String> getAzureConnectionString() {
         final String connectionString = this.getPassword(AZURE_CONNECTION_STRING_CONFIG).value();
-        if (!isEmpty(connectionString)) {
-            return Optional.of(connectionString);
-        }
-        return Optional.empty();
+        return isEmpty(connectionString) ? Optional.empty() : Optional.of(connectionString);
     }
 
     private BlobStorageClient createAmazonS3Client() {
