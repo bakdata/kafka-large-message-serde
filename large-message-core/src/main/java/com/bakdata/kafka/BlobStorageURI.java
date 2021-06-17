@@ -15,20 +15,20 @@ class BlobStorageURI {
         return new BlobStorageURI(uri);
     }
 
-    public String getScheme() {
-        return this.uri.getScheme();
-    }
-
-    public String getBucket() {
-        return this.uri.getHost();
-    }
-
-    public String getKey() {
-        return LEADING_SLASH.matcher(this.uri.getPath()).replaceAll("");
-    }
-
     @Override
     public String toString() {
         return this.uri.toString();
+    }
+
+    String getScheme() {
+        return this.uri.getScheme();
+    }
+
+    String getBucket() {
+        return this.uri.getHost();
+    }
+
+    String getKey() {
+        return LEADING_SLASH.matcher(this.uri.getPath()).replaceAll("");
     }
 }

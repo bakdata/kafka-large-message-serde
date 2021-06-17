@@ -2,12 +2,12 @@ package com.bakdata.kafka;
 
 class NoBlobStorageClient implements BlobStorageClient {
     @Override
-    public void deleteAllFiles(final String bucket, final String prefix) {
+    public void deleteAllObjects(final String bucket, final String prefix) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public String put(final byte[] bytes, final String bucket, final String key) {
+    public String putObject(final byte[] bytes, final String bucket, final String key) {
         throw new UnsupportedOperationException();
     }
 

@@ -98,7 +98,7 @@ public class LargeMessageStoringClient {
         final String prefix = this.createTopicPrefix(topic);
         final String bucketName = this.basePath.getBucket();
         log.info("Deleting blob storage backed files for topic '{}'", topic);
-        this.client.deleteAllFiles(bucketName, prefix);
+        this.client.deleteAllObjects(bucketName, prefix);
         log.info("Finished deleting blob storage backed files for topic '{}'", topic);
     }
 
@@ -112,7 +112,7 @@ public class LargeMessageStoringClient {
 
     private String createTopicPrefix(final String topic) {
         Objects.requireNonNull(topic, "Topic must not be null");
-        return toString(this.basePath.getKey().replaceAll("^/", "")) + topic + "/";
+        return toString(this.basePath.getKey()) + topic + "/";
     }
 
     private boolean needsBacking(final byte[] bytes) {
@@ -121,7 +121,7 @@ public class LargeMessageStoringClient {
 
     private String uploadToBlobStorage(final String key, final byte[] bytes) {
         final String bucket = this.basePath.getBucket();
-        final String uri = this.client.put(bytes, bucket, key);
+        final String uri = this.client.putObject(bytes, bucket, key);
         log.debug("Stored large message on blob storage: {}", uri);
         return uri;
     }

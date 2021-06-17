@@ -34,16 +34,28 @@ import org.apache.kafka.connect.storage.Converter;
 /**
  * This class provides configuration options for {@link LargeMessageConverter}. It offers configuration of the following
  * properties:
- * <p>
+ * <p></p>
+ * General
  * <ul>
  *     <li> converter
+ *     <li> maximum serialized message size in bytes
+ *     <li> base path
+ *     <li> id generator
+ * </ul>
+ * <p></p>
+ * Amazon S3 specific
+ * <ul>
  *     <li> S3 endpoint
  *     <li> S3 region
  *     <li> S3 access key
  *     <li> S3 secret key
+ *     <li> AWS security token service
  *     <li> S3 enable path-style access
- *     <li> maximum message size
- *     <li> S3 base path
+ * </ul>
+ * <p></p>
+ * Azure Blob Storage specific
+ * <ul>
+ *     <li> Connection string
  * </ul>
  */
 public class LargeMessageConverterConfig extends AbstractLargeMessageConfig {

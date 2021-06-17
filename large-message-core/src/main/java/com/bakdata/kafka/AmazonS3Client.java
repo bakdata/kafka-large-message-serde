@@ -16,6 +16,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.SerializationException;
 
+/**
+ * Implementation of {@link BlobStorageClient} for Amazon S3;
+ */
 @Slf4j
 @RequiredArgsConstructor
 class AmazonS3Client implements BlobStorageClient {
@@ -34,14 +37,14 @@ class AmazonS3Client implements BlobStorageClient {
     }
 
     @Override
-    public void deleteAllFiles(final String bucket, final String prefix) {
+    public void deleteAllObjects(final String bucket, final String prefix) {
         // https://docs.aws.amazon.com/AmazonS3/latest/userguide/delete-bucket.html#delete-empty-bucket
         this.deleteObjects(bucket, prefix);
         this.deleteVersions(bucket, prefix);
     }
 
     @Override
-    public String put(final byte[] bytes, final String bucket, final String key) {
+    public String putObject(final byte[] bytes, final String bucket, final String key) {
         try (final InputStream content = new ByteArrayInputStream(bytes)) {
             final ObjectMetadata metadata = createMetadata(bytes);
             this.s3.putObject(bucket, key, content, metadata);

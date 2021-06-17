@@ -58,8 +58,8 @@ class LargeMessageStoringClientTest {
     @Mock
     BlobStorageClient client;
 
-    private static void expectNonBackedText(final String expected, final byte[] s3BackedText) {
-        assertThat(STRING_DESERIALIZER.deserialize(null, getBytes(s3BackedText)))
+    private static void expectNonBackedText(final String expected, final byte[] backedText) {
+        assertThat(STRING_DESERIALIZER.deserialize(null, getBytes(backedText)))
                 .isInstanceOf(String.class)
                 .isEqualTo(expected);
     }
@@ -87,7 +87,7 @@ class LargeMessageStoringClientTest {
     void shouldWriteNonBackedText(final boolean isKey) {
         final LargeMessageStoringClient storer = this.createStorer(Integer.MAX_VALUE);
         assertThat(storer.storeBytes(null, STRING_SERIALIZER.serialize(null, "foo"), isKey))
-                .satisfies(s3BackedText -> expectNonBackedText("foo", s3BackedText));
+                .satisfies(backedText -> expectNonBackedText("foo", backedText));
     }
 
     @ParameterizedTest
@@ -103,7 +103,7 @@ class LargeMessageStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "foo://" + bucket + "/base/";
         when(this.idGenerator.generateId(STRING_SERIALIZER.serialize(null, "foo"))).thenReturn("key");
-        when(this.client.put(STRING_SERIALIZER.serialize(null, "foo"), bucket, "base/" + TOPIC + "/keys/key"))
+        when(this.client.putObject(STRING_SERIALIZER.serialize(null, "foo"), bucket, "base/" + TOPIC + "/keys/key"))
                 .thenReturn("uri");
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath));
         assertThat(storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), true))
@@ -121,9 +121,9 @@ class LargeMessageStoringClientTest {
     @Test
     void shouldWriteBackedTextValue() {
         final String bucket = "bucket";
-        final String basePath = "s3://" + bucket + "/base/";
+        final String basePath = "foo://" + bucket + "/base/";
         when(this.idGenerator.generateId(STRING_SERIALIZER.serialize(null, "foo"))).thenReturn("key");
-        when(this.client.put(STRING_SERIALIZER.serialize(null, "foo"), bucket, "base/" + TOPIC + "/values/key"))
+        when(this.client.putObject(STRING_SERIALIZER.serialize(null, "foo"), bucket, "base/" + TOPIC + "/values/key"))
                 .thenReturn("uri");
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath));
         assertThat(storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), false))
@@ -133,19 +133,19 @@ class LargeMessageStoringClientTest {
     @Test
     void shouldDeleteFiles() {
         final String bucket = "bucket";
-        final String basePath = "s3://" + bucket + "/base/";
+        final String basePath = "foo://" + bucket + "/base/";
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath));
         storer.deleteAllFiles(TOPIC);
-        verify(this.client).deleteAllFiles(bucket, "base/" + TOPIC + "/");
+        verify(this.client).deleteAllObjects(bucket, "base/" + TOPIC + "/");
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void shouldThrowExceptionOnS3Error(final boolean isKey) {
+    void shouldThrowExceptionOnError(final boolean isKey) {
         final String bucket = "bucket";
-        final String basePath = "s3://" + bucket + "/base/";
+        final String basePath = "foo://" + bucket + "/base/";
         when(this.idGenerator.generateId(any())).thenReturn("key");
-        when(this.client.put(any(), eq(bucket), any())).thenThrow(UncheckedIOException.class);
+        when(this.client.putObject(any(), eq(bucket), any())).thenThrow(UncheckedIOException.class);
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath));
         assertThatExceptionOfType(UncheckedIOException.class)
                 .isThrownBy(() -> storer
@@ -156,7 +156,7 @@ class LargeMessageStoringClientTest {
     @ValueSource(booleans = {true, false})
     void shouldThrowExceptionOnNullTopic(final boolean isKey) {
         final String bucket = "bucket";
-        final String basePath = "s3://" + bucket + "/base/";
+        final String basePath = "foo://" + bucket + "/base/";
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath));
         assertThatNullPointerException()
                 .isThrownBy(() -> storer
@@ -178,7 +178,7 @@ class LargeMessageStoringClientTest {
     @ValueSource(booleans = {true, false})
     void shouldThrowExceptionOnNullIdGenerator(final boolean isKey) {
         final String bucket = "bucket";
-        final String basePath = "s3://" + bucket + "/base/";
+        final String basePath = "foo://" + bucket + "/base/";
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath), null);
         assertThatNullPointerException()
                 .isThrownBy(() -> storer

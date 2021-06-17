@@ -41,7 +41,6 @@ import io.confluent.common.config.AbstractConfig;
 import io.confluent.common.config.ConfigDef;
 import io.confluent.common.config.ConfigDef.Importance;
 import io.confluent.common.config.ConfigDef.Type;
-import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -50,17 +49,27 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * This class provides default configuration options for blob storage backed data. It offers configuration of the
  * following properties:
- * <p>
+ * <p></p>
+ * General
  * <ul>
  *     <li> maximum serialized message size in bytes
  *     <li> base path
  *     <li> id generator
+ * </ul>
+ * <p></p>
+ * Amazon S3 specific
+ * <ul>
  *     <li> S3 endpoint
  *     <li> S3 region
  *     <li> S3 access key
  *     <li> S3 secret key
  *     <li> AWS security token service
  *     <li> S3 enable path-style access
+ * </ul>
+ * <p></p>
+ * Azure Blob Storage specific
+ * <ul>
+ *     <li> Connection string
  * </ul>
  */
 @Slf4j
@@ -72,14 +81,14 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final int MAX_BYTE_SIZE_DEFAULT = 1000 * 1000;
     public static final String BASE_PATH_CONFIG = PREFIX + "base.path";
     public static final String BASE_PATH_DOC = "Base path to store data. Must include bucket and any prefix that "
-            + "should be used, e.g., 's3://my-bucket/my/prefix/'. Available protocols: 's3', 'wasbs'";
+            + "should be used, e.g., 's3://my-bucket/my/prefix/'. Available protocols: 's3', 'abs'.";
     public static final String BASE_PATH_DEFAULT = "";
     public static final String ID_GENERATOR_CONFIG = PREFIX + "id.generator";
     public static final String ID_GENERATOR_DOC = "Class to use for generating unique object IDs. Available "
             + "generators are: " + RandomUUIDGenerator.class.getName() + ", " + Sha256HashIdGenerator.class.getName()
             + ", " + MurmurHashIdGenerator.class.getName() + ".";
     public static final Class<? extends IdGenerator> ID_GENERATOR_DEFAULT = RandomUUIDGenerator.class;
-    public static final String S3_PREFIX = PREFIX + "s3.";
+    public static final String S3_PREFIX = PREFIX + AmazonS3Client.SCHEME + ".";
     public static final String S3_ENDPOINT_CONFIG = S3_PREFIX + "endpoint";
     public static final String S3_ENDPOINT_DEFAULT = "";
     public static final String S3_REGION_CONFIG = S3_PREFIX + "region";
@@ -112,7 +121,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_CONFIG = S3_PREFIX + "path.style.access";
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_DOC = "Enable path-style access for S3 client.";
     public static final boolean S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT = false;
-    public static final String AZURE_PREFIX = PREFIX + "wasbs.";
+    public static final String AZURE_PREFIX = PREFIX + AzureBlobStorageClient.SCHEME + ".";
     public static final String AZURE_CONNECTION_STRING_CONFIG = AZURE_PREFIX + "connection.string";
     public static final String AZURE_CONNECTION_STRING_DOC = "Azure connection string for connection to blob storage. "
             + "Leave empty if Azure credential provider chain should be used.";

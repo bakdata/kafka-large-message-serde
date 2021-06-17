@@ -43,8 +43,6 @@ serde.configure(Map.of(AbstractLargeMessageConfig.BASE_PATH_CONFIG, "s3://my-buc
 
 The following configuration options are available:
 
-TODO Update
-
 ``large.message.key.serde``
   Key serde class to use. All serde configurations are also delegated to this serde.
 
@@ -60,21 +58,21 @@ TODO Update
   * Importance: high
 
 ``large.message.base.path``
-  Base path to store data. Must include bucket and any prefix that should be used, e.g., `s3://my-bucket/my/prefix/`.
+  Base path to store data. Must include bucket and any prefix that should be used, e.g., `s3://my-bucket/my/prefix/. Available protocols: `s3`, `abs`.
 
   * Type: string
   * Default: ""
   * Importance: high
 
 ``large.message.max.byte.size``
-  Maximum serialized message size in bytes before messages are stored on S3.
+  Maximum serialized message size in bytes before messages are stored on blob storage.
 
   * Type: int
   * Default: 1000000
   * Importance: medium
   
 ``large.message.id.generator``
-  Class to use for generating unique S3 object IDs. Available generators are: `com.bakdata.kafka.RandomUUIDGenerator`, `com.bakdata.kafka.Sha256HashIdGenerator`, `com.bakdata.kafka.MurmurHashIdGenerator`.
+  Class to use for generating unique object IDs. Available generators are: `com.bakdata.kafka.RandomUUIDGenerator`, `com.bakdata.kafka.Sha256HashIdGenerator`, `com.bakdata.kafka.MurmurHashIdGenerator`.
 
   * Type: class
   * Default: `com.bakdata.kafka.RandomUUIDGenerator`
@@ -135,6 +133,13 @@ TODO Update
 
   * Type: boolean
   * Default: false
+  * Importance: low
+
+``large.message.abs.connection.string``
+  Azure connection string for connection to blob storage. Leave empty if Azure credential provider chain should be used.
+
+  * Type: password
+  * Default: ""
   * Importance: low
 
 ### Kafka Connect

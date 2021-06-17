@@ -10,6 +10,9 @@ import com.azure.storage.blob.models.ListBlobsOptions;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Implementation of {@link BlobStorageClient} for Azure Blob Storage;
+ */
 @RequiredArgsConstructor
 class AzureBlobStorageClient implements BlobStorageClient {
 
@@ -21,7 +24,7 @@ class AzureBlobStorageClient implements BlobStorageClient {
     }
 
     @Override
-    public void deleteAllFiles(final String bucket, final String prefix) {
+    public void deleteAllObjects(final String bucket, final String prefix) {
         final BlobContainerClient containerClient = this.blobServiceClient.createBlobContainer(bucket);
         final ListBlobsOptions options = new ListBlobsOptions().setPrefix(prefix);
         final PagedIterable<BlobItem> items = containerClient.listBlobs(options, null);
@@ -29,7 +32,7 @@ class AzureBlobStorageClient implements BlobStorageClient {
     }
 
     @Override
-    public String put(final byte[] bytes, final String bucket, final String key) {
+    public String putObject(final byte[] bytes, final String bucket, final String key) {
         final BlobContainerClient containerClient = this.blobServiceClient.createBlobContainer(bucket);
         final BlobClient blobClient = containerClient.getBlobClient(key);
         blobClient.upload(BinaryData.fromBytes(bytes));

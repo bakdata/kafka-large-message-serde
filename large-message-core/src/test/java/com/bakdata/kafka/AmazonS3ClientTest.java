@@ -89,7 +89,7 @@ class AmazonS3ClientTest {
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);
         final BlobStorageClient client = createClient();
-        assertThat(client.put(serialize("foo"), bucket, key))
+        assertThat(client.putObject(serialize("foo"), bucket, key))
                 .isEqualTo("s3://bucket/key");
         s3Client.deleteBucket(bucket);
     }
@@ -100,11 +100,11 @@ class AmazonS3ClientTest {
         final AmazonS3 s3Client = S3_MOCK.createS3Client();
         s3Client.createBucket(bucket);
         final BlobStorageClient client = createClient();
-        client.put(serialize("foo"), bucket, "base/foo/1");
-        client.put(serialize("foo"), bucket, "base/foo/2");
-        client.put(serialize("foo"), bucket, "base/bar/1");
+        client.putObject(serialize("foo"), bucket, "base/foo/1");
+        client.putObject(serialize("foo"), bucket, "base/foo/2");
+        client.putObject(serialize("foo"), bucket, "base/bar/1");
         assertThat(s3Client.listObjects(bucket, "base/").getObjectSummaries()).hasSize(3);
-        client.deleteAllFiles(bucket, "base/foo/");
+        client.deleteAllObjects(bucket, "base/foo/");
         assertThat(s3Client.listObjects(bucket, "base/").getObjectSummaries()).hasSize(1);
         s3Client.deleteBucket(bucket);
     }
@@ -148,7 +148,7 @@ class AmazonS3ClientTest {
         final BlobStorageClient client = new AmazonS3Client(s3);
         assertThatExceptionOfType(SerializationException.class)
                 .isThrownBy(() -> client
-                        .put(serialize("foo"), bucket, "key"))
+                        .putObject(serialize("foo"), bucket, "key"))
                 .withMessageStartingWith("Error backing message on S3")
                 .withCauseInstanceOf(IOException.class);
     }
@@ -169,7 +169,7 @@ class AmazonS3ClientTest {
         final String key = "key";
         final BlobStorageClient client = createClient();
         assertThatExceptionOfType(AmazonS3Exception.class)
-                .isThrownBy(() -> client.put(serialize("foo"), bucket, key))
+                .isThrownBy(() -> client.putObject(serialize("foo"), bucket, key))
                 .withMessageStartingWith("The specified bucket does not exist.");
     }
 
