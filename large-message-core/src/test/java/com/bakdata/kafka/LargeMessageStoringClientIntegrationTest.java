@@ -74,15 +74,15 @@ class LargeMessageStoringClientIntegrationTest {
                 .build();
     }
 
-    private static void expectNonBackedText(final String expected, final byte[] s3BackedText) {
-        assertThat(STRING_DESERIALIZER.deserialize(null, getBytes(s3BackedText)))
+    private static void expectNonBackedText(final String expected, final byte[] backedText) {
+        assertThat(STRING_DESERIALIZER.deserialize(null, getBytes(backedText)))
                 .isInstanceOf(String.class)
                 .isEqualTo(expected);
     }
 
-    private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
+    private static void expectBackedText(final String basePath, final String expected, final byte[] backedText,
             final String type) {
-        final BlobStorageURI uri = deserializeUri(s3BackedText);
+        final BlobStorageURI uri = deserializeUri(backedText);
         expectBackedText(basePath, expected, uri, type);
     }
 
@@ -121,7 +121,7 @@ class LargeMessageStoringClientIntegrationTest {
                 .build();
         final LargeMessageStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(null, serialize("foo"), isKey))
-                .satisfies(s3BackedText -> expectNonBackedText("foo", s3BackedText));
+                .satisfies(backedText -> expectNonBackedText("foo", backedText));
     }
 
     @Test
@@ -136,7 +136,7 @@ class LargeMessageStoringClientIntegrationTest {
         s3Client.createBucket(bucket);
         final LargeMessageStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
-                .satisfies(s3BackedText -> expectBackedText(basePath, "foo", s3BackedText, "keys"));
+                .satisfies(backedText -> expectBackedText(basePath, "foo", backedText, "keys"));
         s3Client.deleteBucket(bucket);
     }
 
@@ -152,7 +152,7 @@ class LargeMessageStoringClientIntegrationTest {
         s3Client.createBucket(bucket);
         final LargeMessageStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(TOPIC, serialize("foo"), false))
-                .satisfies(s3BackedText -> expectBackedText(basePath, "foo", s3BackedText, "values"));
+                .satisfies(backedText -> expectBackedText(basePath, "foo", backedText, "values"));
         s3Client.deleteBucket(bucket);
     }
 
@@ -170,8 +170,8 @@ class LargeMessageStoringClientIntegrationTest {
         final LargeMessageStoringClient storer = createStorer(properties);
         when(idGenerator.generateId("foo".getBytes())).thenReturn("bar");
         assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
-                .satisfies(s3BackedText -> {
-                    final BlobStorageURI uri = deserializeUri(s3BackedText);
+                .satisfies(backedText -> {
+                    final BlobStorageURI uri = deserializeUri(backedText);
                     expectBackedText(basePath, "foo", uri, "keys");
                     assertThat(uri).asString().endsWith("bar");
                 });

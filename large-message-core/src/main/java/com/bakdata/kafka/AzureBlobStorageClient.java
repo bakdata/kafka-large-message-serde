@@ -49,7 +49,7 @@ class AzureBlobStorageClient implements BlobStorageClient {
 
     @Override
     public void deleteAllObjects(final String bucket, final String prefix) {
-        final BlobContainerClient containerClient = this.blobServiceClient.createBlobContainer(bucket);
+        final BlobContainerClient containerClient = this.blobServiceClient.getBlobContainerClient(bucket);
         final ListBlobsOptions options = new ListBlobsOptions().setPrefix(prefix);
         final PagedIterable<BlobItem> items = containerClient.listBlobs(options, null);
         items.forEach(blobItem -> containerClient.getBlobClient(blobItem.getName()).delete());
@@ -57,7 +57,7 @@ class AzureBlobStorageClient implements BlobStorageClient {
 
     @Override
     public String putObject(final byte[] bytes, final String bucket, final String key) {
-        final BlobContainerClient containerClient = this.blobServiceClient.createBlobContainer(bucket);
+        final BlobContainerClient containerClient = this.blobServiceClient.getBlobContainerClient(bucket);
         final BlobClient blobClient = containerClient.getBlobClient(key);
         blobClient.upload(BinaryData.fromBytes(bytes));
         return asURI(bucket, key);
@@ -65,7 +65,7 @@ class AzureBlobStorageClient implements BlobStorageClient {
 
     @Override
     public byte[] getObject(final String bucket, final String key) {
-        final BlobContainerClient containerClient = this.blobServiceClient.createBlobContainer(bucket);
+        final BlobContainerClient containerClient = this.blobServiceClient.getBlobContainerClient(bucket);
         final BlobClient blobClient = containerClient.getBlobClient(key);
         return blobClient.downloadContent().toBytes();
     }
