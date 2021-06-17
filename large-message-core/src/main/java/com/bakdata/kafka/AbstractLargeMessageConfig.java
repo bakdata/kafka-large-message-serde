@@ -195,7 +195,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
 
     private Optional<BlobStorageURI> getBasePath() {
         final String basePath = this.getString(BASE_PATH_CONFIG);
-        return isEmpty(basePath) ? Optional.empty() : Optional.of(new BlobStorageURI(URI.create(basePath)));
+        return isEmpty(basePath) ? Optional.empty() : Optional.of(BlobStorageURI.create(basePath));
     }
 
     private int getMaxSize() {

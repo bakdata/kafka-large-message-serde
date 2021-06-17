@@ -28,7 +28,6 @@ import static com.bakdata.kafka.LargeMessageStoringClient.CHARSET;
 import static com.bakdata.kafka.LargeMessageStoringClient.IS_BACKED;
 import static com.bakdata.kafka.LargeMessageStoringClient.IS_NOT_BACKED;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -51,8 +50,7 @@ public class LargeMessageRetrievingClient {
     static BlobStorageURI deserializeUri(final byte[] data) {
         final byte[] uriBytes = getBytes(data);
         final String rawUri = new String(uriBytes, CHARSET);
-        final URI uri = URI.create(rawUri);
-        return new BlobStorageURI(uri);
+        return BlobStorageURI.create(rawUri);
     }
 
     static byte[] getBytes(final byte[] data) {
