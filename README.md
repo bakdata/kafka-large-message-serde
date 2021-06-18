@@ -58,7 +58,7 @@ The following configuration options are available:
   * Importance: high
 
 ``large.message.base.path``
-  Base path to store data. Must include bucket and any prefix that should be used, e.g., `s3://my-bucket/my/prefix/. Available protocols: `s3`, `abs`.
+  Base path to store data. Must include bucket and any prefix that should be used, e.g., `s3://my-bucket/my/prefix/`. Available protocols: `s3`, `abs`.
 
   * Type: string
   * Default: ""
