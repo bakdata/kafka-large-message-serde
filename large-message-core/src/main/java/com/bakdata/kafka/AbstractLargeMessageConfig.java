@@ -174,6 +174,11 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         return new IllegalArgumentException("Unknown scheme for handling large messages: '" + scheme + "'");
     }
 
+    private static NoBlobStorageClient createNoBlobStorageClient() {
+        log.warn("No " + BASE_PATH_CONFIG + " has been provided and storing a large message will lead to an error.");
+        return new NoBlobStorageClient();
+    }
+
     public LargeMessageRetrievingClient getRetriever() {
         return new LargeMessageRetrievingClient(this.clientFactories);
     }
@@ -189,11 +194,10 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     }
 
     private BlobStorageClient getClient() {
-        final Optional<BlobStorageURI> uri = this.getBasePath();
-        return uri
+        return this.getBasePath()
                 .map(BlobStorageURI::getScheme)
                 .map(this::createClient)
-                .orElseGet(NoBlobStorageClient::new);
+                .orElseGet(AbstractLargeMessageConfig::createNoBlobStorageClient);
     }
 
     private BlobStorageClient createClient(final String scheme) {
