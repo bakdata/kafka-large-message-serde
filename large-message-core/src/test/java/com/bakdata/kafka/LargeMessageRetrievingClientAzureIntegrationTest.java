@@ -52,9 +52,8 @@ class LargeMessageRetrievingClientAzureIntegrationTest {
                 .build();
     }
 
-    private static void store(final String bucket, final String key, final String s) {
-        getBlobServiceClient().getBlobContainerClient(bucket)
-                .getBlobClient(key)
+    private static void store(final BlobContainerClient containerClient, final String key, final String s) {
+        containerClient.getBlobClient(key)
                 .upload(BinaryData.fromBytes(s.getBytes()));
     }
 
@@ -77,7 +76,7 @@ class LargeMessageRetrievingClientAzureIntegrationTest {
         try {
             containerClient.create();
             final String key = "key";
-            store(bucket, key, "foo");
+            store(containerClient, key, "foo");
             final LargeMessageRetrievingClient retriever = createRetriever();
             assertThat(retriever.retrieveBytes(createBackedText(bucket, key)))
                     .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
