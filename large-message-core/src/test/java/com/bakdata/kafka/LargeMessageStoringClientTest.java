@@ -168,9 +168,9 @@ class LargeMessageStoringClientTest {
     @ValueSource(booleans = {true, false})
     void shouldThrowExceptionOnNullBasePath(final boolean isKey) {
         final LargeMessageStoringClient storer = this.createStorer(0, null);
+        final byte[] foo = STRING_SERIALIZER.serialize(null, "foo");
         assertThatNullPointerException()
-                .isThrownBy(() -> storer
-                        .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), isKey))
+                .isThrownBy(() -> storer.storeBytes(TOPIC, foo, isKey))
                 .withMessage("Base path must not be null");
     }
 
