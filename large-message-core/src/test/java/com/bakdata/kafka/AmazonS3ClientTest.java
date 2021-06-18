@@ -144,8 +144,9 @@ class AmazonS3ClientTest {
             throw new IOException();
         });
         final BlobStorageClient client = new AmazonS3Client(s3);
+        final byte[] foo = serialize("foo");
         assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> client.putObject(serialize("foo"), bucket, key))
+                .isThrownBy(() -> client.putObject(foo, bucket, key))
                 .withMessageStartingWith("Error backing message on S3")
                 .withCauseInstanceOf(IOException.class);
     }
@@ -167,8 +168,9 @@ class AmazonS3ClientTest {
         final String key = "key";
         final AmazonS3 s3 = S3_MOCK.createS3Client();
         final BlobStorageClient client = new AmazonS3Client(s3);
+        final byte[] foo = serialize("foo");
         assertThatExceptionOfType(AmazonS3Exception.class)
-                .isThrownBy(() -> client.putObject(serialize("foo"), bucket, key))
+                .isThrownBy(() -> client.putObject(foo, bucket, key))
                 .withMessageStartingWith("The specified bucket does not exist.");
     }
 

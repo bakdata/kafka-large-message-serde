@@ -153,8 +153,9 @@ class AzureBlobStorageClientIntegrationTest {
         final String bucket = getBucketName(testInfo);
         final String key = "key";
         final BlobStorageClient client = new AzureBlobStorageClient(getBlobServiceClient());
+        final byte[] foo = serialize("foo");
         assertThatExceptionOfType(BlobStorageException.class)
-                .isThrownBy(() -> client.putObject(serialize("foo"), bucket, key))
+                .isThrownBy(() -> client.putObject(foo, bucket, key))
                 .withMessageContaining("The specified container does not exist.");
     }
 

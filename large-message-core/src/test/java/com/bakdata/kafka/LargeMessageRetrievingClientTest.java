@@ -102,8 +102,9 @@ class LargeMessageRetrievingClientTest {
         final String key = "key";
         when(this.client.getObject(bucket, key)).thenThrow(UncheckedIOException.class);
         final LargeMessageRetrievingClient retriever = this.createRetriever();
+        final byte[] backedText = createBackedText(bucket, key);
         assertThatExceptionOfType(UncheckedIOException.class)
-                .isThrownBy(() -> retriever.retrieveBytes(createBackedText(bucket, key)));
+                .isThrownBy(() -> retriever.retrieveBytes(backedText));
     }
 
 }

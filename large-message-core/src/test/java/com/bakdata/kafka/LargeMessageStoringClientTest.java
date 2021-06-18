@@ -180,9 +180,9 @@ class LargeMessageStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "foo://" + bucket + "/base/";
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath), null);
+        final byte[] foo = STRING_SERIALIZER.serialize(null, "foo");
         assertThatNullPointerException()
-                .isThrownBy(() -> storer
-                        .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), isKey))
+                .isThrownBy(() -> storer.storeBytes(TOPIC, foo, isKey))
                 .withMessage("Id generator must not be null");
     }
 }
