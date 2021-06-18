@@ -35,7 +35,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Implementation of {@link BlobStorageClient} for Azure Blob Storage;
+ * Implementation of {@link BlobStorageClient} for Azure Blob Storage.
  */
 @RequiredArgsConstructor
 class AzureBlobStorageClient implements BlobStorageClient {

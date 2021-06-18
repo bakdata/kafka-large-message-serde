@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.SerializationException;
 
 /**
- * Implementation of {@link BlobStorageClient} for Amazon S3;
+ * Implementation of {@link BlobStorageClient} for Amazon S3.
  */
 @Slf4j
 @RequiredArgsConstructor

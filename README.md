@@ -15,7 +15,7 @@ You can add kafka-large-message-serde via Maven Central.
 
 #### Gradle
 ```gradle
-compile group: 'com.bakdata.kafka', name: 'large-message-serde', version: '2.0.0'
+implementation group: 'com.bakdata.kafka', name: 'large-message-serde', version: '2.0.0'
 ```
 
 #### Maven
@@ -149,7 +149,7 @@ You can add kafka-large-message-connect via Maven Central.
 
 #### Gradle
 ```gradle
-compile group: 'com.bakdata.kafka', name: 'large-message-connect', version: '1.1.6'
+implementation group: 'com.bakdata.kafka', name: 'large-message-connect', version: '1.1.6'
 ```
 
 #### Maven
