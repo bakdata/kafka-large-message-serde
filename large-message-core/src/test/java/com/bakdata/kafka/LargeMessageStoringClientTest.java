@@ -147,9 +147,9 @@ class LargeMessageStoringClientTest {
         when(this.idGenerator.generateId(any())).thenReturn("key");
         when(this.client.putObject(any(), eq(bucket), any())).thenThrow(UncheckedIOException.class);
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath));
+        final byte[] foo = STRING_SERIALIZER.serialize(null, "foo");
         assertThatExceptionOfType(UncheckedIOException.class)
-                .isThrownBy(() -> storer
-                        .storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), isKey));
+                .isThrownBy(() -> storer.storeBytes(TOPIC, foo, isKey));
     }
 
     @ParameterizedTest
@@ -158,9 +158,9 @@ class LargeMessageStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "foo://" + bucket + "/base/";
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath));
+        final byte[] foo = STRING_SERIALIZER.serialize(null, "foo");
         assertThatNullPointerException()
-                .isThrownBy(() -> storer
-                        .storeBytes(null, STRING_SERIALIZER.serialize(null, "foo"), isKey))
+                .isThrownBy(() -> storer.storeBytes(null, foo, isKey))
                 .withMessage("Topic must not be null");
     }
 
