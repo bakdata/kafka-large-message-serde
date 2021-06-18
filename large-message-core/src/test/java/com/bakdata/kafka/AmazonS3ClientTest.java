@@ -62,10 +62,6 @@ class AmazonS3ClientTest {
         S3_MOCK.createS3Client().putObject(bucket, key, new ByteArrayInputStream(s.getBytes()), new ObjectMetadata());
     }
 
-    private static BlobStorageClient createClient() {
-        return new AmazonS3Client(S3_MOCK.createS3Client());
-    }
-
     private static byte[] serialize(final String s) {
         return STRING_SERIALIZER.serialize(null, s);
     }
@@ -73,56 +69,58 @@ class AmazonS3ClientTest {
     @Test
     void shouldReadBackedText() {
         final String bucket = "bucket";
-        S3_MOCK.createS3Client().createBucket(bucket);
+        final AmazonS3 s3 = S3_MOCK.createS3Client();
+        s3.createBucket(bucket);
         final String key = "key";
         store(bucket, key, "foo");
-        final BlobStorageClient client = createClient();
+        final BlobStorageClient client = new AmazonS3Client(s3);
         assertThat(client.getObject(bucket, key))
                 .isEqualTo(serialize("foo"));
-        S3_MOCK.createS3Client().deleteBucket(bucket);
+        s3.deleteBucket(bucket);
     }
 
     @Test
     void shouldWriteBackedText() {
         final String bucket = "bucket";
         final String key = "key";
-        final AmazonS3 s3Client = S3_MOCK.createS3Client();
-        s3Client.createBucket(bucket);
-        final BlobStorageClient client = createClient();
+        final AmazonS3 s3 = S3_MOCK.createS3Client();
+        s3.createBucket(bucket);
+        final BlobStorageClient client = new AmazonS3Client(s3);
         assertThat(client.putObject(serialize("foo"), bucket, key))
                 .isEqualTo("s3://bucket/key");
-        s3Client.deleteBucket(bucket);
+        s3.deleteBucket(bucket);
     }
 
     @Test
     void shouldDeleteFiles() {
         final String bucket = "bucket";
-        final AmazonS3 s3Client = S3_MOCK.createS3Client();
-        s3Client.createBucket(bucket);
-        final BlobStorageClient client = createClient();
+        final AmazonS3 s3 = S3_MOCK.createS3Client();
+        s3.createBucket(bucket);
+        final BlobStorageClient client = new AmazonS3Client(s3);
         client.putObject(serialize("foo"), bucket, "base/foo/1");
         client.putObject(serialize("foo"), bucket, "base/foo/2");
         client.putObject(serialize("foo"), bucket, "base/bar/1");
-        assertThat(s3Client.listObjects(bucket, "base/").getObjectSummaries()).hasSize(3);
+        assertThat(s3.listObjects(bucket, "base/").getObjectSummaries()).hasSize(3);
         client.deleteAllObjects(bucket, "base/foo/");
-        assertThat(s3Client.listObjects(bucket, "base/").getObjectSummaries()).hasSize(1);
-        s3Client.deleteBucket(bucket);
+        assertThat(s3.listObjects(bucket, "base/").getObjectSummaries()).hasSize(1);
+        s3.deleteBucket(bucket);
     }
 
     @Test
     void shouldThrowExceptionOnMissingObject() {
         final String bucket = "bucket";
-        S3_MOCK.createS3Client().createBucket(bucket);
+        final AmazonS3 s3 = S3_MOCK.createS3Client();
+        s3.createBucket(bucket);
         final String key = "key";
-        final BlobStorageClient client = createClient();
+        final BlobStorageClient client = new AmazonS3Client(s3);
         assertThatExceptionOfType(AmazonS3Exception.class)
                 .isThrownBy(() -> client.getObject(bucket, key))
                 .withMessageStartingWith("The specified key does not exist.");
-        S3_MOCK.createS3Client().deleteBucket(bucket);
+        s3.deleteBucket(bucket);
     }
 
     @Test
-    void shouldThrowExceptionOnS3GetError() {
+    void shouldThrowExceptionOnGetError() {
         final String bucket = "bucket";
         final String key = "key";
         final AmazonS3 s3 = mock(AmazonS3.class);
@@ -138,7 +136,7 @@ class AmazonS3ClientTest {
     }
 
     @Test
-    void shouldThrowExceptionOnS3PutError() {
+    void shouldThrowExceptionOnPutError() {
         final String bucket = "bucket";
         final String key = "key";
         final AmazonS3 s3 = mock(AmazonS3.class);
@@ -147,8 +145,7 @@ class AmazonS3ClientTest {
         });
         final BlobStorageClient client = new AmazonS3Client(s3);
         assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> client
-                        .putObject(serialize("foo"), bucket, "key"))
+                .isThrownBy(() -> client.putObject(serialize("foo"), bucket, key))
                 .withMessageStartingWith("Error backing message on S3")
                 .withCauseInstanceOf(IOException.class);
     }
@@ -157,7 +154,8 @@ class AmazonS3ClientTest {
     void shouldThrowExceptionOnMissingBucketForGet() {
         final String bucket = "bucket";
         final String key = "key";
-        final BlobStorageClient client = createClient();
+        final AmazonS3 s3 = S3_MOCK.createS3Client();
+        final BlobStorageClient client = new AmazonS3Client(s3);
         assertThatExceptionOfType(AmazonS3Exception.class)
                 .isThrownBy(() -> client.getObject(bucket, key))
                 .withMessageStartingWith("The specified bucket does not exist.");
@@ -167,7 +165,8 @@ class AmazonS3ClientTest {
     void shouldThrowExceptionOnMissingBucketForPut() {
         final String bucket = "bucket";
         final String key = "key";
-        final BlobStorageClient client = createClient();
+        final AmazonS3 s3 = S3_MOCK.createS3Client();
+        final BlobStorageClient client = new AmazonS3Client(s3);
         assertThatExceptionOfType(AmazonS3Exception.class)
                 .isThrownBy(() -> client.putObject(serialize("foo"), bucket, key))
                 .withMessageStartingWith("The specified bucket does not exist.");

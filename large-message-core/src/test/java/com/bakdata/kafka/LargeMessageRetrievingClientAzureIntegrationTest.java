@@ -24,43 +24,42 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.AzureBlobStorageClientIntegrationTest.getBlobServiceClient;
+import static com.bakdata.kafka.AzureBlobStorageClientIntegrationTest.getBucketName;
 import static com.bakdata.kafka.LargeMessageStoringClient.serialize;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.adobe.testing.s3mock.junit5.S3MockExtension;
-import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.azure.core.util.BinaryData;
+import com.azure.storage.blob.BlobContainerClient;
 import com.google.common.collect.ImmutableMap;
 import io.confluent.common.config.ConfigDef;
-import java.io.ByteArrayInputStream;
 import java.util.Map;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.TestInfo;
 
-class LargeMessageRetrievingClientIntegrationTest {
+@Disabled("Requires Azure account")
+class LargeMessageRetrievingClientAzureIntegrationTest {
 
-    @RegisterExtension
-    static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
-            .withSecureConnection(false).build();
     private static final Serializer<String> STRING_SERIALIZER = Serdes.String().serializer();
 
     private static Map<String, Object> createProperties() {
         return ImmutableMap.<String, Object>builder()
-                .put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
-                .put(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1")
-                .put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo")
-                .put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar")
-                .put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true)
+                .put(AbstractLargeMessageConfig.AZURE_CONNECTION_STRING_CONFIG,
+                        System.getenv("AZURE_CONNECTION_STRING"))
                 .build();
     }
 
     private static void store(final String bucket, final String key, final String s) {
-        S3_MOCK.createS3Client().putObject(bucket, key, new ByteArrayInputStream(s.getBytes()), new ObjectMetadata());
+        getBlobServiceClient().getBlobContainerClient(bucket)
+                .getBlobClient(key)
+                .upload(BinaryData.fromBytes(s.getBytes()));
     }
 
     private static byte[] createBackedText(final String bucket, final String key) {
-        final String uri = "s3://" + bucket + "/" + key;
+        final String uri = "abs://" + bucket + "/" + key;
         return serialize(uri);
     }
 
@@ -72,15 +71,19 @@ class LargeMessageRetrievingClientIntegrationTest {
     }
 
     @Test
-    void shouldReadBackedText() {
-        final String bucket = "bucket";
-        S3_MOCK.createS3Client().createBucket(bucket);
-        final String key = "key";
-        store(bucket, key, "foo");
-        final LargeMessageRetrievingClient retriever = createRetriever();
-        assertThat(retriever.retrieveBytes(createBackedText(bucket, key)))
-                .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
-        S3_MOCK.createS3Client().deleteBucket(bucket);
+    void shouldReadBackedText(final TestInfo testInfo) {
+        final String bucket = getBucketName(testInfo);
+        final BlobContainerClient containerClient = getBlobServiceClient().getBlobContainerClient(bucket);
+        try {
+            containerClient.create();
+            final String key = "key";
+            store(bucket, key, "foo");
+            final LargeMessageRetrievingClient retriever = createRetriever();
+            assertThat(retriever.retrieveBytes(createBackedText(bucket, key)))
+                    .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
+        } finally {
+            containerClient.delete();
+        }
     }
 
 }

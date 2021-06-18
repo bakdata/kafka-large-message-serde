@@ -52,7 +52,7 @@ import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.STRICT_STUBS)
-class LargeMessageStoringClientIntegrationTest {
+class LargeMessageStoringClientS3IntegrationTest {
 
     @RegisterExtension
     static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
@@ -132,28 +132,12 @@ class LargeMessageStoringClientIntegrationTest {
                 .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
                 .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
                 .build();
-        final AmazonS3 s3Client = S3_MOCK.createS3Client();
-        s3Client.createBucket(bucket);
+        final AmazonS3 s3 = S3_MOCK.createS3Client();
+        s3.createBucket(bucket);
         final LargeMessageStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
                 .satisfies(backedText -> expectBackedText(basePath, "foo", backedText, "keys"));
-        s3Client.deleteBucket(bucket);
-    }
-
-    @Test
-    void shouldWriteBackedTextValue() {
-        final String bucket = "bucket";
-        final String basePath = "s3://" + bucket + "/base/";
-        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
-                .build();
-        final AmazonS3 s3Client = S3_MOCK.createS3Client();
-        s3Client.createBucket(bucket);
-        final LargeMessageStoringClient storer = createStorer(properties);
-        assertThat(storer.storeBytes(TOPIC, serialize("foo"), false))
-                .satisfies(backedText -> expectBackedText(basePath, "foo", backedText, "values"));
-        s3Client.deleteBucket(bucket);
+        s3.deleteBucket(bucket);
     }
 
     @Test
@@ -165,8 +149,8 @@ class LargeMessageStoringClientIntegrationTest {
                 .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
                 .put(AbstractLargeMessageConfig.ID_GENERATOR_CONFIG, MockIdGenerator.class)
                 .build();
-        final AmazonS3 s3Client = S3_MOCK.createS3Client();
-        s3Client.createBucket(bucket);
+        final AmazonS3 s3 = S3_MOCK.createS3Client();
+        s3.createBucket(bucket);
         final LargeMessageStoringClient storer = createStorer(properties);
         when(idGenerator.generateId("foo".getBytes())).thenReturn("bar");
         assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
@@ -175,7 +159,7 @@ class LargeMessageStoringClientIntegrationTest {
                     expectBackedText(basePath, "foo", uri, "keys");
                     assertThat(uri).asString().endsWith("bar");
                 });
-        s3Client.deleteBucket(bucket);
+        s3.deleteBucket(bucket);
     }
 
     public static class MockIdGenerator implements IdGenerator {
