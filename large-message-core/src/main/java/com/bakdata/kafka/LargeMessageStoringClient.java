@@ -95,6 +95,7 @@ public class LargeMessageStoringClient {
      * @param topic name of the topic
      */
     public void deleteAllFiles(final String topic) {
+        Objects.requireNonNull(this.basePath, "Base path must not be null");
         final String prefix = this.createTopicPrefix(topic);
         final String bucketName = this.basePath.getBucket();
         log.info("Deleting blob storage backed files for topic '{}'", topic);
