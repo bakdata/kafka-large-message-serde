@@ -31,7 +31,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-public class AzureBlobStorageIntegrationTest {
+class AzureBlobStorageIntegrationTest {
     @Container
     private final GenericContainer<?> azure = new GenericContainer<>("mcr.microsoft.com/azure-storage/azurite")
             .withExposedPorts(10000)
@@ -39,10 +39,11 @@ public class AzureBlobStorageIntegrationTest {
 
     String generateConnectionString() {
         final int port = this.azure.getMappedPort(10000);
+        final String host = this.azure.getHost();
         return String.format("DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;"
                         + "AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq"
-                        + "/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:%d/devstoreaccount1;",
-                port);
+                        + "/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://%s:%d/devstoreaccount1;",
+                host, port);
     }
 
     BlobServiceClient getBlobServiceClient() {
