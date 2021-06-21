@@ -31,7 +31,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-class AzureBlobStorageIntegrationTest {
+abstract class AzureBlobStorageIntegrationTest {
     @Container
     private final GenericContainer<?> azure = new GenericContainer<>("mcr.microsoft.com/azure-storage/azurite")
             .withExposedPorts(10000)
