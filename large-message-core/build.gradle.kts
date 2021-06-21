@@ -29,4 +29,5 @@ dependencies {
     }
     testImplementation(group = "log4j", name = "log4j", version = "1.2.17")
     testImplementation(group = "org.slf4j", name = "slf4j-log4j12", version = "1.7.26")
+    testImplementation(group = "org.testcontainers", name = "junit-jupiter", version = "1.15.3")
 }
