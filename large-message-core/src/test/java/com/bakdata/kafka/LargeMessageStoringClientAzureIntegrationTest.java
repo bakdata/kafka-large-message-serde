@@ -24,7 +24,6 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.AzureBlobStorageClientIntegrationTest.getBucketName;
 import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,7 +35,6 @@ import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 
 class LargeMessageStoringClientAzureIntegrationTest extends AzureBlobStorageIntegrationTest {
 
@@ -53,12 +51,6 @@ class LargeMessageStoringClientAzureIntegrationTest extends AzureBlobStorageInte
                 .putAll(properties)
                 .put(AbstractLargeMessageConfig.AZURE_CONNECTION_STRING_CONFIG, this.generateConnectionString())
                 .build();
-    }
-
-    private LargeMessageStoringClient createStorer(final Map<String, Object> baseProperties) {
-        final Map<String, Object> properties = this.createProperties(baseProperties);
-        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
-        return config.getStorer();
     }
 
     private void expectBackedText(final String basePath, final String expected, final byte[] backedText,
@@ -82,9 +74,15 @@ class LargeMessageStoringClientAzureIntegrationTest extends AzureBlobStorageInte
                 .toBytes();
     }
 
+    private LargeMessageStoringClient createStorer(final Map<String, Object> baseProperties) {
+        final Map<String, Object> properties = this.createProperties(baseProperties);
+        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
+        return config.getStorer();
+    }
+
     @Test
-    void shouldWriteBackedTextKey(final TestInfo testInfo) {
-        final String bucket = getBucketName(testInfo);
+    void shouldWriteBackedTextKey() {
+        final String bucket = "bucket";
         final String basePath = "abs://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
                 .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)

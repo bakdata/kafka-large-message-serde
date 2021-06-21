@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 
 class AzureBlobStorageClientIntegrationTest extends AzureBlobStorageIntegrationTest {
 
@@ -55,13 +54,9 @@ class AzureBlobStorageClientIntegrationTest extends AzureBlobStorageIntegrationT
         return new ListBlobsOptions().setPrefix(prefix);
     }
 
-    static String getBucketName(final TestInfo testInfo) {
-        return "bucket-" + testInfo.getTestMethod().orElseThrow(IllegalArgumentException::new).getName().toLowerCase();
-    }
-
     @Test
-    void shouldReadBackedText(final TestInfo testInfo) {
-        final String bucket = getBucketName(testInfo);
+    void shouldReadBackedText() {
+        final String bucket = "bucket";
         final BlobServiceClient blobServiceClient = this.getBlobServiceClient();
         final BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient(bucket);
         try {
@@ -77,8 +72,8 @@ class AzureBlobStorageClientIntegrationTest extends AzureBlobStorageIntegrationT
     }
 
     @Test
-    void shouldWriteBackedText(final TestInfo testInfo) {
-        final String bucket = getBucketName(testInfo);
+    void shouldWriteBackedText() {
+        final String bucket = "bucket";
         final String key = "key";
         final BlobServiceClient blobServiceClient = this.getBlobServiceClient();
         final BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient(bucket);
@@ -93,8 +88,8 @@ class AzureBlobStorageClientIntegrationTest extends AzureBlobStorageIntegrationT
     }
 
     @Test
-    void shouldDeleteFiles(final TestInfo testInfo) {
-        final String bucket = getBucketName(testInfo);
+    void shouldDeleteFiles() {
+        final String bucket = "bucket";
         final BlobServiceClient blobServiceClient = this.getBlobServiceClient();
         final BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient(bucket);
         containerClient.create();
@@ -114,8 +109,8 @@ class AzureBlobStorageClientIntegrationTest extends AzureBlobStorageIntegrationT
     }
 
     @Test
-    void shouldThrowExceptionOnMissingObject(final TestInfo testInfo) {
-        final String bucket = getBucketName(testInfo);
+    void shouldThrowExceptionOnMissingObject() {
+        final String bucket = "bucket";
         final BlobServiceClient blobServiceClient = this.getBlobServiceClient();
         final BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient(bucket);
         try {
@@ -131,8 +126,8 @@ class AzureBlobStorageClientIntegrationTest extends AzureBlobStorageIntegrationT
     }
 
     @Test
-    void shouldThrowExceptionOnMissingBucketForGet(final TestInfo testInfo) {
-        final String bucket = getBucketName(testInfo);
+    void shouldThrowExceptionOnMissingBucketForGet() {
+        final String bucket = "bucket";
         final String key = "key";
         final BlobStorageClient client = new AzureBlobStorageClient(this.getBlobServiceClient());
         assertThatExceptionOfType(BlobStorageException.class)
@@ -141,8 +136,8 @@ class AzureBlobStorageClientIntegrationTest extends AzureBlobStorageIntegrationT
     }
 
     @Test
-    void shouldThrowExceptionOnMissingBucketForPut(final TestInfo testInfo) {
-        final String bucket = getBucketName(testInfo);
+    void shouldThrowExceptionOnMissingBucketForPut() {
+        final String bucket = "bucket";
         final String key = "key";
         final BlobStorageClient client = new AzureBlobStorageClient(this.getBlobServiceClient());
         final byte[] foo = serialize("foo");

@@ -24,7 +24,6 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.AzureBlobStorageClientIntegrationTest.getBucketName;
 import static com.bakdata.kafka.LargeMessageStoringClient.serialize;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,7 +35,6 @@ import java.util.Map;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 
 class LargeMessageRetrievingClientAzureIntegrationTest extends AzureBlobStorageIntegrationTest {
 
@@ -66,8 +64,8 @@ class LargeMessageRetrievingClientAzureIntegrationTest extends AzureBlobStorageI
     }
 
     @Test
-    void shouldReadBackedText(final TestInfo testInfo) {
-        final String bucket = getBucketName(testInfo);
+    void shouldReadBackedText() {
+        final String bucket = "bucket";
         final BlobContainerClient containerClient = this.getBlobServiceClient().getBlobContainerClient(bucket);
         try {
             containerClient.create();
