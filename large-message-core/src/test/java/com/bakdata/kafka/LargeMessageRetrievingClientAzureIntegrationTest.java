@@ -24,8 +24,6 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.AzureBlobStorageClientIntegrationTest.getBlobServiceClient;
-import static com.bakdata.kafka.AzureBlobStorageClientIntegrationTest.getBucketName;
 import static com.bakdata.kafka.LargeMessageStoringClient.serialize;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,21 +34,11 @@ import io.confluent.common.config.ConfigDef;
 import java.util.Map;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 
-@Disabled("Requires Azure account")
-class LargeMessageRetrievingClientAzureIntegrationTest {
+class LargeMessageRetrievingClientAzureIntegrationTest extends AzureBlobStorageIntegrationTest {
 
     private static final Serializer<String> STRING_SERIALIZER = Serdes.String().serializer();
-
-    private static Map<String, Object> createProperties() {
-        return ImmutableMap.<String, Object>builder()
-                .put(AbstractLargeMessageConfig.AZURE_CONNECTION_STRING_CONFIG,
-                        System.getenv("AZURE_CONNECTION_STRING"))
-                .build();
-    }
 
     private static void store(final BlobContainerClient containerClient, final String key, final String s) {
         containerClient.getBlobClient(key)
@@ -62,22 +50,28 @@ class LargeMessageRetrievingClientAzureIntegrationTest {
         return serialize(uri);
     }
 
-    private static LargeMessageRetrievingClient createRetriever() {
-        final Map<String, Object> properties = createProperties();
+    private Map<String, Object> createProperties() {
+        return ImmutableMap.<String, Object>builder()
+                .put(AbstractLargeMessageConfig.AZURE_CONNECTION_STRING_CONFIG, this.generateConnectionString())
+                .build();
+    }
+
+    private LargeMessageRetrievingClient createRetriever() {
+        final Map<String, Object> properties = this.createProperties();
         final ConfigDef configDef = AbstractLargeMessageConfig.baseConfigDef();
         final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(configDef, properties);
         return config.getRetriever();
     }
 
     @Test
-    void shouldReadBackedText(final TestInfo testInfo) {
-        final String bucket = getBucketName(testInfo);
-        final BlobContainerClient containerClient = getBlobServiceClient().getBlobContainerClient(bucket);
+    void shouldReadBackedText() {
+        final String bucket = "bucket";
+        final BlobContainerClient containerClient = this.getBlobServiceClient().getBlobContainerClient(bucket);
         try {
             containerClient.create();
             final String key = "key";
             store(containerClient, key, "foo");
-            final LargeMessageRetrievingClient retriever = createRetriever();
+            final LargeMessageRetrievingClient retriever = this.createRetriever();
             assertThat(retriever.retrieveBytes(createBackedText(bucket, key)))
                     .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
         } finally {

@@ -24,8 +24,6 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.AzureBlobStorageClientIntegrationTest.getBlobServiceClient;
-import static com.bakdata.kafka.AzureBlobStorageClientIntegrationTest.getBucketName;
 import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,71 +34,67 @@ import java.util.Map;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 
-@Disabled("Requires Azure account")
-class LargeMessageStoringClientAzureIntegrationTest {
+class LargeMessageStoringClientAzureIntegrationTest extends AzureBlobStorageIntegrationTest {
 
     private static final String TOPIC = "output";
     private static final Deserializer<String> STRING_DESERIALIZER = Serdes.String().deserializer();
     private static final Serializer<String> STRING_SERIALIZER = Serdes.String().serializer();
 
-    private static Map<String, Object> createProperties(final Map<String, Object> properties) {
+    private static byte[] serialize(final String s) {
+        return STRING_SERIALIZER.serialize(null, s);
+    }
+
+    private Map<String, Object> createProperties(final Map<String, Object> properties) {
         return ImmutableMap.<String, Object>builder()
                 .putAll(properties)
-                .put(AbstractLargeMessageConfig.AZURE_CONNECTION_STRING_CONFIG,
-                        System.getenv("AZURE_CONNECTION_STRING"))
+                .put(AbstractLargeMessageConfig.AZURE_CONNECTION_STRING_CONFIG, this.generateConnectionString())
                 .build();
     }
 
-    private static void expectBackedText(final String basePath, final String expected, final byte[] backedText,
+    private void expectBackedText(final String basePath, final String expected, final byte[] backedText,
             final String type) {
         final BlobStorageURI uri = deserializeUri(backedText);
-        expectBackedText(basePath, expected, uri, type);
+        this.expectBackedText(basePath, expected, uri, type);
     }
 
-    private static void expectBackedText(final String basePath, final String expected, final BlobStorageURI uri,
+    private void expectBackedText(final String basePath, final String expected, final BlobStorageURI uri,
             final String type) {
         assertThat(uri).asString().startsWith(basePath + TOPIC + "/" + type + "/");
-        final byte[] bytes = readBytes(uri);
+        final byte[] bytes = this.readBytes(uri);
         final String deserialized = STRING_DESERIALIZER.deserialize(null, bytes);
         assertThat(deserialized).isEqualTo(expected);
     }
 
-    private static byte[] readBytes(final BlobStorageURI uri) {
-        return getBlobServiceClient().getBlobContainerClient(uri.getBucket())
+    private byte[] readBytes(final BlobStorageURI uri) {
+        return this.getBlobServiceClient().getBlobContainerClient(uri.getBucket())
                 .getBlobClient(uri.getKey())
                 .downloadContent()
                 .toBytes();
     }
 
-    private static LargeMessageStoringClient createStorer(final Map<String, Object> baseProperties) {
-        final Map<String, Object> properties = createProperties(baseProperties);
+    private LargeMessageStoringClient createStorer(final Map<String, Object> baseProperties) {
+        final Map<String, Object> properties = this.createProperties(baseProperties);
         final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
         return config.getStorer();
     }
 
-    private static byte[] serialize(final String s) {
-        return STRING_SERIALIZER.serialize(null, s);
-    }
-
     @Test
-    void shouldWriteBackedTextKey(final TestInfo testInfo) {
-        final String bucket = getBucketName(testInfo);
+    void shouldWriteBackedTextKey() {
+        final String bucket = "bucket";
         final String basePath = "abs://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
                 .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
                 .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
                 .build();
-        final BlobServiceClient client = getBlobServiceClient();
+        final BlobServiceClient client = this.getBlobServiceClient();
         final BlobContainerClient containerClient = client.getBlobContainerClient(bucket);
         try {
             containerClient.create();
-            final LargeMessageStoringClient storer = createStorer(properties);
+            final LargeMessageStoringClient storer = this.createStorer(properties);
             assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
-                    .satisfies(backedText -> expectBackedText(basePath, "foo", backedText, "keys"));
+                    .satisfies(backedText -> this.expectBackedText(basePath, "foo", backedText, "keys"));
         } finally {
             containerClient.delete();
         }
