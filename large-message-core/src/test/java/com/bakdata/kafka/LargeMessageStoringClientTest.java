@@ -33,7 +33,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableMap;
 import java.io.UncheckedIOException;
+import java.util.Map;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
@@ -64,6 +66,15 @@ class LargeMessageStoringClientTest {
                 .isEqualTo(expected);
     }
 
+    private static byte[] serialize(String s) {
+        return STRING_SERIALIZER.serialize(null, s);
+    }
+
+    private static LargeMessageStoringClient createStorer(final Map<String, Object> properties) {
+        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
+        return config.getStorer();
+    }
+
     private LargeMessageStoringClient createStorer(final int maxSize) {
         return this.createStorer(maxSize, null);
     }
@@ -86,7 +97,7 @@ class LargeMessageStoringClientTest {
     @ValueSource(booleans = {true, false})
     void shouldWriteNonBackedText(final boolean isKey) {
         final LargeMessageStoringClient storer = this.createStorer(Integer.MAX_VALUE);
-        assertThat(storer.storeBytes(null, STRING_SERIALIZER.serialize(null, "foo"), isKey))
+        assertThat(storer.storeBytes(null, serialize("foo"), isKey))
                 .satisfies(backedText -> expectNonBackedText("foo", backedText));
     }
 
@@ -102,11 +113,11 @@ class LargeMessageStoringClientTest {
     void shouldWriteBackedTextKey() {
         final String bucket = "bucket";
         final String basePath = "foo://" + bucket + "/base/";
-        when(this.idGenerator.generateId(STRING_SERIALIZER.serialize(null, "foo"))).thenReturn("key");
-        when(this.client.putObject(STRING_SERIALIZER.serialize(null, "foo"), bucket, "base/" + TOPIC + "/keys/key"))
+        when(this.idGenerator.generateId(serialize("foo"))).thenReturn("key");
+        when(this.client.putObject(serialize("foo"), bucket, "base/" + TOPIC + "/keys/key"))
                 .thenReturn("uri");
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath));
-        assertThat(storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), true))
+        assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
                 .isEqualTo(LargeMessageStoringClient.serialize("uri"));
     }
 
@@ -122,11 +133,11 @@ class LargeMessageStoringClientTest {
     void shouldWriteBackedTextValue() {
         final String bucket = "bucket";
         final String basePath = "foo://" + bucket + "/base/";
-        when(this.idGenerator.generateId(STRING_SERIALIZER.serialize(null, "foo"))).thenReturn("key");
-        when(this.client.putObject(STRING_SERIALIZER.serialize(null, "foo"), bucket, "base/" + TOPIC + "/values/key"))
+        when(this.idGenerator.generateId(serialize("foo"))).thenReturn("key");
+        when(this.client.putObject(serialize("foo"), bucket, "base/" + TOPIC + "/values/key"))
                 .thenReturn("uri");
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath));
-        assertThat(storer.storeBytes(TOPIC, STRING_SERIALIZER.serialize(null, "foo"), false))
+        assertThat(storer.storeBytes(TOPIC, serialize("foo"), false))
                 .isEqualTo(LargeMessageStoringClient.serialize("uri"));
     }
 
@@ -147,7 +158,7 @@ class LargeMessageStoringClientTest {
         when(this.idGenerator.generateId(any())).thenReturn("key");
         when(this.client.putObject(any(), eq(bucket), any())).thenThrow(UncheckedIOException.class);
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath));
-        final byte[] foo = STRING_SERIALIZER.serialize(null, "foo");
+        final byte[] foo = serialize("foo");
         assertThatExceptionOfType(UncheckedIOException.class)
                 .isThrownBy(() -> storer.storeBytes(TOPIC, foo, isKey));
     }
@@ -158,7 +169,7 @@ class LargeMessageStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "foo://" + bucket + "/base/";
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath));
-        final byte[] foo = STRING_SERIALIZER.serialize(null, "foo");
+        final byte[] foo = serialize("foo");
         assertThatNullPointerException()
                 .isThrownBy(() -> storer.storeBytes(null, foo, isKey))
                 .withMessage("Topic must not be null");
@@ -168,7 +179,7 @@ class LargeMessageStoringClientTest {
     @ValueSource(booleans = {true, false})
     void shouldThrowExceptionOnNullBasePath(final boolean isKey) {
         final LargeMessageStoringClient storer = this.createStorer(0, null);
-        final byte[] foo = STRING_SERIALIZER.serialize(null, "foo");
+        final byte[] foo = serialize("foo");
         assertThatNullPointerException()
                 .isThrownBy(() -> storer.storeBytes(TOPIC, foo, isKey))
                 .withMessage("Base path must not be null");
@@ -180,9 +191,33 @@ class LargeMessageStoringClientTest {
         final String bucket = "bucket";
         final String basePath = "foo://" + bucket + "/base/";
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath), null);
-        final byte[] foo = STRING_SERIALIZER.serialize(null, "foo");
+        final byte[] foo = serialize("foo");
         assertThatNullPointerException()
                 .isThrownBy(() -> storer.storeBytes(TOPIC, foo, isKey))
                 .withMessage("Id generator must not be null");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldWriteNonBackedTextWithConfig(final boolean isKey) {
+        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE)
+                .build();
+        final LargeMessageStoringClient storer = createStorer(properties);
+        assertThat(storer.storeBytes(null, serialize("foo"), isKey))
+                .satisfies(backedText -> expectNonBackedText("foo", backedText));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldWriteBackedTextWithConfig(final boolean isKey) {
+        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .build();
+        final LargeMessageStoringClient storer = createStorer(properties);
+        final byte[] foo = serialize("foo");
+        assertThatNullPointerException()
+                .isThrownBy(() -> storer.storeBytes(TOPIC, foo, isKey))
+                .withMessage("Base path must not be null");
     }
 }
