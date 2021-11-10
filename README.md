@@ -115,7 +115,7 @@ The following configuration options are available:
    * Importance: low
 
 ``large.message.s3.jwt.path``
-   Path to an OIDC token file in JSON format (JWT) used to authenticate before AWS STS role authorisation, ex. for EKS `/var/run/secrets/eks.amazonaws.com/serviceaccount/token`.
+   Path to an OIDC token file in JSON format (JWT) used to authenticate before AWS STS role authorisation, e.g. for EKS `/var/run/secrets/eks.amazonaws.com/serviceaccount/token`.
 
    * Type: string
    * Default: ""

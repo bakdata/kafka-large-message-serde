@@ -65,6 +65,7 @@ import lombok.extern.slf4j.Slf4j;
  *     <li> S3 access key
  *     <li> S3 secret key
  *     <li> AWS security token service
+ *     <li> AWS OIDC token path
  *     <li> S3 enable path-style access
  * </ul>
  * <p></p>
@@ -119,7 +120,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
             + " session. Leave empty if AWS Basic provider or AWS credential provider chain should be used.";
     public static final String S3_ROLE_SESSION_NAME_CONFIG_DEFAULT = "";
     public static final String S3_JWT_PATH_CONFIG = S3_PREFIX + "jwt.path";
-    public static final String S3_JWT_PATH_CONFIG_DOC = "Path to an OIDC token file in JSON format (JWT) used to authenticate before AWS STS role authorisation, ex. for EKS `/var/run/secrets/eks.amazonaws.com/serviceaccount/token`.";
+    public static final String S3_JWT_PATH_CONFIG_DOC = "Path to an OIDC token file in JSON format (JWT) used to authenticate before AWS STS role authorisation, e.g. for EKS `/var/run/secrets/eks.amazonaws.com/serviceaccount/token`.";
     public static final String S3_JWT_PATH_CONFIG_DEFAULT = "";
     public static final String S3_SECRET_KEY_DEFAULT = "";
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_CONFIG = S3_PREFIX + "path.style.access";
@@ -268,17 +269,23 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         final String roleSessionName = this.getString(S3_ROLE_SESSION_NAME_CONFIG);
         final String jwtPath = this.getString(S3_JWT_PATH_CONFIG);
 
-        if (!isEmpty(roleExternalId) && !isEmpty(roleArn) && !isEmpty(roleSessionName)) {
-            final AWSCredentialsProvider provider = !isEmpty(jwtPath)?
-                    new WebIdentityTokenCredentialsProvider.Builder()
-                            .webIdentityTokenFile(S3_JWT_PATH_CONFIG)
-                            .roleArn(S3_ROLE_ARN_CONFIG)
-                            .roleSessionName(S3_ROLE_SESSION_NAME_CONFIG)
-                            .build():
-                    new STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, roleSessionName)
-                            .withStsClient(AWSSecurityTokenServiceClientBuilder.defaultClient())
-                            .withExternalId(roleExternalId)
-                            .build();
+        if (!isEmpty(roleArn) && !isEmpty(roleSessionName)) {
+            final AWSCredentialsProvider provider;
+
+            if (!isEmpty(roleExternalId)) {
+                provider = new STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, roleSessionName)
+                                .withStsClient(AWSSecurityTokenServiceClientBuilder.defaultClient())
+                                .withExternalId(roleExternalId)
+                                .build();
+            }
+
+            if (!isEmpty(jwtPath)) {
+                provider = new WebIdentityTokenCredentialsProvider.Builder()
+                                .webIdentityTokenFile(jwtPath)
+                                .roleArn(roleArn)
+                                .roleSessionName(roleSessionName)
+                                .build();
+            }
 
             return Optional.of(provider);
         }
