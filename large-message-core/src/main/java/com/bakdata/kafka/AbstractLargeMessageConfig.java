@@ -31,6 +31,7 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
+import com.amazonaws.auth.WebIdentityTokenCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
@@ -117,6 +118,9 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final String S3_ROLE_SESSION_NAME_CONFIG_DOC = "AWS STS role session name to use when starting a"
             + " session. Leave empty if AWS Basic provider or AWS credential provider chain should be used.";
     public static final String S3_ROLE_SESSION_NAME_CONFIG_DEFAULT = "";
+    public static final String S3_JWT_PATH_CONFIG = S3_PREFIX + "jwt.path";
+    public static final String S3_JWT_PATH_CONFIG_DOC = "Path to an OIDC token file in JSON format (JWT) used to authenticate before AWS STS role authorisation, ex. for EKS `/var/run/secrets/eks.amazonaws.com/serviceaccount/token`.";
+    public static final String S3_JWT_PATH_CONFIG_DEFAULT = "";
     public static final String S3_SECRET_KEY_DEFAULT = "";
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_CONFIG = S3_PREFIX + "path.style.access";
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_DOC = "Enable path-style access for S3 client.";
@@ -164,6 +168,8 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                         S3_ROLE_ARN_CONFIG_DOC)
                 .define(S3_ROLE_SESSION_NAME_CONFIG, Type.STRING, S3_ROLE_SESSION_NAME_CONFIG_DEFAULT, Importance.LOW,
                         S3_ROLE_SESSION_NAME_CONFIG_DOC)
+                .define(S3_JWT_PATH_CONFIG, Type.STRING, S3_JWT_PATH_CONFIG_DEFAULT, Importance.LOW,
+                        S3_JWT_PATH_CONFIG_DOC)
                 // Azure Blob Storage
                 .define(AZURE_CONNECTION_STRING_CONFIG, Type.PASSWORD, AZURE_CONNECTION_STRING_DEFAULT, Importance.LOW,
                         AZURE_CONNECTION_STRING_DOC)
@@ -260,9 +266,15 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         final String roleExternalId = this.getString(S3_ROLE_EXTERNAL_ID_CONFIG);
         final String roleArn = this.getString(S3_ROLE_ARN_CONFIG);
         final String roleSessionName = this.getString(S3_ROLE_SESSION_NAME_CONFIG);
+        final String jwtPath = this.getString(S3_JWT_PATH_CONFIG);
 
         if (!isEmpty(roleExternalId) && !isEmpty(roleArn) && !isEmpty(roleSessionName)) {
-            final AWSCredentialsProvider provider =
+            final AWSCredentialsProvider provider = !isEmpty(jwtPath)?
+                    new WebIdentityTokenCredentialsProvider.Builder()
+                            .webIdentityTokenFile(S3_JWT_PATH_CONFIG)
+                            .roleArn(S3_ROLE_ARN_CONFIG)
+                            .roleSessionName(S3_ROLE_SESSION_NAME_CONFIG)
+                            .build():
                     new STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, roleSessionName)
                             .withStsClient(AWSSecurityTokenServiceClientBuilder.defaultClient())
                             .withExternalId(roleExternalId)
