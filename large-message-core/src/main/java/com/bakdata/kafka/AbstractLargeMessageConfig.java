@@ -270,7 +270,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         final String jwtPath = this.getString(S3_JWT_PATH_CONFIG);
 
         if (!isEmpty(roleArn) && !isEmpty(roleSessionName)) {
-            final AWSCredentialsProvider provider;
+            AWSCredentialsProvider provider = null;
 
             if (!isEmpty(roleExternalId)) {
                 provider = new STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, roleSessionName)
@@ -280,7 +280,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
             }
 
             if (!isEmpty(jwtPath)) {
-                provider = new WebIdentityTokenCredentialsProvider.Builder()
+                provider = WebIdentityTokenCredentialsProvider.builder()
                                 .webIdentityTokenFile(jwtPath)
                                 .roleArn(roleArn)
                                 .roleSessionName(roleSessionName)
