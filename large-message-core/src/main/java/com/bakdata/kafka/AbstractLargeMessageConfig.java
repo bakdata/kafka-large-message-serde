@@ -270,24 +270,27 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         final String jwtPath = this.getString(S3_JWT_PATH_CONFIG);
 
         if (!isEmpty(roleArn) && !isEmpty(roleSessionName)) {
-            AWSCredentialsProvider provider = null;
 
             if (!isEmpty(roleExternalId)) {
-                provider = new STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, roleSessionName)
+                final AWSCredentialsProvider roleProvider = new STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, roleSessionName)
                                 .withStsClient(AWSSecurityTokenServiceClientBuilder.defaultClient())
                                 .withExternalId(roleExternalId)
                                 .build();
+
+                return Optional.of(roleProvider);
             }
 
             if (!isEmpty(jwtPath)) {
-                provider = WebIdentityTokenCredentialsProvider.builder()
+                final AWSCredentialsProvider oidcProvider = WebIdentityTokenCredentialsProvider.builder()
                                 .webIdentityTokenFile(jwtPath)
                                 .roleArn(roleArn)
                                 .roleSessionName(roleSessionName)
                                 .build();
+
+                return Optional.of(oidcProvider);
             }
 
-            return Optional.of(provider);
+
         }
 
         return Optional.empty();
