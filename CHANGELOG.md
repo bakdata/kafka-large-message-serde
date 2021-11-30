@@ -1,5 +1,13 @@
 # Change Log
 
+## [2.0.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.0.1) (2021-09-14)
+[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.0.0...2.0.1)
+
+**Merged pull requests:**
+
+- Update dependencies [\#19](https://github.com/bakdata/kafka-large-message-serde/pull/19) ([@philipp94831](https://github.com/philipp94831))
+- Test Azure using azurite [\#18](https://github.com/bakdata/kafka-large-message-serde/pull/18) ([@philipp94831](https://github.com/philipp94831))
+
 ## [2.0.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.0.0) (2021-06-18)
 [Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/1.1.5...2.0.0)
 

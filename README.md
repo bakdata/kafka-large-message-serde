@@ -114,6 +114,13 @@ The following configuration options are available:
    * Default: ""
    * Importance: low
 
+``large.message.s3.jwt.path``
+   Path to an OIDC token file in JSON format (JWT) used to authenticate before AWS STS role authorisation, e.g. for EKS `/var/run/secrets/eks.amazonaws.com/serviceaccount/token`.
+
+   * Type: string
+   * Default: ""
+   * Importance: low
+
 ``large.message.s3.region``
   S3 region to use. Must be configured in conjunction with s3backed.endpoint. Leave empty if default S3 region should be used.
 
