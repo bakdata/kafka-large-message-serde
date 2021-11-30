@@ -10,9 +10,11 @@ dependencies {
     api(group = "io.confluent", name = "common-config", version = confluentVersion)
 
     implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.26")
+    implementation(platform("com.google.cloud:libraries-bom:23.0.0"))
     api(group = "com.amazonaws", name = "aws-java-sdk-s3", version = "1.11.636")
     api(group = "com.amazonaws", name = "aws-java-sdk-sts", version = "1.11.636")
     api(group = "com.azure", name = "azure-storage-blob", version = "12.12.0")
+    api(group = "com.google.cloud", name = "google-cloud-storage", version = "1.118.0")
     implementation(group = "com.google.guava", name = "guava", version = "28.2-jre")
 
     val junitVersion: String by project
@@ -30,4 +32,6 @@ dependencies {
     testImplementation(group = "log4j", name = "log4j", version = "1.2.17")
     testImplementation(group = "org.slf4j", name = "slf4j-log4j12", version = "1.7.26")
     testImplementation(group = "org.testcontainers", name = "junit-jupiter", version = "1.15.3")
+    testImplementation(group = "com.google.cloud", name = "google-cloud-nio", version = "0.123.16")
+
 }
