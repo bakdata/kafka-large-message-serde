@@ -146,7 +146,6 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final String GOOGLE_CLOUD_PROJECT_ID_DOC = "The ID of your GCP project";
     public static final String GOOGLE_CLOUD_PROJECT_ID_DEFAULT = "";
 
-
     private static final ConfigDef config = baseConfigDef();
     private final Map<String, Supplier<BlobStorageClient>> clientFactories =
         ImmutableMap.<String, Supplier<BlobStorageClient>>builder()
@@ -192,7 +191,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .define(AZURE_CONNECTION_STRING_CONFIG, Type.PASSWORD, AZURE_CONNECTION_STRING_DEFAULT, Importance.LOW,
                         AZURE_CONNECTION_STRING_DOC)
                 // Google Cloud Storage
-                .define(GOOGLE_CLOUD_PROJECT_ID, Type.PASSWORD, GOOGLE_CLOUD_PROJECT_ID_DEFAULT, Importance.LOW,
+                .define(GOOGLE_CLOUD_PROJECT_ID, Type.STRING, GOOGLE_CLOUD_PROJECT_ID_DEFAULT, Importance.LOW,
                     GOOGLE_CLOUD_PROJECT_ID_DOC)
                 ;
     }

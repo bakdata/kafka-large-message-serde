@@ -9,7 +9,6 @@ dependencies {
     val confluentVersion: String by project
     api(group = "io.confluent", name = "common-config", version = confluentVersion)
 
-
     implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.32")
     implementation(platform("com.google.cloud:libraries-bom:23.0.0"))
     val awsVersion = "1.12.66"
@@ -32,10 +31,8 @@ dependencies {
         exclude(group = "ch.qos.logback")
         exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
     }
-
     val log4jVersion = "2.14.1"
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j-impl", version = log4jVersion)
     testImplementation(group = "org.testcontainers", name = "junit-jupiter", version = "1.16.0")
     testImplementation(group = "com.google.cloud", name = "google-cloud-nio", version = "0.123.16")
-
 }
