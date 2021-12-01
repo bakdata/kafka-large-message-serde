@@ -1,5 +1,16 @@
 # Change Log
 
+## [2.1.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.0) (2021-12-01)
+[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.0.1...2.1.0)
+
+**Closed issues:**
+
+- AWS AssumeRoleWithWebIdentity support [\#20](https://github.com/bakdata/kafka-large-message-serde/issues/20)
+
+**Merged pull requests:**
+
+- Add support for OIDC token auth with AWS STS role [\#21](https://github.com/bakdata/kafka-large-message-serde/pull/21) ([@jclarysse](https://github.com/jclarysse))
+
 ## [2.0.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.0.1) (2021-09-14)
 [Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.0.0...2.0.1)
 
