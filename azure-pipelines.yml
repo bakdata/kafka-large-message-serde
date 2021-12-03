@@ -18,8 +18,8 @@ resources:
     - repository: templates
       type: github
       name: bakdata/bakdata-project-templates
+#      ref: feature/disable-sonarqube
       endpoint: bot
-      ref: feature/disable-sonarqube
 
 jobs:
 - template: azure/gradle/build.yml@templates
