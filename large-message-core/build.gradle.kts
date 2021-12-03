@@ -10,7 +10,7 @@ dependencies {
     api(group = "io.confluent", name = "common-config", version = confluentVersion)
 
     implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.32")
-    implementation(platform("com.google.cloud:libraries-bom:23.0.0"))
+
     val awsVersion = "1.12.66"
     api(group = "com.amazonaws", name = "aws-java-sdk-s3", version = awsVersion)
     api(group = "com.amazonaws", name = "aws-java-sdk-sts", version = awsVersion)

@@ -20,7 +20,7 @@ public class GoogleStorageClient implements BlobStorageClient {
     @Override
     public void deleteAllObjects(final String bucket, final String prefix) {
         final Page<Blob> blobs = this.storage.list(bucket, Storage.BlobListOption.currentDirectory(),
-            Storage.BlobListOption.prefix(prefix));
+                Storage.BlobListOption.prefix(prefix));
         for (final Blob blob : blobs.iterateAll()) {
             this.storage.delete(blob.getBlobId());
         }
