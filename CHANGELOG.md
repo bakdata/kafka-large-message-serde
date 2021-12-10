@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.1.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.1) (2021-12-10)
+[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.0...2.1.1)
+
+**Merged pull requests:**
+
+- Update log4j to 2.15.0 [\#24](https://github.com/bakdata/kafka-large-message-serde/pull/24) ([@philipp94831](https://github.com/philipp94831))
+
 ## [2.1.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.0) (2021-12-01)
 [Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.0.1...2.1.0)
 
