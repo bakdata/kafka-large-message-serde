@@ -29,7 +29,7 @@ dependencies {
         exclude(group = "ch.qos.logback")
         exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
     }
-    val log4jVersion = "2.14.1"
+    val log4jVersion: String by project
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j-impl", version = log4jVersion)
     testImplementation(group = "org.testcontainers", name = "junit-jupiter", version = "1.16.0")
 }
