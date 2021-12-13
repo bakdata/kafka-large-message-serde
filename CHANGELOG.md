@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.1.2](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.2) (2021-12-13)
+[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.1...2.1.2)
+
+**Merged pull requests:**
+
+- Batch delete S3 files [\#25](https://github.com/bakdata/kafka-large-message-serde/pull/25) ([@philipp94831](https://github.com/philipp94831))
+
 ## [2.1.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.1) (2021-12-10)
 [Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.0...2.1.1)
 
