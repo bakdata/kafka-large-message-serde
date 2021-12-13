@@ -25,6 +25,7 @@
 package com.bakdata.kafka;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
@@ -92,9 +93,11 @@ class AmazonS3Client implements BlobStorageClient {
     private void deleteObjects(final String bucketName, final String prefix) {
         ObjectListing objectListing = this.s3.listObjects(bucketName, prefix);
         while (true) {
-            for (final S3ObjectSummary objectSummary : objectListing.getObjectSummaries()) {
-                this.s3.deleteObject(bucketName, objectSummary.getKey());
-            }
+            final String[] keys = objectListing.getObjectSummaries().stream()
+                    .map(S3ObjectSummary::getKey)
+                    .toArray(String[]::new);
+            this.s3.deleteObjects(new DeleteObjectsRequest(bucketName)
+                    .withKeys(keys));
 
             // If the bucket contains many objects, the listObjects() call
             // might not return all of the objects in the first listing. Check to
