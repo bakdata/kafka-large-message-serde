@@ -96,8 +96,10 @@ class AmazonS3Client implements BlobStorageClient {
             final String[] keys = objectListing.getObjectSummaries().stream()
                     .map(S3ObjectSummary::getKey)
                     .toArray(String[]::new);
-            this.s3.deleteObjects(new DeleteObjectsRequest(bucketName)
-                    .withKeys(keys));
+            if (keys.length > 0) {
+                this.s3.deleteObjects(new DeleteObjectsRequest(bucketName)
+                        .withKeys(keys));
+            }
 
             // If the bucket contains many objects, the listObjects() call
             // might not return all of the objects in the first listing. Check to
