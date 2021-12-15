@@ -37,11 +37,18 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.storage.StorageOptions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import io.confluent.common.config.AbstractConfig;
 import io.confluent.common.config.ConfigDef;
 import io.confluent.common.config.ConfigDef.Importance;
 import io.confluent.common.config.ConfigDef.Type;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -73,6 +80,11 @@ import lombok.extern.slf4j.Slf4j;
  * <ul>
  *     <li> Connection string
  * </ul>
+ * <p></p>
+ * Google Cloud Storage specific
+ * <ul>
+ *     <li> Service account key JSON path
+ * </ul>
  */
 @Slf4j
 public class AbstractLargeMessageConfig extends AbstractConfig {
@@ -90,6 +102,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
             + "generators are: " + RandomUUIDGenerator.class.getName() + ", " + Sha256HashIdGenerator.class.getName()
             + ", " + MurmurHashIdGenerator.class.getName() + ".";
     public static final Class<? extends IdGenerator> ID_GENERATOR_DEFAULT = RandomUUIDGenerator.class;
+
     public static final String S3_PREFIX = PREFIX + AmazonS3Client.SCHEME + ".";
     public static final String S3_ENDPOINT_CONFIG = S3_PREFIX + "endpoint";
     public static final String S3_ENDPOINT_DEFAULT = "";
@@ -120,22 +133,33 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
             + " session. Leave empty if AWS Basic provider or AWS credential provider chain should be used.";
     public static final String S3_ROLE_SESSION_NAME_CONFIG_DEFAULT = "";
     public static final String S3_JWT_PATH_CONFIG = S3_PREFIX + "jwt.path";
-    public static final String S3_JWT_PATH_CONFIG_DOC = "Path to an OIDC token file in JSON format (JWT) used to authenticate before AWS STS role authorisation, e.g. for EKS `/var/run/secrets/eks.amazonaws.com/serviceaccount/token`.";
+    public static final String S3_JWT_PATH_CONFIG_DOC =
+            "Path to an OIDC token file in JSON format (JWT) used to authenticate before AWS STS role authorisation, "
+                    + "e.g. for EKS `/var/run/secrets/eks.amazonaws.com/serviceaccount/token`.";
     public static final String S3_JWT_PATH_CONFIG_DEFAULT = "";
     public static final String S3_SECRET_KEY_DEFAULT = "";
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_CONFIG = S3_PREFIX + "path.style.access";
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_DOC = "Enable path-style access for S3 client.";
     public static final boolean S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT = false;
+
     public static final String AZURE_PREFIX = PREFIX + AzureBlobStorageClient.SCHEME + ".";
     public static final String AZURE_CONNECTION_STRING_CONFIG = AZURE_PREFIX + "connection.string";
     public static final String AZURE_CONNECTION_STRING_DOC = "Azure connection string for connection to blob storage. "
             + "Leave empty if Azure credential provider chain should be used.";
     public static final String AZURE_CONNECTION_STRING_DEFAULT = "";
+
+    public static final String GOOGLE_STORAGE_PREFIX = PREFIX + GoogleStorageClient.SCHEME + ".";
+    public static final String GOOGLE_CLOUD_KEY_PATH = GOOGLE_STORAGE_PREFIX + "key.path";
+    public static final String GOOGLE_CLOUD_KEY_PATH_DOC = "Path to the service account JSON file";
+    public static final String GOOGLE_CLOUD_KEY_PATH_DEFAULT = "";
+    private static final String GOOGLE_CLOUD_OAUTH_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
+
     private static final ConfigDef config = baseConfigDef();
     private final Map<String, Supplier<BlobStorageClient>> clientFactories =
             ImmutableMap.<String, Supplier<BlobStorageClient>>builder()
                     .put(AmazonS3Client.SCHEME, this::createAmazonS3Client)
                     .put(AzureBlobStorageClient.SCHEME, this::createAzureBlobStorageClient)
+                    .put(GoogleStorageClient.SCHEME, this::createGoogleStorageClient)
                     .build();
 
     /**
@@ -174,6 +198,9 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 // Azure Blob Storage
                 .define(AZURE_CONNECTION_STRING_CONFIG, Type.PASSWORD, AZURE_CONNECTION_STRING_DEFAULT, Importance.LOW,
                         AZURE_CONNECTION_STRING_DOC)
+                // Google Cloud Storage
+                .define(GOOGLE_CLOUD_KEY_PATH, Type.STRING, GOOGLE_CLOUD_KEY_PATH_DEFAULT, Importance.LOW,
+                        GOOGLE_CLOUD_KEY_PATH_DOC)
                 ;
     }
 
@@ -272,7 +299,8 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         if (!isEmpty(roleArn) && !isEmpty(roleSessionName)) {
 
             if (!isEmpty(roleExternalId)) {
-                final AWSCredentialsProvider roleProvider = new STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, roleSessionName)
+                final AWSCredentialsProvider roleProvider =
+                        new STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, roleSessionName)
                                 .withStsClient(AWSSecurityTokenServiceClientBuilder.defaultClient())
                                 .withExternalId(roleExternalId)
                                 .build();
@@ -282,18 +310,44 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
 
             if (!isEmpty(jwtPath)) {
                 final AWSCredentialsProvider oidcProvider = WebIdentityTokenCredentialsProvider.builder()
-                                .webIdentityTokenFile(jwtPath)
-                                .roleArn(roleArn)
-                                .roleSessionName(roleSessionName)
-                                .build();
+                        .webIdentityTokenFile(jwtPath)
+                        .roleArn(roleArn)
+                        .roleSessionName(roleSessionName)
+                        .build();
 
                 return Optional.of(oidcProvider);
             }
-
 
         }
 
         return Optional.empty();
     }
 
+    /**
+     * This method builds the Google Storage Client object. If you don't specify credentials when constructing the
+     * client, the client library will look for credentials via the environment variable GOOGLE_APPLICATION_CREDENTIALS.
+     * If the environment variable GOOGLE_APPLICATION_CREDENTIALS isn't set,  Application Default Credentials (ADC) uses
+     * the service account that is attached to the resource that is running your code. For more information see the <a
+     * href="https://cloud.google.com/docs/authentication/production#automatically">official documentation</a>
+     *
+     * @return GoogleStorageClient
+     */
+    private BlobStorageClient createGoogleStorageClient() {
+        if (!this.getString(GOOGLE_CLOUD_KEY_PATH).isEmpty()) {
+            final GoogleCredentials credentials = this.getGoogleCredentials();
+            return new GoogleStorageClient(
+                    StorageOptions.newBuilder().setCredentials(credentials).build().getService());
+        }
+        return new GoogleStorageClient(StorageOptions.getDefaultInstance().getService());
+    }
+
+    private GoogleCredentials getGoogleCredentials() {
+        try (final FileInputStream credentialsStream = new FileInputStream(this.getString(GOOGLE_CLOUD_KEY_PATH))) {
+            final List<String> scopes = Lists.newArrayList(GOOGLE_CLOUD_OAUTH_SCOPE);
+            return GoogleCredentials.fromStream(credentialsStream).createScoped(scopes);
+        } catch (final IOException ioException) {
+            throw new UncheckedIOException(
+                    "Please check if the JSON key file exists in the given path and try again.", ioException);
+        }
+    }
 }

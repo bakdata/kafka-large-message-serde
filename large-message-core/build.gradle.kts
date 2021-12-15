@@ -14,6 +14,7 @@ dependencies {
     api(group = "com.amazonaws", name = "aws-java-sdk-s3", version = awsVersion)
     api(group = "com.amazonaws", name = "aws-java-sdk-sts", version = awsVersion)
     api(group = "com.azure", name = "azure-storage-blob", version = "12.13.0")
+    api(group = "com.google.cloud", name = "google-cloud-storage", version = "1.118.0")
     implementation(group = "com.google.guava", name = "guava", version = "30.1.1-jre")
 
     val junitVersion: String by project
@@ -32,4 +33,5 @@ dependencies {
     val log4jVersion: String by project
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j-impl", version = log4jVersion)
     testImplementation(group = "org.testcontainers", name = "junit-jupiter", version = "1.16.0")
+    testImplementation(group = "com.google.cloud", name = "google-cloud-nio", version = "0.123.16")
 }

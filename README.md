@@ -4,7 +4,7 @@
 [![Maven](https://img.shields.io/maven-central/v/com.bakdata.kafka/large-message-serde.svg)](https://search.maven.org/search?q=g:com.bakdata.kafka%20AND%20a:large-message-serde&core=gav)
 
 # kafka-large-message-serde
-A Kafka Serde that reads and writes records from and to a blob storage, such as Amazon S3 and Azure Blob Storage, transparently.
+A Kafka Serde that reads and writes records from and to a blob storage, such as Amazon S3, Azure Blob Storage, and Google Cloud Storage, transparently.
 Formerly known as kafka-s3-backed-serde.
 
 ## Getting Started
@@ -146,6 +146,16 @@ The following configuration options are available:
   Azure connection string for connection to blob storage. Leave empty if Azure credential provider chain should be used.
 
   * Type: password
+  * Default: ""
+  * Importance: low
+
+``large.message.gs.key.path``
+  Google service account key JSON path. Leave empty If the environment variable GOOGLE_APPLICATION_CREDENTIALS is set
+  or if you want to use the default service account provided by your computer engine. For more information about
+  authenticating as a service account please 
+  refer to the [main documentation](https://cloud.google.com/docs/authentication/production).
+
+  * Type: string
   * Default: ""
   * Importance: low
 
