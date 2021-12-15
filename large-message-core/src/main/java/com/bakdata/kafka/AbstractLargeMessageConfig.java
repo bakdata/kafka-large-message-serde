@@ -332,20 +332,20 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
      */
     private BlobStorageClient createGoogleStorageClient() {
         if (!this.getString(GOOGLE_CLOUD_KEY_PATH).isEmpty()) {
-            final GoogleCredentials credentials;
-            try {
-                credentials = GoogleCredentials.fromStream(new FileInputStream(GOOGLE_CLOUD_KEY_PATH))
-                        .createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
-            } catch (final IOException ioException) {
-                throw new UncheckedIOException(
-                        "Please check if the JSON key file exists in the given path and try again.", ioException);
-            }
-
+            final GoogleCredentials credentials = getGoogleCredentials();
             return new GoogleStorageClient(
                     StorageOptions.newBuilder().setCredentials(credentials).build().getService());
-
         }
-
         return new GoogleStorageClient(StorageOptions.getDefaultInstance().getService());
+    }
+
+    private static GoogleCredentials getGoogleCredentials() {
+        try (final FileInputStream credentialsStream = new FileInputStream(GOOGLE_CLOUD_KEY_PATH)) {
+            final String scope = "https://www.googleapis.com/auth/cloud-platform";
+            return GoogleCredentials.fromStream(credentialsStream).createScoped(Lists.newArrayList(scope));
+        } catch (final IOException ioException) {
+            throw new UncheckedIOException(
+                    "Please check if the JSON key file exists in the given path and try again.", ioException);
+        }
     }
 }
