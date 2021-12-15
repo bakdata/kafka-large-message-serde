@@ -48,7 +48,7 @@ import io.confluent.common.config.ConfigDef.Type;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -152,7 +152,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final String GOOGLE_CLOUD_KEY_PATH = GOOGLE_STORAGE_PREFIX + "key.path";
     public static final String GOOGLE_CLOUD_KEY_PATH_DOC = "Path to the service account JSON file";
     public static final String GOOGLE_CLOUD_KEY_PATH_DEFAULT = "";
-    public static final String GOOGLE_CLOUD_OAUTH_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
+    private static final String GOOGLE_CLOUD_OAUTH_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 
     private static final ConfigDef config = baseConfigDef();
     private final Map<String, Supplier<BlobStorageClient>> clientFactories =
@@ -334,16 +334,16 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
      */
     private BlobStorageClient createGoogleStorageClient() {
         if (!this.getString(GOOGLE_CLOUD_KEY_PATH).isEmpty()) {
-            final GoogleCredentials credentials = getGoogleCredentials();
+            final GoogleCredentials credentials = this.getGoogleCredentials();
             return new GoogleStorageClient(
                     StorageOptions.newBuilder().setCredentials(credentials).build().getService());
         }
         return new GoogleStorageClient(StorageOptions.getDefaultInstance().getService());
     }
 
-    private static GoogleCredentials getGoogleCredentials() {
-        try (final FileInputStream credentialsStream = new FileInputStream(GOOGLE_CLOUD_KEY_PATH)) {
-            final ArrayList<String> scopes = Lists.newArrayList(GOOGLE_CLOUD_OAUTH_SCOPE);
+    private GoogleCredentials getGoogleCredentials() {
+        try (final FileInputStream credentialsStream = new FileInputStream(this.getString(GOOGLE_CLOUD_KEY_PATH))) {
+            final List<String> scopes = Lists.newArrayList(GOOGLE_CLOUD_OAUTH_SCOPE);
             return GoogleCredentials.fromStream(credentialsStream).createScoped(scopes);
         } catch (final IOException ioException) {
             throw new UncheckedIOException(
