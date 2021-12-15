@@ -1,5 +1,13 @@
 # Change Log
 
+## [2.1.3](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.3) (2021-12-15)
+[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.2...2.1.3)
+
+**Merged pull requests:**
+
+- Fix deletion of empty S3 path [\#27](https://github.com/bakdata/kafka-large-message-serde/pull/27) ([@philipp94831](https://github.com/philipp94831))
+- Add support for Google Cloud Storage [\#22](https://github.com/bakdata/kafka-large-message-serde/pull/22) ([@raminqaf](https://github.com/raminqaf))
+
 ## [2.1.2](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.2) (2021-12-13)
 [Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.1...2.1.2)
 
