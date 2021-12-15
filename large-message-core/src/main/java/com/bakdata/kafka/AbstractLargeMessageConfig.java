@@ -46,10 +46,11 @@ import io.confluent.common.config.ConfigDef;
 import io.confluent.common.config.ConfigDef.Importance;
 import io.confluent.common.config.ConfigDef.Type;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -131,7 +132,9 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
             + " session. Leave empty if AWS Basic provider or AWS credential provider chain should be used.";
     public static final String S3_ROLE_SESSION_NAME_CONFIG_DEFAULT = "";
     public static final String S3_JWT_PATH_CONFIG = S3_PREFIX + "jwt.path";
-    public static final String S3_JWT_PATH_CONFIG_DOC = "Path to an OIDC token file in JSON format (JWT) used to authenticate before AWS STS role authorisation, e.g. for EKS `/var/run/secrets/eks.amazonaws.com/serviceaccount/token`.";
+    public static final String S3_JWT_PATH_CONFIG_DOC =
+            "Path to an OIDC token file in JSON format (JWT) used to authenticate before AWS STS role authorisation, "
+                    + "e.g. for EKS `/var/run/secrets/eks.amazonaws.com/serviceaccount/token`.";
     public static final String S3_JWT_PATH_CONFIG_DEFAULT = "";
     public static final String S3_SECRET_KEY_DEFAULT = "";
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_CONFIG = S3_PREFIX + "path.style.access";
@@ -327,12 +330,16 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
      *
      * @return GoogleStorageClient
      */
-    @SneakyThrows
     private BlobStorageClient createGoogleStorageClient() {
         if (!this.getString(GOOGLE_CLOUD_KEY_PATH).isEmpty()) {
-            final GoogleCredentials credentials =
-                    GoogleCredentials.fromStream(new FileInputStream(GOOGLE_CLOUD_KEY_PATH))
-                            .createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+            final GoogleCredentials credentials;
+            try {
+                credentials = GoogleCredentials.fromStream(new FileInputStream(GOOGLE_CLOUD_KEY_PATH))
+                        .createScoped(Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+            } catch (final IOException ioException) {
+                throw new UncheckedIOException(
+                        "Please check if the JSON key file exists in the given path and try again.", ioException);
+            }
 
             return new GoogleStorageClient(
                     StorageOptions.newBuilder().setCredentials(credentials).build().getService());
