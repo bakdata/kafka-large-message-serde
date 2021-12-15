@@ -107,6 +107,19 @@ class AmazonS3ClientTest {
     }
 
     @Test
+    void shouldDeleteFilesIfEmpty() {
+        final String bucket = "bucket";
+        final AmazonS3 s3 = S3_MOCK.createS3Client();
+        s3.createBucket(bucket);
+        final BlobStorageClient client = new AmazonS3Client(s3);
+        client.putObject(serialize("foo"), bucket, "base/bar/1");
+        assertThat(s3.listObjects(bucket, "base/").getObjectSummaries()).hasSize(1);
+        client.deleteAllObjects(bucket, "base/foo/");
+        assertThat(s3.listObjects(bucket, "base/").getObjectSummaries()).hasSize(1);
+        s3.deleteBucket(bucket);
+    }
+
+    @Test
     void shouldThrowExceptionOnMissingObject() {
         final String bucket = "bucket";
         final AmazonS3 s3 = S3_MOCK.createS3Client();
