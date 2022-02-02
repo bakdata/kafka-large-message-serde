@@ -98,13 +98,13 @@ class LargeMessageConverterIntegrationTest {
 
     private EmbeddedKafkaCluster createCluster() {
         return EmbeddedKafkaCluster.provisionWith(EmbeddedKafkaClusterConfig
-                .create()
-                .provisionWith(
+                .newClusterConfig()
+                .configure(
                         EmbeddedConnectConfig
-                                .create()
+                                .kafkaConnect()
                                 .deployConnector(this.config())
-                                .build()
-                ).build());
+                                .build())
+                .build());
     }
 
     private Properties config() {
