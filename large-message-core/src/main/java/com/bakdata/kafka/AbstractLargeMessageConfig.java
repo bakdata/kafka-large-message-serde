@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.errors.SerializationException;
 
 /**
  * This class provides default configuration options for blob storage backed data. It offers configuration of the
@@ -204,8 +205,8 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 ;
     }
 
-    static IllegalArgumentException unknownScheme(final String scheme) {
-        return new IllegalArgumentException("Unknown scheme for handling large messages: '" + scheme + "'");
+    static SerializationException unknownScheme(final String scheme) {
+        return new SerializationException("Unknown scheme for handling large messages: '" + scheme + "'");
     }
 
     private static NoBlobStorageClient createNoBlobStorageClient() {
