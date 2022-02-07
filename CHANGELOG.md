@@ -1,5 +1,19 @@
 # Change Log
 
+## [2.1.4](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.4) (2022-02-07)
+[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.3...2.1.4)
+
+**Implemented enhancements:**
+
+- Update deprecated config for embedded Kafka [\#29](https://github.com/bakdata/kafka-large-message-serde/pull/29) ([@disrupted](https://github.com/disrupted))
+- Add support for Google Cloud Storage [\#23](https://github.com/bakdata/kafka-large-message-serde/issues/23)
+
+**Merged pull requests:**
+
+- Throw correct type of exception [\#30](https://github.com/bakdata/kafka-large-message-serde/pull/30) ([@disrupted](https://github.com/disrupted))
+- Add missing copyright and docs [\#28](https://github.com/bakdata/kafka-large-message-serde/pull/28) ([@philipp94831](https://github.com/philipp94831))
+- Add support for Google Cloud Storage [\#26](https://github.com/bakdata/kafka-large-message-serde/pull/26) ([@raminqaf](https://github.com/raminqaf))
+
 ## [2.1.3](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.3) (2021-12-15)
 [Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.2...2.1.3)
 
