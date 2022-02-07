@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.UncheckedIOException;
 import java.util.Collections;
+import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.api.Test;
@@ -91,8 +92,8 @@ class LargeMessageRetrievingClientTest {
     @Test
     void shouldThrowExceptionOnErroneousFlag() {
         final LargeMessageRetrievingClient retriever = this.createRetriever();
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> retriever.retrieveBytes(new byte[]{2}))
+        assertThatExceptionOfType(SerializationException.class)
+                .isThrownBy(() -> retriever.retrieveBytes(new byte[] {2}))
                 .withMessage("Message can only be marked as backed or non-backed");
     }
 
