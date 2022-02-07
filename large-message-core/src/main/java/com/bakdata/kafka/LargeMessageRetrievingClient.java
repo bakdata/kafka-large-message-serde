@@ -36,6 +36,7 @@ import java.util.function.Supplier;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.errors.SerializationException;
 
 /**
  * Client for retrieving actual bytes of messages stored with {@link LargeMessageStoringClient}.
@@ -74,7 +75,7 @@ public class LargeMessageRetrievingClient {
             return getBytes(data);
         }
         if (data[0] != IS_BACKED) {
-            throw new IllegalArgumentException("Message can only be marked as backed or non-backed");
+            throw new SerializationException("Message can only be marked as backed or non-backed");
         }
         return this.retrieveBackedBytes(data);
     }
