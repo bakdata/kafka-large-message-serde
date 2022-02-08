@@ -98,6 +98,13 @@ class LargeMessageRetrievingClientTest {
     }
 
     @Test
+    void shouldThrowExceptionOnErroneousUri() {
+        final LargeMessageRetrievingClient retriever = this.createRetriever();
+        assertThatExceptionOfType(SerializationException.class)
+                .isThrownBy(() -> retriever.retrieveBytes(new byte[] {1, 0}));
+    }
+
+    @Test
     void shouldThrowExceptionError() {
         final String bucket = "bucket";
         final String key = "key";
