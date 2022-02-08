@@ -25,9 +25,11 @@
 package com.bakdata.kafka;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.regex.Pattern;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.common.errors.SerializationException;
 
 @RequiredArgsConstructor
 class BlobStorageURI {
@@ -35,8 +37,12 @@ class BlobStorageURI {
     private final @NonNull URI uri;
 
     static BlobStorageURI create(final String rawUri) {
-        final URI uri = URI.create(rawUri);
-        return new BlobStorageURI(uri);
+        try {
+            final URI uri = new URI(rawUri);
+            return new BlobStorageURI(uri);
+        } catch (URISyntaxException e) {
+            throw new SerializationException("Invalid URI", e);
+        }
     }
 
     @Override
