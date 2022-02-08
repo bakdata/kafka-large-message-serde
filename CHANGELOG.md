@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.1.5](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.5) (2022-02-08)
+[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.4...2.1.5)
+
+**Merged pull requests:**
+
+- Throw serialization exception on invalid URI [\#31](https://github.com/bakdata/kafka-large-message-serde/pull/31) ([@disrupted](https://github.com/disrupted))
+
 ## [2.1.4](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.4) (2022-02-07)
 [Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.3...2.1.4)
 
