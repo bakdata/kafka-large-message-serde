@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
 import java.io.UncheckedIOException;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serdes;
@@ -101,7 +102,9 @@ class LargeMessageRetrievingClientTest {
     void shouldThrowExceptionOnErroneousUri() {
         final LargeMessageRetrievingClient retriever = this.createRetriever();
         assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> retriever.retrieveBytes(new byte[] {1, 0}));
+                .isThrownBy(() -> retriever.retrieveBytes(new byte[] {1, 0}))
+                .withCauseInstanceOf(URISyntaxException.class)
+                .withMessage("Invalid URI");
     }
 
     @Test
