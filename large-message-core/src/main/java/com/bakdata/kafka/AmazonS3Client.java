@@ -26,6 +26,8 @@ package com.bakdata.kafka;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
+import com.amazonaws.services.s3.model.MultiObjectDeleteException;
+import com.amazonaws.services.s3.model.MultiObjectDeleteException.DeleteError;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
@@ -36,6 +38,8 @@ import com.amazonaws.util.IOUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -97,8 +101,17 @@ class AmazonS3Client implements BlobStorageClient {
                     .map(S3ObjectSummary::getKey)
                     .toArray(String[]::new);
             if (keys.length > 0) {
-                this.s3.deleteObjects(new DeleteObjectsRequest(bucketName)
-                        .withKeys(keys));
+                try {
+                    this.s3.deleteObjects(new DeleteObjectsRequest(bucketName)
+                            .withKeys(keys));
+                } catch (final MultiObjectDeleteException e) {
+                    final List<DeleteError> errors = e.getErrors();
+                    final String messages = errors.stream()
+                            .map(DeleteError::getMessage)
+                            .collect(Collectors.joining("\n"));
+                    log.warn("There have been {} errors when deleting objects.\n{}", errors.size(), messages);
+                    throw e;
+                }
             }
 
             // If the bucket contains many objects, the listObjects() call
