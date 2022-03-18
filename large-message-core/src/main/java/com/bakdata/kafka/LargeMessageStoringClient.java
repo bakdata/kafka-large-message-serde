@@ -27,6 +27,7 @@ package com.bakdata.kafka;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.function.Function;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -42,21 +43,20 @@ public class LargeMessageStoringClient {
     static final byte IS_NOT_BACKED = 0;
     static final byte IS_BACKED = 1;
     static final Charset CHARSET = StandardCharsets.UTF_8;
-    private static final LargeMessagePayloadSerializer SELF_CONTAINED_SERIALIZER =
-            new SelfContainedLargeMessagePayloadSerializer();
     private static final String VALUE_PREFIX = "values";
     private static final String KEY_PREFIX = "keys";
     private final @NonNull BlobStorageClient client;
     private final BlobStorageURI basePath;
     private final int maxSize;
     private final IdGenerator idGenerator;
+    private final @NonNull Function<Headers, LargeMessagePayloadSerializer> serializerFactory;
 
     static byte[] serialize(final String uri, final LargeMessagePayloadSerializer serializer) {
         final byte[] uriBytes = getUriBytes(uri);
         return serializer.serialize(uriBytes, IS_BACKED);
     }
 
-    static byte[] getUriBytes(String uri) {
+    static byte[] getUriBytes(final String uri) {
         return uri.getBytes(CHARSET);
     }
 
@@ -78,20 +78,17 @@ public class LargeMessageStoringClient {
      * @return bytes representing the payload. Can be read using {@link LargeMessageRetrievingClient}
      */
     public byte[] storeBytes(final String topic, final byte[] bytes, final boolean isKey, final Headers headers) {
-        final LargeMessagePayloadSerializer serializer = new HeaderLargeMessagePayloadSerializer(headers);
-        return this.storeBytes(topic, bytes, isKey, serializer);
-    }
-
-    /**
-     * Store bytes on blob storage if they exceed the configured maximum size.
-     *
-     * @param topic name of the topic the bytes are associated with
-     * @param bytes payload
-     * @param isKey whether the bytes represent the key of a message
-     * @return bytes representing the payload. Can be read using {@link LargeMessageRetrievingClient}
-     */
-    public byte[] storeBytes(final String topic, final byte[] bytes, final boolean isKey) {
-        return this.storeBytes(topic, bytes, isKey, SELF_CONTAINED_SERIALIZER);
+        final LargeMessagePayloadSerializer serializer = this.serializerFactory.apply(headers);
+        if (bytes == null) {
+            return null;
+        }
+        if (this.needsBacking(bytes)) {
+            final String key = this.createBlobStorageKey(topic, isKey, bytes);
+            final String uri = this.uploadToBlobStorage(key, bytes);
+            return serialize(uri, serializer);
+        } else {
+            return serialize(bytes, serializer);
+        }
     }
 
     /**
@@ -106,20 +103,6 @@ public class LargeMessageStoringClient {
         log.info("Deleting blob storage backed files for topic '{}'", topic);
         this.client.deleteAllObjects(bucketName, prefix);
         log.info("Finished deleting blob storage backed files for topic '{}'", topic);
-    }
-
-    private byte[] storeBytes(final String topic, final byte[] bytes, final boolean isKey,
-            final LargeMessagePayloadSerializer serializer) {
-        if (bytes == null) {
-            return null;
-        }
-        if (this.needsBacking(bytes)) {
-            final String key = this.createBlobStorageKey(topic, isKey, bytes);
-            final String uri = this.uploadToBlobStorage(key, bytes);
-            return serialize(uri, serializer);
-        } else {
-            return serialize(bytes, serializer);
-        }
     }
 
     private String createBlobStorageKey(final String topic, final boolean isKey, final byte[] bytes) {

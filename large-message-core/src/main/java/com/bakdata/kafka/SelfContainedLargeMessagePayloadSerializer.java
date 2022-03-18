@@ -24,7 +24,13 @@
 
 package com.bakdata.kafka;
 
+import java.util.function.Function;
+import org.apache.kafka.common.header.Headers;
+
 class SelfContainedLargeMessagePayloadSerializer implements LargeMessagePayloadSerializer {
+
+    public static final Function<Headers, LargeMessagePayloadSerializer> FACTORY =
+            headers -> new SelfContainedLargeMessagePayloadSerializer();
 
     @Override
     public byte[] serialize(final byte[] bytes, final byte flag) {

@@ -53,7 +53,6 @@ public class LargeMessageSerializer<T> implements Serializer<T> {
     private LargeMessageStoringClient client;
     private Serializer<? super T> serializer;
     private boolean isKey;
-    private boolean useHeaders;
 
     @Override
     public void configure(final Map<String, ?> configs, final boolean isKey) {
@@ -63,7 +62,6 @@ public class LargeMessageSerializer<T> implements Serializer<T> {
         this.client = serdeConfig.getStorer();
         this.serializer.configure(configs, isKey);
         this.isKey = isKey;
-        this.useHeaders = serdeConfig.useHeaders();
     }
 
     @Override
@@ -76,8 +74,7 @@ public class LargeMessageSerializer<T> implements Serializer<T> {
         Objects.requireNonNull(this.serializer);
         Objects.requireNonNull(this.client);
         final byte[] bytes = this.serializer.serialize(topic, headers, data);
-        return this.useHeaders ? this.client.storeBytes(topic, bytes, this.isKey, headers)
-                : this.client.storeBytes(topic, bytes, this.isKey);
+        return this.client.storeBytes(topic, bytes, this.isKey, headers);
     }
 
     @Override

@@ -31,6 +31,7 @@ import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
@@ -59,7 +60,7 @@ class LargeMessageStoringClientAzureIntegrationTest extends AzureBlobStorageInte
         try {
             containerClient.create();
             final LargeMessageStoringClient storer = this.createStorer(properties);
-            assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
+            assertThat(storer.storeBytes(TOPIC, serialize("foo"), true, new RecordHeaders()))
                     .satisfies(backedText -> this.expectBackedText(basePath, "foo", backedText, "keys"));
         } finally {
             containerClient.delete();

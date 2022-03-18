@@ -37,6 +37,7 @@ import com.amazonaws.util.IOUtils;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.util.Map;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
@@ -125,7 +126,7 @@ class LargeMessageStoringClientS3IntegrationTest {
                 .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE)
                 .build();
         final LargeMessageStoringClient storer = createStorer(properties);
-        assertThat(storer.storeBytes(null, serialize("foo"), isKey))
+        assertThat(storer.storeBytes(null, serialize("foo"), isKey, new RecordHeaders()))
                 .satisfies(backedText -> expectNonBackedText("foo", backedText));
     }
 
@@ -140,7 +141,7 @@ class LargeMessageStoringClientS3IntegrationTest {
         final AmazonS3 s3 = S3_MOCK.createS3Client();
         s3.createBucket(bucket);
         final LargeMessageStoringClient storer = createStorer(properties);
-        assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
+        assertThat(storer.storeBytes(TOPIC, serialize("foo"), true, new RecordHeaders()))
                 .satisfies(backedText -> expectBackedText(basePath, "foo", backedText, "keys"));
         s3.deleteBucket(bucket);
     }
@@ -158,7 +159,7 @@ class LargeMessageStoringClientS3IntegrationTest {
         s3.createBucket(bucket);
         final LargeMessageStoringClient storer = createStorer(properties);
         when(idGenerator.generateId("foo".getBytes())).thenReturn("bar");
-        assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
+        assertThat(storer.storeBytes(TOPIC, serialize("foo"), true, new RecordHeaders()))
                 .satisfies(backedText -> {
                     final BlobStorageURI uri = deserializeUriWithFlag(backedText);
                     expectBackedText(basePath, "foo", uri, "keys");
