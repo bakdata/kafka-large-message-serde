@@ -42,6 +42,8 @@ public class LargeMessageStoringClient {
     static final byte IS_NOT_BACKED = 0;
     static final byte IS_BACKED = 1;
     static final Charset CHARSET = StandardCharsets.UTF_8;
+    private static final LargeMessagePayloadSerializer SELF_CONTAINED_SERIALIZER =
+            new SelfContainedLargeMessagePayloadSerializer();
     private static final String VALUE_PREFIX = "values";
     private static final String KEY_PREFIX = "keys";
     private final @NonNull BlobStorageClient client;
@@ -50,8 +52,12 @@ public class LargeMessageStoringClient {
     private final IdGenerator idGenerator;
 
     static byte[] serialize(final String uri, final LargeMessagePayloadSerializer serializer) {
-        final byte[] uriBytes = uri.getBytes(CHARSET);
+        final byte[] uriBytes = getUriBytes(uri);
         return serializer.serialize(uriBytes, IS_BACKED);
+    }
+
+    static byte[] getUriBytes(String uri) {
+        return uri.getBytes(CHARSET);
     }
 
     static byte[] serialize(final byte[] bytes, final LargeMessagePayloadSerializer serializer) {
@@ -85,8 +91,7 @@ public class LargeMessageStoringClient {
      * @return bytes representing the payload. Can be read using {@link LargeMessageRetrievingClient}
      */
     public byte[] storeBytes(final String topic, final byte[] bytes, final boolean isKey) {
-        final LargeMessagePayloadSerializer serializer = new SelfContainedLargeMessagePayloadSerializer();
-        return this.storeBytes(topic, bytes, isKey, serializer);
+        return this.storeBytes(topic, bytes, isKey, SELF_CONTAINED_SERIALIZER);
     }
 
     /**
