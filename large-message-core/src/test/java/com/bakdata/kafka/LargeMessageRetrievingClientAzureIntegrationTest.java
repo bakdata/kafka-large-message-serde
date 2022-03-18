@@ -24,7 +24,6 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.LargeMessageStoringClient.serialize;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.azure.core.util.BinaryData;
@@ -32,6 +31,7 @@ import com.azure.storage.blob.BlobContainerClient;
 import com.google.common.collect.ImmutableMap;
 import io.confluent.common.config.ConfigDef;
 import java.util.Map;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,23 @@ class LargeMessageRetrievingClientAzureIntegrationTest extends AzureBlobStorageI
 
     private static byte[] createBackedText(final String bucket, final String key) {
         final String uri = "abs://" + bucket + "/" + key;
-        return serialize(uri);
+        return LargeMessageStoringClientTest.serializeUri(uri);
+    }
+
+    @Test
+    void shouldReadBackedText() {
+        final String bucket = "bucket";
+        final BlobContainerClient containerClient = this.getBlobServiceClient().getBlobContainerClient(bucket);
+        try {
+            containerClient.create();
+            final String key = "key";
+            store(containerClient, key, "foo");
+            final LargeMessageRetrievingClient retriever = this.createRetriever();
+            assertThat(retriever.retrieveBytes(createBackedText(bucket, key), new RecordHeaders()))
+                    .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
+        } finally {
+            containerClient.delete();
+        }
     }
 
     private Map<String, Object> createProperties() {
@@ -61,22 +77,6 @@ class LargeMessageRetrievingClientAzureIntegrationTest extends AzureBlobStorageI
         final ConfigDef configDef = AbstractLargeMessageConfig.baseConfigDef();
         final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(configDef, properties);
         return config.getRetriever();
-    }
-
-    @Test
-    void shouldReadBackedText() {
-        final String bucket = "bucket";
-        final BlobContainerClient containerClient = this.getBlobServiceClient().getBlobContainerClient(bucket);
-        try {
-            containerClient.create();
-            final String key = "key";
-            store(containerClient, key, "foo");
-            final LargeMessageRetrievingClient retriever = this.createRetriever();
-            assertThat(retriever.retrieveBytes(createBackedText(bucket, key)))
-                    .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
-        } finally {
-            containerClient.delete();
-        }
     }
 
 }

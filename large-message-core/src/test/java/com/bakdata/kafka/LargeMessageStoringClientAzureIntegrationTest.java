@@ -24,7 +24,7 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
+import static com.bakdata.kafka.LargeMessageStoringClientS3IntegrationTest.deserializeUriWithFlag;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.azure.storage.blob.BlobContainerClient;
@@ -46,6 +46,26 @@ class LargeMessageStoringClientAzureIntegrationTest extends AzureBlobStorageInte
         return STRING_SERIALIZER.serialize(null, s);
     }
 
+    @Test
+    void shouldWriteBackedTextKey() {
+        final String bucket = "bucket";
+        final String basePath = "abs://" + bucket + "/base/";
+        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
+                .build();
+        final BlobServiceClient client = this.getBlobServiceClient();
+        final BlobContainerClient containerClient = client.getBlobContainerClient(bucket);
+        try {
+            containerClient.create();
+            final LargeMessageStoringClient storer = this.createStorer(properties);
+            assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
+                    .satisfies(backedText -> this.expectBackedText(basePath, "foo", backedText, "keys"));
+        } finally {
+            containerClient.delete();
+        }
+    }
+
     private Map<String, Object> createProperties(final Map<String, Object> properties) {
         return ImmutableMap.<String, Object>builder()
                 .putAll(properties)
@@ -55,7 +75,7 @@ class LargeMessageStoringClientAzureIntegrationTest extends AzureBlobStorageInte
 
     private void expectBackedText(final String basePath, final String expected, final byte[] backedText,
             final String type) {
-        final BlobStorageURI uri = deserializeUri(backedText);
+        final BlobStorageURI uri = deserializeUriWithFlag(backedText);
         this.expectBackedText(basePath, expected, uri, type);
     }
 
@@ -78,25 +98,5 @@ class LargeMessageStoringClientAzureIntegrationTest extends AzureBlobStorageInte
         final Map<String, Object> properties = this.createProperties(baseProperties);
         final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
         return config.getStorer();
-    }
-
-    @Test
-    void shouldWriteBackedTextKey() {
-        final String bucket = "bucket";
-        final String basePath = "abs://" + bucket + "/base/";
-        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
-                .build();
-        final BlobServiceClient client = this.getBlobServiceClient();
-        final BlobContainerClient containerClient = client.getBlobContainerClient(bucket);
-        try {
-            containerClient.create();
-            final LargeMessageStoringClient storer = this.createStorer(properties);
-            assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
-                    .satisfies(backedText -> this.expectBackedText(basePath, "foo", backedText, "keys"));
-        } finally {
-            containerClient.delete();
-        }
     }
 }

@@ -60,6 +60,10 @@ class LargeMessageStoringClientTest {
     @Mock
     BlobStorageClient client;
 
+    static byte[] serializeUri(final String uri) {
+        return LargeMessageStoringClient.serialize(uri, new SelfContainedLargeMessagePayloadSerializer());
+    }
+
     private static void expectNonBackedText(final String expected, final byte[] backedText) {
         assertThat(STRING_DESERIALIZER.deserialize(null, getBytes(backedText)))
                 .isInstanceOf(String.class)
@@ -73,24 +77,6 @@ class LargeMessageStoringClientTest {
     private static LargeMessageStoringClient createStorer(final Map<String, Object> properties) {
         final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
         return config.getStorer();
-    }
-
-    private LargeMessageStoringClient createStorer(final int maxSize) {
-        return this.createStorer(maxSize, null);
-    }
-
-    private LargeMessageStoringClient createStorer(final int maxSize, final BlobStorageURI basePath) {
-        return this.createStorer(maxSize, basePath, this.idGenerator);
-    }
-
-    private LargeMessageStoringClient createStorer(final int maxSize, final BlobStorageURI basePath,
-            final IdGenerator idGenerator) {
-        return LargeMessageStoringClient.builder()
-                .client(this.client)
-                .basePath(basePath)
-                .maxSize(maxSize)
-                .idGenerator(idGenerator)
-                .build();
     }
 
     @ParameterizedTest
@@ -118,7 +104,7 @@ class LargeMessageStoringClientTest {
                 .thenReturn("uri");
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath));
         assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
-                .isEqualTo(LargeMessageStoringClient.serialize("uri"));
+                .isEqualTo(serializeUri("uri"));
     }
 
     @ParameterizedTest
@@ -138,7 +124,7 @@ class LargeMessageStoringClientTest {
                 .thenReturn("uri");
         final LargeMessageStoringClient storer = this.createStorer(0, BlobStorageURI.create(basePath));
         assertThat(storer.storeBytes(TOPIC, serialize("foo"), false))
-                .isEqualTo(LargeMessageStoringClient.serialize("uri"));
+                .isEqualTo(serializeUri("uri"));
     }
 
     @Test
@@ -219,5 +205,23 @@ class LargeMessageStoringClientTest {
         assertThatNullPointerException()
                 .isThrownBy(() -> storer.storeBytes(TOPIC, foo, isKey))
                 .withMessage("Base path must not be null");
+    }
+
+    private LargeMessageStoringClient createStorer(final int maxSize) {
+        return this.createStorer(maxSize, null);
+    }
+
+    private LargeMessageStoringClient createStorer(final int maxSize, final BlobStorageURI basePath) {
+        return this.createStorer(maxSize, basePath, this.idGenerator);
+    }
+
+    private LargeMessageStoringClient createStorer(final int maxSize, final BlobStorageURI basePath,
+            final IdGenerator idGenerator) {
+        return LargeMessageStoringClient.builder()
+                .client(this.client)
+                .basePath(basePath)
+                .maxSize(maxSize)
+                .idGenerator(idGenerator)
+                .build();
     }
 }

@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Objects;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 
@@ -59,10 +61,15 @@ public class LargeMessageDeserializer<T> implements Deserializer<T> {
 
     @Override
     public T deserialize(final String topic, final byte[] data) {
+        return this.deserialize(topic, new RecordHeaders(), data);
+    }
+
+    @Override
+    public T deserialize(final String topic, final Headers headers, final byte[] data) {
         Objects.requireNonNull(this.deserializer);
         Objects.requireNonNull(this.client);
-        final byte[] bytes = this.client.retrieveBytes(data);
-        return this.deserializer.deserialize(topic, bytes);
+        final byte[] bytes = this.client.retrieveBytes(data, headers);
+        return this.deserializer.deserialize(topic, headers, bytes);
     }
 
     @Override

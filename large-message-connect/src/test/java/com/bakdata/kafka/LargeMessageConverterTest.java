@@ -63,9 +63,17 @@ class LargeMessageConverterTest {
     private final AmazonS3 s3Client = S3_MOCK.createS3Client();
     private LargeMessageConverter converter = null;
 
+    private static byte[] serialize(final String uri) {
+        return LargeMessageStoringClient.serialize(uri, new SelfContainedLargeMessagePayloadSerializer());
+    }
+
+    private static byte[] serialize(final byte[] bytes) {
+        return LargeMessageStoringClient.serialize(bytes, new SelfContainedLargeMessagePayloadSerializer());
+    }
+
     private static byte[] createBackedText(final String bucket, final String key) {
         final String uri = "s3://" + bucket + "/" + key;
-        return LargeMessageStoringClient.serialize(uri);
+        return serialize(uri);
     }
 
     private static byte[] readBytes(final BlobStorageURI uri) {
@@ -95,12 +103,17 @@ class LargeMessageConverterTest {
     }
 
     private static byte[] createNonBackedText(final String text) {
-        return LargeMessageStoringClient.serialize(STRING_SERIALIZER.serialize(null, text));
+        return serialize(STRING_SERIALIZER.serialize(null, text));
+    }
+
+    private static BlobStorageURI deserializeUriWithFlag(final byte[] data) {
+        final byte[] uriBytes = getBytes(data);
+        return deserializeUri(uriBytes);
     }
 
     private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
             final String type) {
-        final BlobStorageURI uri = deserializeUri(s3BackedText);
+        final BlobStorageURI uri = deserializeUriWithFlag(s3BackedText);
         assertThat(uri).asString().startsWith(basePath + TOPIC + "/" + type + "/");
         final byte[] bytes = readBytes(uri);
         final String deserialized = Serdes.String().deserializer()

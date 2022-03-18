@@ -32,6 +32,7 @@ import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import org.apache.kafka.common.errors.SerializationException;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.api.Test;
@@ -49,13 +50,17 @@ class LargeMessageRetrievingClientTest {
     @Mock
     BlobStorageClient client;
 
+    private static byte[] serialize(final byte[] bytes) {
+        return LargeMessageStoringClient.serialize(bytes, new SelfContainedLargeMessagePayloadSerializer());
+    }
+
     private static byte[] createNonBackedText(final String text) {
-        return LargeMessageStoringClient.serialize(serialize(text));
+        return serialize(serialize(text));
     }
 
     private static byte[] createBackedText(final String bucket, final String key) {
         final String uri = "foo://" + bucket + "/" + key;
-        return LargeMessageStoringClient.serialize(uri);
+        return LargeMessageStoringClientTest.serializeUri(uri);
     }
 
     private static byte[] serialize(final String s) {
@@ -69,14 +74,14 @@ class LargeMessageRetrievingClientTest {
     @Test
     void shouldReadNonBackedText() {
         final LargeMessageRetrievingClient retriever = this.createRetriever();
-        assertThat(retriever.retrieveBytes(createNonBackedText("foo")))
+        assertThat(retriever.retrieveBytes(createNonBackedText("foo"), new RecordHeaders()))
                 .isEqualTo(serialize("foo"));
     }
 
     @Test
     void shouldReadNull() {
         final LargeMessageRetrievingClient retriever = this.createRetriever();
-        assertThat(retriever.retrieveBytes(null))
+        assertThat(retriever.retrieveBytes(null, new RecordHeaders()))
                 .isNull();
     }
 
@@ -86,7 +91,7 @@ class LargeMessageRetrievingClientTest {
         final String key = "key";
         when(this.client.getObject(bucket, key)).thenReturn(serialize("foo"));
         final LargeMessageRetrievingClient retriever = this.createRetriever();
-        assertThat(retriever.retrieveBytes(createBackedText(bucket, key)))
+        assertThat(retriever.retrieveBytes(createBackedText(bucket, key), new RecordHeaders()))
                 .isEqualTo(serialize("foo"));
     }
 
@@ -94,7 +99,7 @@ class LargeMessageRetrievingClientTest {
     void shouldThrowExceptionOnErroneousFlag() {
         final LargeMessageRetrievingClient retriever = this.createRetriever();
         assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> retriever.retrieveBytes(new byte[] {2}))
+                .isThrownBy(() -> retriever.retrieveBytes(new byte[] {2}, new RecordHeaders()))
                 .withMessage("Message can only be marked as backed or non-backed");
     }
 
@@ -102,7 +107,7 @@ class LargeMessageRetrievingClientTest {
     void shouldThrowExceptionOnErroneousUri() {
         final LargeMessageRetrievingClient retriever = this.createRetriever();
         assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> retriever.retrieveBytes(new byte[] {1, 0}))
+                .isThrownBy(() -> retriever.retrieveBytes(new byte[] {1, 0}, new RecordHeaders()))
                 .withCauseInstanceOf(URISyntaxException.class)
                 .withMessage("Invalid URI");
     }
@@ -115,7 +120,7 @@ class LargeMessageRetrievingClientTest {
         final LargeMessageRetrievingClient retriever = this.createRetriever();
         final byte[] backedText = createBackedText(bucket, key);
         assertThatExceptionOfType(UncheckedIOException.class)
-                .isThrownBy(() -> retriever.retrieveBytes(backedText));
+                .isThrownBy(() -> retriever.retrieveBytes(backedText, new RecordHeaders()));
     }
 
 }

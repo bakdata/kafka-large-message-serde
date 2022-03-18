@@ -63,6 +63,11 @@ class LargeMessageStoringClientS3IntegrationTest {
     @Mock
     static IdGenerator idGenerator;
 
+    static BlobStorageURI deserializeUriWithFlag(final byte[] data) {
+        final byte[] uriBytes = getBytes(data);
+        return deserializeUri(uriBytes);
+    }
+
     private static Map<String, Object> createProperties(final Map<String, Object> properties) {
         return ImmutableMap.<String, Object>builder()
                 .putAll(properties)
@@ -82,7 +87,7 @@ class LargeMessageStoringClientS3IntegrationTest {
 
     private static void expectBackedText(final String basePath, final String expected, final byte[] backedText,
             final String type) {
-        final BlobStorageURI uri = deserializeUri(backedText);
+        final BlobStorageURI uri = deserializeUriWithFlag(backedText);
         expectBackedText(basePath, expected, uri, type);
     }
 
@@ -155,7 +160,7 @@ class LargeMessageStoringClientS3IntegrationTest {
         when(idGenerator.generateId("foo".getBytes())).thenReturn("bar");
         assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
                 .satisfies(backedText -> {
-                    final BlobStorageURI uri = deserializeUri(backedText);
+                    final BlobStorageURI uri = deserializeUriWithFlag(backedText);
                     expectBackedText(basePath, "foo", uri, "keys");
                     assertThat(uri).asString().endsWith("bar");
                 });

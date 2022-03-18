@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Objects;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 
@@ -51,6 +53,7 @@ public class LargeMessageSerializer<T> implements Serializer<T> {
     private LargeMessageStoringClient client;
     private Serializer<? super T> serializer;
     private boolean isKey;
+    private boolean useHeaders;
 
     @Override
     public void configure(final Map<String, ?> configs, final boolean isKey) {
@@ -60,14 +63,21 @@ public class LargeMessageSerializer<T> implements Serializer<T> {
         this.client = serdeConfig.getStorer();
         this.serializer.configure(configs, isKey);
         this.isKey = isKey;
+        this.useHeaders = serdeConfig.useHeaders();
     }
 
     @Override
     public byte[] serialize(final String topic, final T data) {
+        return this.serialize(topic, new RecordHeaders(), data);
+    }
+
+    @Override
+    public byte[] serialize(final String topic, final Headers headers, final T data) {
         Objects.requireNonNull(this.serializer);
         Objects.requireNonNull(this.client);
-        final byte[] bytes = this.serializer.serialize(topic, data);
-        return this.client.storeBytes(topic, bytes, this.isKey);
+        final byte[] bytes = this.serializer.serialize(topic, headers, data);
+        return this.useHeaders ? this.client.storeBytes(topic, bytes, this.isKey, headers)
+                : this.client.storeBytes(topic, bytes, this.isKey);
     }
 
     @Override
