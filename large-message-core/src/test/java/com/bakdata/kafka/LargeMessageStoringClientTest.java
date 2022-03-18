@@ -75,24 +75,6 @@ class LargeMessageStoringClientTest {
         return config.getStorer();
     }
 
-    private LargeMessageStoringClient createStorer(final int maxSize) {
-        return this.createStorer(maxSize, null);
-    }
-
-    private LargeMessageStoringClient createStorer(final int maxSize, final BlobStorageURI basePath) {
-        return this.createStorer(maxSize, basePath, this.idGenerator);
-    }
-
-    private LargeMessageStoringClient createStorer(final int maxSize, final BlobStorageURI basePath,
-            final IdGenerator idGenerator) {
-        return LargeMessageStoringClient.builder()
-                .client(this.client)
-                .basePath(basePath)
-                .maxSize(maxSize)
-                .idGenerator(idGenerator)
-                .build();
-    }
-
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldWriteNonBackedText(final boolean isKey) {
@@ -219,5 +201,23 @@ class LargeMessageStoringClientTest {
         assertThatNullPointerException()
                 .isThrownBy(() -> storer.storeBytes(TOPIC, foo, isKey))
                 .withMessage("Base path must not be null");
+    }
+
+    private LargeMessageStoringClient createStorer(final int maxSize) {
+        return this.createStorer(maxSize, null);
+    }
+
+    private LargeMessageStoringClient createStorer(final int maxSize, final BlobStorageURI basePath) {
+        return this.createStorer(maxSize, basePath, this.idGenerator);
+    }
+
+    private LargeMessageStoringClient createStorer(final int maxSize, final BlobStorageURI basePath,
+            final IdGenerator idGenerator) {
+        return LargeMessageStoringClient.builder()
+                .client(this.client)
+                .basePath(basePath)
+                .maxSize(maxSize)
+                .idGenerator(idGenerator)
+                .build();
     }
 }

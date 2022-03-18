@@ -125,12 +125,6 @@ class LargeMessageSerializerTest {
                 .isEqualTo(expected);
     }
 
-    private void createTopology(final Function<? super Properties, ? extends Topology> topologyFactory,
-            final Properties properties) {
-        this.topology = new TestTopology<>(topologyFactory, createProperties(properties));
-        this.topology.start();
-    }
-
     @AfterEach
     void tearDown() {
         if (this.topology != null) {
@@ -148,8 +142,8 @@ class LargeMessageSerializerTest {
                 .withValueSerde(Serdes.Integer())
                 .add("foo", 1);
         final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
-                .withKeySerde(Serdes.ByteArray())
-                .withValueSerde(Serdes.Integer()))
+                        .withKeySerde(Serdes.ByteArray())
+                        .withValueSerde(Serdes.Integer()))
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -167,8 +161,8 @@ class LargeMessageSerializerTest {
                 .withValueSerde(Serdes.Integer())
                 .add(null, 1);
         final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
-                .withKeySerde(Serdes.ByteArray())
-                .withValueSerde(Serdes.Integer()))
+                        .withKeySerde(Serdes.ByteArray())
+                        .withValueSerde(Serdes.Integer()))
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -186,8 +180,8 @@ class LargeMessageSerializerTest {
                 .withValueSerde(Serdes.String())
                 .add(1, "foo");
         final List<ProducerRecord<Integer, byte[]>> records = Seq.seq(this.topology.streamOutput()
-                .withKeySerde(Serdes.Integer())
-                .withValueSerde(Serdes.ByteArray()))
+                        .withKeySerde(Serdes.Integer())
+                        .withValueSerde(Serdes.ByteArray()))
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -205,8 +199,8 @@ class LargeMessageSerializerTest {
                 .withValueSerde(Serdes.String())
                 .add(1, null);
         final List<ProducerRecord<Integer, byte[]>> records = Seq.seq(this.topology.streamOutput()
-                .withKeySerde(Serdes.Integer())
-                .withValueSerde(Serdes.ByteArray()))
+                        .withKeySerde(Serdes.Integer())
+                        .withValueSerde(Serdes.ByteArray()))
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -229,8 +223,8 @@ class LargeMessageSerializerTest {
                 .withValueSerde(Serdes.Integer())
                 .add("foo", 1);
         final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
-                .withKeySerde(Serdes.ByteArray())
-                .withValueSerde(Serdes.Integer()))
+                        .withKeySerde(Serdes.ByteArray())
+                        .withValueSerde(Serdes.Integer()))
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -249,8 +243,8 @@ class LargeMessageSerializerTest {
                 .withValueSerde(Serdes.Integer())
                 .add(null, 1);
         final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
-                .withKeySerde(Serdes.ByteArray())
-                .withValueSerde(Serdes.Integer()))
+                        .withKeySerde(Serdes.ByteArray())
+                        .withValueSerde(Serdes.Integer()))
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -273,8 +267,8 @@ class LargeMessageSerializerTest {
                 .withValueSerde(Serdes.String())
                 .add(1, "foo");
         final List<ProducerRecord<Integer, byte[]>> records = Seq.seq(this.topology.streamOutput()
-                .withKeySerde(Serdes.Integer())
-                .withValueSerde(Serdes.ByteArray()))
+                        .withKeySerde(Serdes.Integer())
+                        .withValueSerde(Serdes.ByteArray()))
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -293,13 +287,19 @@ class LargeMessageSerializerTest {
                 .withValueSerde(Serdes.String())
                 .add(1, null);
         final List<ProducerRecord<Integer, byte[]>> records = Seq.seq(this.topology.streamOutput()
-                .withKeySerde(Serdes.Integer())
-                .withValueSerde(Serdes.ByteArray()))
+                        .withKeySerde(Serdes.Integer())
+                        .withValueSerde(Serdes.ByteArray()))
                 .toList();
         assertThat(records)
                 .hasSize(1)
                 .extracting(ProducerRecord::value)
                 .anySatisfy(s3BackedText -> assertThat(s3BackedText).isNull());
+    }
+
+    private void createTopology(final Function<? super Properties, ? extends Topology> topologyFactory,
+            final Properties properties) {
+        this.topology = new TestTopology<>(topologyFactory, createProperties(properties));
+        this.topology.start();
     }
 
 }
