@@ -67,10 +67,6 @@ class LargeMessageRetrievingClientTest {
         return STRING_SERIALIZER.serialize(null, s);
     }
 
-    private LargeMessageRetrievingClient createRetriever() {
-        return new LargeMessageRetrievingClient(Collections.singletonMap("foo", () -> this.client));
-    }
-
     @Test
     void shouldReadNonBackedText() {
         final LargeMessageRetrievingClient retriever = this.createRetriever();
@@ -99,7 +95,7 @@ class LargeMessageRetrievingClientTest {
     void shouldThrowExceptionOnErroneousFlag() {
         final LargeMessageRetrievingClient retriever = this.createRetriever();
         assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> retriever.retrieveBytes(new byte[] {2}, new RecordHeaders()))
+                .isThrownBy(() -> retriever.retrieveBytes(new byte[]{2}, new RecordHeaders()))
                 .withMessage("Message can only be marked as backed or non-backed");
     }
 
@@ -107,7 +103,7 @@ class LargeMessageRetrievingClientTest {
     void shouldThrowExceptionOnErroneousUri() {
         final LargeMessageRetrievingClient retriever = this.createRetriever();
         assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> retriever.retrieveBytes(new byte[] {1, 0}, new RecordHeaders()))
+                .isThrownBy(() -> retriever.retrieveBytes(new byte[]{1, 0}, new RecordHeaders()))
                 .withCauseInstanceOf(URISyntaxException.class)
                 .withMessage("Invalid URI");
     }
@@ -121,6 +117,10 @@ class LargeMessageRetrievingClientTest {
         final byte[] backedText = createBackedText(bucket, key);
         assertThatExceptionOfType(UncheckedIOException.class)
                 .isThrownBy(() -> retriever.retrieveBytes(backedText, new RecordHeaders()));
+    }
+
+    private LargeMessageRetrievingClient createRetriever() {
+        return new LargeMessageRetrievingClient(Collections.singletonMap("foo", () -> this.client));
     }
 
 }

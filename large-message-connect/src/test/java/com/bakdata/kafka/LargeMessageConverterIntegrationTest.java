@@ -125,7 +125,8 @@ class LargeMessageConverterIntegrationTest {
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, LargeMessageSerializer.class);
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, this.kafkaCluster.getBrokerList());
-        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(shouldBack ? 0 : Integer.MAX_VALUE));
+        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG,
+                Integer.toString(shouldBack ? 0 : Integer.MAX_VALUE));
         properties.putAll(this.createS3BackedProperties());
         return properties;
     }
