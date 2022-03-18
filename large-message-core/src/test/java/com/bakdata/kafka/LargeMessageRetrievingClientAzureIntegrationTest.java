@@ -50,19 +50,6 @@ class LargeMessageRetrievingClientAzureIntegrationTest extends AzureBlobStorageI
         return serialize(uri);
     }
 
-    private Map<String, Object> createProperties() {
-        return ImmutableMap.<String, Object>builder()
-                .put(AbstractLargeMessageConfig.AZURE_CONNECTION_STRING_CONFIG, this.generateConnectionString())
-                .build();
-    }
-
-    private LargeMessageRetrievingClient createRetriever() {
-        final Map<String, Object> properties = this.createProperties();
-        final ConfigDef configDef = AbstractLargeMessageConfig.baseConfigDef();
-        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(configDef, properties);
-        return config.getRetriever();
-    }
-
     @Test
     void shouldReadBackedText() {
         final String bucket = "bucket";
@@ -77,6 +64,19 @@ class LargeMessageRetrievingClientAzureIntegrationTest extends AzureBlobStorageI
         } finally {
             containerClient.delete();
         }
+    }
+
+    private Map<String, Object> createProperties() {
+        return ImmutableMap.<String, Object>builder()
+                .put(AbstractLargeMessageConfig.AZURE_CONNECTION_STRING_CONFIG, this.generateConnectionString())
+                .build();
+    }
+
+    private LargeMessageRetrievingClient createRetriever() {
+        final Map<String, Object> properties = this.createProperties();
+        final ConfigDef configDef = AbstractLargeMessageConfig.baseConfigDef();
+        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(configDef, properties);
+        return config.getRetriever();
     }
 
 }

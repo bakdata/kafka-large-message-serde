@@ -33,8 +33,7 @@ import org.apache.kafka.common.serialization.Serializer;
 /**
  * Kafka {@code Serde} that serializes large messages on blob storage.
  * <p>
- * It uses {@link LargeMessageSerializer} for serialization and {@link LargeMessageDeserializer} for
- * deserialization.
+ * It uses {@link LargeMessageSerializer} for serialization and {@link LargeMessageDeserializer} for deserialization.
  * <p>
  * For configuration options, see {@link LargeMessageSerdeConfig}.
  *

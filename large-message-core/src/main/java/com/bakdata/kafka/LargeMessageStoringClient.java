@@ -48,10 +48,6 @@ public class LargeMessageStoringClient {
     private final int maxSize;
     private final IdGenerator idGenerator;
 
-    private static String toString(final String s) {
-        return s == null ? "" : s;
-    }
-
     static byte[] serialize(final String uri) {
         final byte[] uriBytes = uri.getBytes(CHARSET);
         return serialize(uriBytes, IS_BACKED);
@@ -59,6 +55,10 @@ public class LargeMessageStoringClient {
 
     static byte[] serialize(final byte[] bytes) {
         return serialize(bytes, IS_NOT_BACKED);
+    }
+
+    private static String toString(final String s) {
+        return s == null ? "" : s;
     }
 
     private static byte[] serialize(final byte[] bytes, final byte flag) {

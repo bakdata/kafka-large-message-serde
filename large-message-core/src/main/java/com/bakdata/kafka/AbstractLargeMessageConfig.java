@@ -106,40 +106,40 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
 
     public static final String S3_PREFIX = PREFIX + AmazonS3Client.SCHEME + ".";
     public static final String S3_ENDPOINT_CONFIG = S3_PREFIX + "endpoint";
-    public static final String S3_ENDPOINT_DEFAULT = "";
+    public static final String S3_REGION_DOC = "S3 region to use. Must be configured in conjunction"
+            + " with " + S3_ENDPOINT_CONFIG + ". Leave empty if default S3 region should be used.";
     public static final String S3_REGION_CONFIG = S3_PREFIX + "region";
     public static final String S3_ENDPOINT_DOC = "Endpoint to use for connection to Amazon S3. Must be configured in"
             + " conjunction with " + S3_REGION_CONFIG + ". Leave empty if default S3 endpoint should be used.";
-    public static final String S3_REGION_DOC = "S3 region to use. Must be configured in conjunction"
-            + " with " + S3_ENDPOINT_CONFIG + ". Leave empty if default S3 region should be used.";
-    public static final String S3_REGION_DEFAULT = "";
     public static final String S3_ACCESS_KEY_CONFIG = S3_PREFIX + "access.key";
+    public static final String S3_SECRET_KEY_CONFIG = S3_PREFIX + "secret.key";
+    public static final String S3_ROLE_EXTERNAL_ID_CONFIG = S3_PREFIX + "sts.role.external.id";
+    public static final String S3_ROLE_ARN_CONFIG = S3_PREFIX + "sts.role.arn";
+    public static final String S3_ROLE_SESSION_NAME_CONFIG = S3_PREFIX + "sts.role.session.name";
+    public static final String S3_JWT_PATH_CONFIG = S3_PREFIX + "jwt.path";
+    public static final String S3_ENABLE_PATH_STYLE_ACCESS_CONFIG = S3_PREFIX + "path.style.access";
+    public static final String S3_ENDPOINT_DEFAULT = "";
+    public static final String S3_REGION_DEFAULT = "";
     public static final String S3_ACCESS_KEY_DOC = "AWS access key to use for connecting to S3. Leave empty if AWS"
             + " credential provider chain or STS Assume Role provider should be used.";
     public static final String S3_ACCESS_KEY_DEFAULT = "";
-    public static final String S3_SECRET_KEY_CONFIG = S3_PREFIX + "secret.key";
     public static final String S3_SECRET_KEY_DOC = "AWS secret key to use for connecting to S3. Leave empty if AWS"
             + " credential provider chain or STS Assume Role provider should be used.";
-    public static final String S3_ROLE_EXTERNAL_ID_CONFIG = S3_PREFIX + "sts.role.external.id";
     public static final String S3_ROLE_EXTERNAL_ID_CONFIG_DOC = "AWS STS role external ID used when retrieving session"
             + " credentials under an assumed role. Leave empty if AWS Basic provider or AWS credential provider chain"
             + " should be used.";
     public static final String S3_ROLE_EXTERNAL_ID_CONFIG_DEFAULT = "";
-    public static final String S3_ROLE_ARN_CONFIG = S3_PREFIX + "sts.role.arn";
     public static final String S3_ROLE_ARN_CONFIG_DOC = "AWS STS role ARN to use for connecting to S3. Leave empty if"
             + " AWS Basic provider or AWS credential provider chain should be used.";
     public static final String S3_ROLE_ARN_CONFIG_DEFAULT = "";
-    public static final String S3_ROLE_SESSION_NAME_CONFIG = S3_PREFIX + "sts.role.session.name";
     public static final String S3_ROLE_SESSION_NAME_CONFIG_DOC = "AWS STS role session name to use when starting a"
             + " session. Leave empty if AWS Basic provider or AWS credential provider chain should be used.";
     public static final String S3_ROLE_SESSION_NAME_CONFIG_DEFAULT = "";
-    public static final String S3_JWT_PATH_CONFIG = S3_PREFIX + "jwt.path";
     public static final String S3_JWT_PATH_CONFIG_DOC =
             "Path to an OIDC token file in JSON format (JWT) used to authenticate before AWS STS role authorisation, "
                     + "e.g. for EKS `/var/run/secrets/eks.amazonaws.com/serviceaccount/token`.";
     public static final String S3_JWT_PATH_CONFIG_DEFAULT = "";
     public static final String S3_SECRET_KEY_DEFAULT = "";
-    public static final String S3_ENABLE_PATH_STYLE_ACCESS_CONFIG = S3_PREFIX + "path.style.access";
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_DOC = "Enable path-style access for S3 client.";
     public static final boolean S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT = false;
 
@@ -151,11 +151,10 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
 
     public static final String GOOGLE_STORAGE_PREFIX = PREFIX + GoogleStorageClient.SCHEME + ".";
     public static final String GOOGLE_CLOUD_KEY_PATH = GOOGLE_STORAGE_PREFIX + "key.path";
+    private static final ConfigDef config = baseConfigDef();
     public static final String GOOGLE_CLOUD_KEY_PATH_DOC = "Path to the service account JSON file";
     public static final String GOOGLE_CLOUD_KEY_PATH_DEFAULT = "";
     private static final String GOOGLE_CLOUD_OAUTH_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
-
-    private static final ConfigDef config = baseConfigDef();
     private final Map<String, Supplier<BlobStorageClient>> clientFactories =
             ImmutableMap.<String, Supplier<BlobStorageClient>>builder()
                     .put(AmazonS3Client.SCHEME, this::createAmazonS3Client)

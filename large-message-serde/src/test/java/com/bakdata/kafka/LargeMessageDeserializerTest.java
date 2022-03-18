@@ -103,11 +103,6 @@ class LargeMessageDeserializerTest {
         return serialize(uri);
     }
 
-    private void createTopology(final Function<? super Properties, ? extends Topology> topologyFactory) {
-        this.topology = new TestTopology<>(topologyFactory, createProperties());
-        this.topology.start();
-    }
-
     @AfterEach
     void tearDown() {
         if (this.topology != null) {
@@ -123,8 +118,8 @@ class LargeMessageDeserializerTest {
                 .withValueSerde(Serdes.ByteArray())
                 .add(1, createNonBackedText("foo"));
         final List<ProducerRecord<Integer, String>> records = Seq.seq(this.topology.streamOutput()
-                .withKeySerde(Serdes.Integer())
-                .withValueSerde(Serdes.String()))
+                        .withKeySerde(Serdes.Integer())
+                        .withValueSerde(Serdes.String()))
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -140,8 +135,8 @@ class LargeMessageDeserializerTest {
                 .withValueSerde(Serdes.ByteArray())
                 .add(1, null);
         final List<ProducerRecord<Integer, String>> records = Seq.seq(this.topology.streamOutput()
-                .withKeySerde(Serdes.Integer())
-                .withValueSerde(Serdes.String()))
+                        .withKeySerde(Serdes.Integer())
+                        .withValueSerde(Serdes.String()))
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -157,8 +152,8 @@ class LargeMessageDeserializerTest {
                 .withValueSerde(Serdes.Integer())
                 .add(createNonBackedText("foo"), 1);
         final List<ProducerRecord<String, Integer>> records = Seq.seq(this.topology.streamOutput()
-                .withKeySerde(Serdes.String())
-                .withValueSerde(Serdes.Integer()))
+                        .withKeySerde(Serdes.String())
+                        .withValueSerde(Serdes.Integer()))
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -174,8 +169,8 @@ class LargeMessageDeserializerTest {
                 .withValueSerde(Serdes.Integer())
                 .add(null, 1);
         final List<ProducerRecord<String, Integer>> records = Seq.seq(this.topology.streamOutput()
-                .withKeySerde(Serdes.String())
-                .withValueSerde(Serdes.Integer()))
+                        .withKeySerde(Serdes.String())
+                        .withValueSerde(Serdes.Integer()))
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -195,8 +190,8 @@ class LargeMessageDeserializerTest {
                 .withValueSerde(Serdes.ByteArray())
                 .add(1, createBackedText(bucket, key));
         final List<ProducerRecord<Integer, String>> records = Seq.seq(this.topology.streamOutput()
-                .withKeySerde(Serdes.Integer())
-                .withValueSerde(Serdes.String()))
+                        .withKeySerde(Serdes.Integer())
+                        .withValueSerde(Serdes.String()))
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -216,13 +211,18 @@ class LargeMessageDeserializerTest {
                 .withValueSerde(Serdes.Integer())
                 .add(createBackedText(bucket, key), 1);
         final List<ProducerRecord<String, Integer>> records = Seq.seq(this.topology.streamOutput()
-                .withKeySerde(Serdes.String())
-                .withValueSerde(Serdes.Integer()))
+                        .withKeySerde(Serdes.String())
+                        .withValueSerde(Serdes.Integer()))
                 .toList();
         assertThat(records)
                 .hasSize(1)
                 .extracting(ProducerRecord::key)
                 .containsExactlyInAnyOrder("foo");
+    }
+
+    private void createTopology(final Function<? super Properties, ? extends Topology> topologyFactory) {
+        this.topology = new TestTopology<>(topologyFactory, createProperties());
+        this.topology.start();
     }
 
 }
