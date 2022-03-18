@@ -232,7 +232,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .build();
     }
 
-    public boolean useHeaders() {
+    boolean useHeaders() {
         return this.getBoolean(USE_HEADERS_CONFIG);
     }
 

@@ -66,8 +66,10 @@ class LargeMessageDeserializerTest {
 
     private static Properties createProperties() {
         final Properties properties = new Properties();
-        properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy");
+        properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "broker");
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
+        properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.ByteArraySerde.class);
+        properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.ByteArraySerde.class);
         properties.setProperty(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG,
                 "http://localhost:" + S3_MOCK.getHttpPort());
         properties.setProperty(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1");
