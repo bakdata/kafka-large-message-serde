@@ -24,10 +24,12 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.ByteArrayLargeMessagePayloadSerde.INSTANCE;
 import static com.bakdata.kafka.FlagHelper.IS_BACKED;
 import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
 import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.HEADER;
 import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
+import static com.bakdata.kafka.LargeMessagePayload.ofUri;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
@@ -57,7 +59,7 @@ class LargeMessageRetrievingClientTest {
 
     private static final Serializer<String> STRING_SERIALIZER = Serdes.String().serializer();
     @Mock
-    BlobStorageClient client;
+    private BlobStorageClient client;
 
     static Stream<Arguments> generateHeaders() {
         return Stream.of(
@@ -70,8 +72,12 @@ class LargeMessageRetrievingClientTest {
         assertThat(headers.headers(HEADER)).isEmpty();
     }
 
+    static byte[] serializeUri(final String uri) {
+        return INSTANCE.serialize(ofUri(uri), new RecordHeaders());
+    }
+
     private static byte[] serialize(final byte[] bytes) {
-        return ByteArrayLargeMessagePayloadSerde.INSTANCE.serialize(ofBytes(bytes), new RecordHeaders());
+        return INSTANCE.serialize(ofBytes(bytes), new RecordHeaders());
     }
 
     private static byte[] createNonBackedText(final String text) {
@@ -80,7 +86,7 @@ class LargeMessageRetrievingClientTest {
 
     private static byte[] createBackedText(final String bucket, final String key) {
         final String uri = "foo://" + bucket + "/" + key;
-        return LargeMessageStoringClientTest.serializeUri(uri);
+        return serializeUri(uri);
     }
 
     private static byte[] createBackedText_(final String bucket, final String key) {

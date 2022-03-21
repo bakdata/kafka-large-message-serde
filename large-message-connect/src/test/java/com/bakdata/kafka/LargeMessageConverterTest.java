@@ -25,6 +25,7 @@
 package com.bakdata.kafka;
 
 
+import static com.bakdata.kafka.ByteArrayLargeMessagePayloadSerde.INSTANCE;
 import static com.bakdata.kafka.ByteArrayLargeMessagePayloadSerde.getBytes;
 import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
 import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
@@ -67,11 +68,11 @@ class LargeMessageConverterTest {
     private LargeMessageConverter converter = null;
 
     private static byte[] serialize(final String uri) {
-        return ByteArrayLargeMessagePayloadSerde.INSTANCE.serialize(ofUri(uri), new RecordHeaders());
+        return INSTANCE.serialize(ofUri(uri), new RecordHeaders());
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return ByteArrayLargeMessagePayloadSerde.INSTANCE.serialize(ofBytes(bytes), new RecordHeaders());
+        return INSTANCE.serialize(ofBytes(bytes), new RecordHeaders());
     }
 
     private static byte[] createBackedText(final String bucket, final String key) {

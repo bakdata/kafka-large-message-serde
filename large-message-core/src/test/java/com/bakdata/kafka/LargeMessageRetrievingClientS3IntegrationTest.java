@@ -24,7 +24,7 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.LargeMessageStoringClientTest.serializeUri;
+import static com.bakdata.kafka.LargeMessageRetrievingClientTest.serializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;

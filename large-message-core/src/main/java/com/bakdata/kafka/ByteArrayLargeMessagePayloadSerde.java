@@ -34,7 +34,7 @@ import org.apache.kafka.common.header.Headers;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 final class ByteArrayLargeMessagePayloadSerde implements LargeMessagePayloadSerde {
 
-    public static final ByteArrayLargeMessagePayloadSerde INSTANCE = new ByteArrayLargeMessagePayloadSerde();
+    static final ByteArrayLargeMessagePayloadSerde INSTANCE = new ByteArrayLargeMessagePayloadSerde();
 
     static byte[] getBytes(final byte[] data) {
         final byte[] bytes = new byte[data.length - 1];

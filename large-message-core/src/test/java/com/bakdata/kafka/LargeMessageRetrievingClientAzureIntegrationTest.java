@@ -47,7 +47,7 @@ class LargeMessageRetrievingClientAzureIntegrationTest extends AzureBlobStorageI
 
     private static byte[] createBackedText(final String bucket, final String key) {
         final String uri = "abs://" + bucket + "/" + key;
-        return LargeMessageStoringClientTest.serializeUri(uri);
+        return LargeMessageRetrievingClientTest.serializeUri(uri);
     }
 
     @Test
