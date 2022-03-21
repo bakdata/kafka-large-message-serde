@@ -24,8 +24,9 @@
 
 package com.bakdata.kafka;
 
-@FunctionalInterface
-interface LargeMessagePayloadSerializer {
+interface LargeMessagePayloadSerde {
 
-    byte[] serialize(byte[] bytes, byte flag);
+    byte[] serialize(LargeMessagePayload payload);
+
+    LargeMessagePayload deserialize(byte[] bytes);
 }

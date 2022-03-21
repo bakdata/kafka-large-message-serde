@@ -26,7 +26,7 @@ package com.bakdata.kafka;
 
 
 import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
-import static com.bakdata.kafka.LargeMessageRetrievingClient.getBytes;
+import static com.bakdata.kafka.ByteArrayLargeMessagePayloadSerde.getBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
@@ -64,11 +64,11 @@ class LargeMessageConverterTest {
     private LargeMessageConverter converter = null;
 
     private static byte[] serialize(final String uri) {
-        return LargeMessageStoringClient.serialize(uri, new SelfContainedLargeMessagePayloadSerializer());
+        return LargeMessageStoringClient.serialize(uri, ByteArrayLargeMessagePayloadSerde.INSTANCE);
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return LargeMessageStoringClient.serialize(bytes, new SelfContainedLargeMessagePayloadSerializer());
+        return LargeMessageStoringClient.serialize(bytes, ByteArrayLargeMessagePayloadSerde.INSTANCE);
     }
 
     private static byte[] createBackedText(final String bucket, final String key) {

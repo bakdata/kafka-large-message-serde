@@ -24,27 +24,11 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.LargeMessageStoringClient.IS_BACKED;
-import static com.bakdata.kafka.LargeMessageStoringClient.IS_NOT_BACKED;
-
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import org.apache.kafka.common.errors.SerializationException;
+import lombok.Value;
 
-@RequiredArgsConstructor
+@Value
 class LargeMessagePayload {
-    private final byte flag;
-    @Getter
-    private final @NonNull byte[] data;
-
-    boolean isBacked() {
-        if (this.flag == IS_BACKED) {
-            return true;
-        }
-        if (this.flag != IS_NOT_BACKED) {
-            throw new SerializationException("Message can only be marked as backed or non-backed");
-        }
-        return false;
-    }
+    boolean backed;
+    @NonNull byte[] data;
 }

@@ -24,19 +24,25 @@
 
 package com.bakdata.kafka;
 
-import java.util.function.Function;
-import org.apache.kafka.common.header.Headers;
+import lombok.experimental.UtilityClass;
+import org.apache.kafka.common.errors.SerializationException;
 
-class SelfContainedLargeMessagePayloadSerializer implements LargeMessagePayloadSerializer {
+@UtilityClass
+class FlagHelper {
+    static final byte IS_NOT_BACKED = 0;
+    static final byte IS_BACKED = 1;
 
-    public static final Function<Headers, LargeMessagePayloadSerializer> FACTORY =
-            headers -> new SelfContainedLargeMessagePayloadSerializer();
+    static boolean isBacked(final byte flag) {
+        if (flag == IS_BACKED) {
+            return true;
+        }
+        if (flag != IS_NOT_BACKED) {
+            throw new SerializationException("Message can only be marked as backed or non-backed");
+        }
+        return false;
+    }
 
-    @Override
-    public byte[] serialize(final byte[] bytes, final byte flag) {
-        final byte[] fullBytes = new byte[bytes.length + 1];
-        fullBytes[0] = flag;
-        System.arraycopy(bytes, 0, fullBytes, 1, bytes.length);
-        return fullBytes;
+    static byte asFlag(final boolean backed) {
+        return backed ? IS_BACKED : IS_NOT_BACKED;
     }
 }

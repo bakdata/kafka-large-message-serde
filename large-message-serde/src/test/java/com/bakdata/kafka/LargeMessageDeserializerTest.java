@@ -57,11 +57,11 @@ class LargeMessageDeserializerTest {
     private TestTopology<Integer, String> topology = null;
 
     private static byte[] serialize(final String uri) {
-        return LargeMessageStoringClient.serialize(uri, new SelfContainedLargeMessagePayloadSerializer());
+        return LargeMessageStoringClient.serialize(uri, ByteArrayLargeMessagePayloadSerde.INSTANCE);
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return LargeMessageStoringClient.serialize(bytes, new SelfContainedLargeMessagePayloadSerializer());
+        return LargeMessageStoringClient.serialize(bytes, ByteArrayLargeMessagePayloadSerde.INSTANCE);
     }
 
     private static Properties createProperties() {

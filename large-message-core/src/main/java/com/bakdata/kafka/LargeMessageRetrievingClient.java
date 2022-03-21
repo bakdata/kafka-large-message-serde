@@ -24,8 +24,8 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.usesHeaders;
 import static com.bakdata.kafka.LargeMessageStoringClient.CHARSET;
-import static com.bakdata.kafka.HeaderLargeMessagePayloadSerializer.HEADER;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +35,6 @@ import java.util.function.Supplier;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 
 /**
@@ -53,20 +52,11 @@ public class LargeMessageRetrievingClient {
         return BlobStorageURI.create(rawUri);
     }
 
-    static byte[] getBytes(final byte[] data) {
-        final byte[] bytes = new byte[data.length - 1];
-        // flag is stored in first byte
-        System.arraycopy(data, 1, bytes, 0, data.length - 1);
-        return bytes;
-    }
-
-    private static LargeMessagePayload getLargeMessagePayload(final byte[] data, final Headers headers) {
-        final Header header = headers.lastHeader(HEADER);
-        if (header != null) {
-            headers.remove(HEADER);
-            return new LargeMessagePayload(header.value()[0], data);
+    private static LargeMessagePayloadSerde getSerde(final Headers headers) {
+        if (usesHeaders(headers)) {
+            return new HeaderLargeMessagePayloadSerde(headers);
         } else {
-            return new LargeMessagePayload(data[0], getBytes(data));
+            return ByteArrayLargeMessagePayloadSerde.INSTANCE;
         }
     }
 
@@ -81,11 +71,13 @@ public class LargeMessageRetrievingClient {
         if (data == null) {
             return null;
         }
-        final LargeMessagePayload payload = getLargeMessagePayload(data, headers);
+        final LargeMessagePayloadSerde serde = getSerde(headers);
+        final LargeMessagePayload payload = serde.deserialize(data);
+        final byte[] deserializedData = payload.getData();
         if (payload.isBacked()) {
-            return this.retrieveBackedBytes(payload.getData());
+            return this.retrieveBackedBytes(deserializedData);
         } else {
-            return payload.getData();
+            return deserializedData;
         }
     }
 

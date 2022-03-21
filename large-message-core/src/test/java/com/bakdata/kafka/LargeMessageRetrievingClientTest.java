@@ -24,9 +24,9 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.HeaderLargeMessagePayloadSerializer.HEADER;
-import static com.bakdata.kafka.LargeMessageStoringClient.IS_BACKED;
-import static com.bakdata.kafka.LargeMessageStoringClient.IS_NOT_BACKED;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.HEADER;
+import static com.bakdata.kafka.FlagHelper.IS_BACKED;
+import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
@@ -70,7 +70,7 @@ class LargeMessageRetrievingClientTest {
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return LargeMessageStoringClient.serialize(bytes, new SelfContainedLargeMessagePayloadSerializer());
+        return LargeMessageStoringClient.serialize(bytes, ByteArrayLargeMessagePayloadSerde.INSTANCE);
     }
 
     private static byte[] createNonBackedText(final String text) {

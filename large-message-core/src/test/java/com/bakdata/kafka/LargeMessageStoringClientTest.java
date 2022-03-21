@@ -24,13 +24,13 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.HeaderLargeMessagePayloadSerializer.HEADER;
-import static com.bakdata.kafka.LargeMessageRetrievingClient.getBytes;
+import static com.bakdata.kafka.ByteArrayLargeMessagePayloadSerde.INSTANCE;
+import static com.bakdata.kafka.ByteArrayLargeMessagePayloadSerde.getBytes;
+import static com.bakdata.kafka.FlagHelper.IS_BACKED;
+import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.HEADER;
 import static com.bakdata.kafka.LargeMessageRetrievingClientTest.assertNoHeader;
-import static com.bakdata.kafka.LargeMessageStoringClient.IS_BACKED;
-import static com.bakdata.kafka.LargeMessageStoringClient.IS_NOT_BACKED;
 import static com.bakdata.kafka.LargeMessageStoringClient.getUriBytes;
-import static com.bakdata.kafka.SelfContainedLargeMessagePayloadSerializer.FACTORY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
@@ -66,12 +66,12 @@ class LargeMessageStoringClientTest {
     private static final Deserializer<String> STRING_DESERIALIZER = Serdes.String().deserializer();
     private static final Serializer<String> STRING_SERIALIZER = Serdes.String().serializer();
     @Mock
-    IdGenerator idGenerator;
+    private IdGenerator idGenerator;
     @Mock
-    BlobStorageClient client;
+    private BlobStorageClient client;
 
     static byte[] serializeUri(final String uri) {
-        return LargeMessageStoringClient.serialize(uri, new SelfContainedLargeMessagePayloadSerializer());
+        return LargeMessageStoringClient.serialize(uri, INSTANCE);
     }
 
     private static void expectNonBackedText(final String expected, final byte[] backedText) {
@@ -321,12 +321,12 @@ class LargeMessageStoringClientTest {
 
     private LargeMessageStoringClientBuilder createStorer() {
         return this.newStorer()
-                .serializerFactory(FACTORY);
+                .serdeFactory(headers -> INSTANCE);
     }
 
     private LargeMessageStoringClientBuilder createHeaderStorer() {
         return this.newStorer()
-                .serializerFactory(HeaderLargeMessagePayloadSerializer::new);
+                .serdeFactory(HeaderLargeMessagePayloadSerde::new);
     }
 
     private LargeMessageStoringClientBuilder newStorer() {

@@ -24,6 +24,7 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.ByteArrayLargeMessagePayloadSerde.INSTANCE;
 import static org.apache.http.util.TextUtils.isEmpty;
 
 import com.amazonaws.auth.AWSCredentials;
@@ -229,8 +230,8 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .basePath(this.getBasePath().orElse(null))
                 .maxSize(this.getMaxSize())
                 .idGenerator(this.getConfiguredInstance(ID_GENERATOR_CONFIG, IdGenerator.class))
-                .serializerFactory(this.getBoolean(USE_HEADERS_CONFIG) ? HeaderLargeMessagePayloadSerializer::new :
-                        SelfContainedLargeMessagePayloadSerializer.FACTORY)
+                .serdeFactory(this.getBoolean(USE_HEADERS_CONFIG) ? HeaderLargeMessagePayloadSerde::new :
+                        headers -> INSTANCE)
                 .build();
     }
 

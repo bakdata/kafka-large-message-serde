@@ -24,22 +24,35 @@
 
 package com.bakdata.kafka;
 
-import lombok.NonNull;
+import static com.bakdata.kafka.FlagHelper.asFlag;
+import static com.bakdata.kafka.FlagHelper.isBacked;
+
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.common.header.Headers;
 
-@RequiredArgsConstructor
-class HeaderLargeMessagePayloadSerializer implements LargeMessagePayloadSerializer {
-    static final String HEADER = "__large.message.backed";
-    private final @NonNull Headers headers;
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+final class ByteArrayLargeMessagePayloadSerde implements LargeMessagePayloadSerde {
 
-    @Override
-    public byte[] serialize(final byte[] bytes, final byte flag) {
-        this.addHeader(flag);
+    public static final ByteArrayLargeMessagePayloadSerde INSTANCE = new ByteArrayLargeMessagePayloadSerde();
+
+    static byte[] getBytes(final byte[] data) {
+        final byte[] bytes = new byte[data.length - 1];
+        // flag is stored in first byte
+        System.arraycopy(data, 1, bytes, 0, data.length - 1);
         return bytes;
     }
 
-    private void addHeader(final byte flag) {
-        this.headers.add(HEADER, new byte[]{flag});
+    @Override
+    public byte[] serialize(final LargeMessagePayload payload) {
+        final byte[] bytes = payload.getData();
+        final byte[] fullBytes = new byte[bytes.length + 1];
+        fullBytes[0] = asFlag(payload.isBacked());
+        System.arraycopy(bytes, 0, fullBytes, 1, bytes.length);
+        return fullBytes;
+    }
+
+    @Override
+    public LargeMessagePayload deserialize(final byte[] data) {
+        return new LargeMessagePayload(isBacked(data[0]), getBytes(data));
     }
 }

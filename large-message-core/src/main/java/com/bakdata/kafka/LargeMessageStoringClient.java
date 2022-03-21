@@ -40,8 +40,6 @@ import org.apache.kafka.common.header.Headers;
 @Builder
 public class LargeMessageStoringClient {
 
-    static final byte IS_NOT_BACKED = 0;
-    static final byte IS_BACKED = 1;
     static final Charset CHARSET = StandardCharsets.UTF_8;
     private static final String VALUE_PREFIX = "values";
     private static final String KEY_PREFIX = "keys";
@@ -49,19 +47,19 @@ public class LargeMessageStoringClient {
     private final BlobStorageURI basePath;
     private final int maxSize;
     private final IdGenerator idGenerator;
-    private final @NonNull Function<Headers, LargeMessagePayloadSerializer> serializerFactory;
+    private final @NonNull Function<Headers, LargeMessagePayloadSerde> serdeFactory;
 
-    static byte[] serialize(final String uri, final LargeMessagePayloadSerializer serializer) {
+    static byte[] serialize(final String uri, final LargeMessagePayloadSerde serde) {
         final byte[] uriBytes = getUriBytes(uri);
-        return serializer.serialize(uriBytes, IS_BACKED);
+        return serde.serialize(new LargeMessagePayload(true, uriBytes));
     }
 
     static byte[] getUriBytes(final String uri) {
         return uri.getBytes(CHARSET);
     }
 
-    static byte[] serialize(final byte[] bytes, final LargeMessagePayloadSerializer serializer) {
-        return serializer.serialize(bytes, IS_NOT_BACKED);
+    static byte[] serialize(final byte[] bytes, final LargeMessagePayloadSerde serde) {
+        return serde.serialize(new LargeMessagePayload(false, bytes));
     }
 
     private static String toString(final String s) {
@@ -78,16 +76,16 @@ public class LargeMessageStoringClient {
      * @return bytes representing the payload. Can be read using {@link LargeMessageRetrievingClient}
      */
     public byte[] storeBytes(final String topic, final byte[] bytes, final boolean isKey, final Headers headers) {
-        final LargeMessagePayloadSerializer serializer = this.serializerFactory.apply(headers);
         if (bytes == null) {
             return null;
         }
+        final LargeMessagePayloadSerde serde = this.serdeFactory.apply(headers);
         if (this.needsBacking(bytes)) {
             final String key = this.createBlobStorageKey(topic, isKey, bytes);
             final String uri = this.uploadToBlobStorage(key, bytes);
-            return serialize(uri, serializer);
+            return serialize(uri, serde);
         } else {
-            return serialize(bytes, serializer);
+            return serialize(bytes, serde);
         }
     }
 
