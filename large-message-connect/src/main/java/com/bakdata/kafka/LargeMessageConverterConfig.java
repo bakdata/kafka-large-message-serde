@@ -75,6 +75,11 @@ public class LargeMessageConverterConfig extends AbstractLargeMessageConfig {
                         CONVERTER_CLASS_DOC);
     }
 
+    @Override
+    protected HeaderLargeMessagePayloadSerde getHeaderSerde() {
+        return HeaderLargeMessagePayloadSerde.CONNECT;
+    }
+
     Converter getConverter() {
         return this.getConfiguredInstance(CONVERTER_CLASS_CONFIG, Converter.class);
     }

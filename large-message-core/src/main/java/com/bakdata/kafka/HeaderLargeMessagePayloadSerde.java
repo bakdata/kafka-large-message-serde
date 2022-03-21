@@ -36,7 +36,10 @@ import org.apache.kafka.common.header.Headers;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 final class HeaderLargeMessagePayloadSerde implements LargeMessagePayloadSerde {
     static final String HEADER = "__" + PREFIX + "backed";
-    static final LargeMessagePayloadSerde INSTANCE = new HeaderLargeMessagePayloadSerde();
+    static final HeaderLargeMessagePayloadSerde STREAMS = new HeaderLargeMessagePayloadSerde(true);
+    static final HeaderLargeMessagePayloadSerde CONNECT = new HeaderLargeMessagePayloadSerde(false);
+
+    private final boolean removeHeaders;
 
     static boolean usesHeaders(final Headers headers) {
         return headers.lastHeader(HEADER) != null;
@@ -57,7 +60,9 @@ final class HeaderLargeMessagePayloadSerde implements LargeMessagePayloadSerde {
     @Override
     public LargeMessagePayload deserialize(final byte[] bytes, final Headers headers) {
         final Header header = headers.lastHeader(HEADER);
-        headers.remove(HEADER);
+        if (this.removeHeaders) {
+            headers.remove(HEADER);
+        }
         final byte flag = header.value()[0];
         return new LargeMessagePayload(isBacked(flag), bytes);
     }

@@ -44,19 +44,12 @@ import org.apache.kafka.common.header.Headers;
 public class LargeMessageRetrievingClient {
 
     private final @NonNull Map<String, Supplier<BlobStorageClient>> clientFactories;
+    private final @NonNull HeaderLargeMessagePayloadSerde headerLargeMessagePayloadSerde;
     private final @NonNull Map<String, BlobStorageClient> clientCache = new HashMap<>();
 
     static BlobStorageURI deserializeUri(final byte[] uriBytes) {
         final String rawUri = LargeMessagePayload.asUri(uriBytes);
         return BlobStorageURI.create(rawUri);
-    }
-
-    private static LargeMessagePayloadSerde getSerde(final Headers headers) {
-        if (usesHeaders(headers)) {
-            return HeaderLargeMessagePayloadSerde.INSTANCE;
-        } else {
-            return ByteArrayLargeMessagePayloadSerde.INSTANCE;
-        }
     }
 
     /**
@@ -70,13 +63,21 @@ public class LargeMessageRetrievingClient {
         if (data == null) {
             return null;
         }
-        final LargeMessagePayloadSerde serde = getSerde(headers);
+        final LargeMessagePayloadSerde serde = this.getSerde(headers);
         final LargeMessagePayload payload = serde.deserialize(data, headers);
         final byte[] deserializedData = payload.getData();
         if (payload.isBacked()) {
             return this.retrieveBackedBytes(deserializedData);
         } else {
             return deserializedData;
+        }
+    }
+
+    private LargeMessagePayloadSerde getSerde(final Headers headers) {
+        if (usesHeaders(headers)) {
+            return this.headerLargeMessagePayloadSerde;
+        } else {
+            return ByteArrayLargeMessagePayloadSerde.INSTANCE;
         }
     }
 

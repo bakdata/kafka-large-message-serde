@@ -68,12 +68,12 @@ class LargeMessageRetrievingClientTest {
         ).map(Arguments::of);
     }
 
-    private static void assertNoHeader(final Headers headers) {
-        assertThat(headers.headers(HEADER)).isEmpty();
-    }
-
     static byte[] serializeUri(final String uri) {
         return INSTANCE.serialize(ofUri(uri), new RecordHeaders());
+    }
+
+    private static void assertNoHeader(final Headers headers) {
+        assertThat(headers.headers(HEADER)).isEmpty();
     }
 
     private static byte[] serialize(final byte[] bytes) {
@@ -220,7 +220,8 @@ class LargeMessageRetrievingClientTest {
     }
 
     private LargeMessageRetrievingClient createRetriever() {
-        return new LargeMessageRetrievingClient(Collections.singletonMap("foo", () -> this.client));
+        return new LargeMessageRetrievingClient(Collections.singletonMap("foo", () -> this.client),
+                HeaderLargeMessagePayloadSerde.STREAMS);
     }
 
 }

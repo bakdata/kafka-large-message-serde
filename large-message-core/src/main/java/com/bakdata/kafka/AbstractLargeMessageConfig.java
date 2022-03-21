@@ -220,7 +220,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     }
 
     public LargeMessageRetrievingClient getRetriever() {
-        return new LargeMessageRetrievingClient(this.clientFactories);
+        return new LargeMessageRetrievingClient(this.clientFactories, this.getHeaderSerde());
     }
 
     public LargeMessageStoringClient getStorer() {
@@ -230,9 +230,13 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .basePath(this.getBasePath().orElse(null))
                 .maxSize(this.getMaxSize())
                 .idGenerator(this.getConfiguredInstance(ID_GENERATOR_CONFIG, IdGenerator.class))
-                .serde(this.getBoolean(USE_HEADERS_CONFIG) ? HeaderLargeMessagePayloadSerde.INSTANCE
+                .serde(this.getBoolean(USE_HEADERS_CONFIG) ? this.getHeaderSerde()
                         : ByteArrayLargeMessagePayloadSerde.INSTANCE)
                 .build();
+    }
+
+    protected HeaderLargeMessagePayloadSerde getHeaderSerde() {
+        return HeaderLargeMessagePayloadSerde.STREAMS;
     }
 
     private BlobStorageClient getClient() {

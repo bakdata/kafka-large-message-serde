@@ -65,7 +65,7 @@ class LargeMessageDeserializerTest {
     }
 
     private static byte[] serializeUri(final String uri, final Headers headers) {
-        return HeaderLargeMessagePayloadSerde.INSTANCE.serialize(ofUri(uri), headers);
+        return HeaderLargeMessagePayloadSerde.STREAMS.serialize(ofUri(uri), headers);
     }
 
     private static byte[] serialize(final byte[] bytes) {
@@ -73,7 +73,7 @@ class LargeMessageDeserializerTest {
     }
 
     private static byte[] serialize(final byte[] bytes, final Headers headers) {
-        return HeaderLargeMessagePayloadSerde.INSTANCE.serialize(ofBytes(bytes), headers);
+        return HeaderLargeMessagePayloadSerde.STREAMS.serialize(ofBytes(bytes), headers);
     }
 
     private static Properties createProperties() {
