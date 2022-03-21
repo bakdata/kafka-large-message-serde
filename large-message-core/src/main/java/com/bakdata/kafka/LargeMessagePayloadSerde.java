@@ -24,9 +24,11 @@
 
 package com.bakdata.kafka;
 
+import org.apache.kafka.common.header.Headers;
+
 interface LargeMessagePayloadSerde {
 
-    byte[] serialize(LargeMessagePayload payload);
+    byte[] serialize(LargeMessagePayload payload, Headers headers);
 
-    LargeMessagePayload deserialize(byte[] bytes);
+    LargeMessagePayload deserialize(byte[] bytes, Headers headers);
 }

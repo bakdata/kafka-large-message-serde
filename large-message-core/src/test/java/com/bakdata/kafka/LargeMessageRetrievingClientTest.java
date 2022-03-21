@@ -24,9 +24,9 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.HEADER;
 import static com.bakdata.kafka.FlagHelper.IS_BACKED;
 import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.HEADER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
@@ -58,10 +58,6 @@ class LargeMessageRetrievingClientTest {
     @Mock
     BlobStorageClient client;
 
-    static void assertNoHeader(final Headers headers) {
-        assertThat(headers.headers(HEADER)).isEmpty();
-    }
-
     static Stream<Arguments> generateHeaders() {
         return Stream.of(
                 new RecordHeaders(),
@@ -69,8 +65,13 @@ class LargeMessageRetrievingClientTest {
         ).map(Arguments::of);
     }
 
+    private static void assertNoHeader(final Headers headers) {
+        assertThat(headers.headers(HEADER)).isEmpty();
+    }
+
     private static byte[] serialize(final byte[] bytes) {
-        return LargeMessageStoringClient.serialize(bytes, ByteArrayLargeMessagePayloadSerde.INSTANCE);
+        return LargeMessageStoringClient.serialize(bytes, ByteArrayLargeMessagePayloadSerde.INSTANCE,
+                new RecordHeaders());
     }
 
     private static byte[] createNonBackedText(final String text) {

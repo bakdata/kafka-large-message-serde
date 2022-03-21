@@ -29,6 +29,7 @@ import static com.bakdata.kafka.FlagHelper.isBacked;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.common.header.Headers;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 final class ByteArrayLargeMessagePayloadSerde implements LargeMessagePayloadSerde {
@@ -43,7 +44,7 @@ final class ByteArrayLargeMessagePayloadSerde implements LargeMessagePayloadSerd
     }
 
     @Override
-    public byte[] serialize(final LargeMessagePayload payload) {
+    public byte[] serialize(final LargeMessagePayload payload, final Headers headers) {
         final byte[] bytes = payload.getData();
         final byte[] fullBytes = new byte[bytes.length + 1];
         fullBytes[0] = asFlag(payload.isBacked());
@@ -52,7 +53,7 @@ final class ByteArrayLargeMessagePayloadSerde implements LargeMessagePayloadSerd
     }
 
     @Override
-    public LargeMessagePayload deserialize(final byte[] data) {
+    public LargeMessagePayload deserialize(final byte[] data, final Headers headers) {
         return new LargeMessagePayload(isBacked(data[0]), getBytes(data));
     }
 }

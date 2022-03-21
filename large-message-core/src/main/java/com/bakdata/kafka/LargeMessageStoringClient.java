@@ -27,7 +27,6 @@ package com.bakdata.kafka;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import java.util.function.Function;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -47,19 +46,19 @@ public class LargeMessageStoringClient {
     private final BlobStorageURI basePath;
     private final int maxSize;
     private final IdGenerator idGenerator;
-    private final @NonNull Function<Headers, LargeMessagePayloadSerde> serdeFactory;
+    private final @NonNull LargeMessagePayloadSerde serde;
 
-    static byte[] serialize(final String uri, final LargeMessagePayloadSerde serde) {
+    static byte[] serialize(final String uri, final LargeMessagePayloadSerde serde, final Headers headers) {
         final byte[] uriBytes = getUriBytes(uri);
-        return serde.serialize(new LargeMessagePayload(true, uriBytes));
+        return serde.serialize(new LargeMessagePayload(true, uriBytes), headers);
     }
 
     static byte[] getUriBytes(final String uri) {
         return uri.getBytes(CHARSET);
     }
 
-    static byte[] serialize(final byte[] bytes, final LargeMessagePayloadSerde serde) {
-        return serde.serialize(new LargeMessagePayload(false, bytes));
+    static byte[] serialize(final byte[] bytes, final LargeMessagePayloadSerde serde, final Headers headers) {
+        return serde.serialize(new LargeMessagePayload(false, bytes), headers);
     }
 
     private static String toString(final String s) {
@@ -79,13 +78,12 @@ public class LargeMessageStoringClient {
         if (bytes == null) {
             return null;
         }
-        final LargeMessagePayloadSerde serde = this.serdeFactory.apply(headers);
         if (this.needsBacking(bytes)) {
             final String key = this.createBlobStorageKey(topic, isKey, bytes);
             final String uri = this.uploadToBlobStorage(key, bytes);
-            return serialize(uri, serde);
+            return serialize(uri, this.serde, headers);
         } else {
-            return serialize(bytes, serde);
+            return serialize(bytes, this.serde, headers);
         }
     }
 

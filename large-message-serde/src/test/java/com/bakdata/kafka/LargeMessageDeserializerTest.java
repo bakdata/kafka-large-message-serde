@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.function.Function;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -57,11 +58,13 @@ class LargeMessageDeserializerTest {
     private TestTopology<Integer, String> topology = null;
 
     private static byte[] serialize(final String uri) {
-        return LargeMessageStoringClient.serialize(uri, ByteArrayLargeMessagePayloadSerde.INSTANCE);
+        return LargeMessageStoringClient.serialize(uri, ByteArrayLargeMessagePayloadSerde.INSTANCE,
+                new RecordHeaders());
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return LargeMessageStoringClient.serialize(bytes, ByteArrayLargeMessagePayloadSerde.INSTANCE);
+        return LargeMessageStoringClient.serialize(bytes, ByteArrayLargeMessagePayloadSerde.INSTANCE,
+                new RecordHeaders());
     }
 
     private static Properties createProperties() {

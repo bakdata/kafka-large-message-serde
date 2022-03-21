@@ -25,8 +25,8 @@
 package com.bakdata.kafka;
 
 
-import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
 import static com.bakdata.kafka.ByteArrayLargeMessagePayloadSerde.getBytes;
+import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
@@ -39,6 +39,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Map;
 import org.apache.commons.io.IOUtils;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
@@ -64,11 +65,13 @@ class LargeMessageConverterTest {
     private LargeMessageConverter converter = null;
 
     private static byte[] serialize(final String uri) {
-        return LargeMessageStoringClient.serialize(uri, ByteArrayLargeMessagePayloadSerde.INSTANCE);
+        return LargeMessageStoringClient.serialize(uri, ByteArrayLargeMessagePayloadSerde.INSTANCE,
+                new RecordHeaders());
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return LargeMessageStoringClient.serialize(bytes, ByteArrayLargeMessagePayloadSerde.INSTANCE);
+        return LargeMessageStoringClient.serialize(bytes, ByteArrayLargeMessagePayloadSerde.INSTANCE,
+                new RecordHeaders());
     }
 
     private static byte[] createBackedText(final String bucket, final String key) {

@@ -54,7 +54,7 @@ public class LargeMessageRetrievingClient {
 
     private static LargeMessagePayloadSerde getSerde(final Headers headers) {
         if (usesHeaders(headers)) {
-            return new HeaderLargeMessagePayloadSerde(headers);
+            return HeaderLargeMessagePayloadSerde.INSTANCE;
         } else {
             return ByteArrayLargeMessagePayloadSerde.INSTANCE;
         }
@@ -72,7 +72,7 @@ public class LargeMessageRetrievingClient {
             return null;
         }
         final LargeMessagePayloadSerde serde = getSerde(headers);
-        final LargeMessagePayload payload = serde.deserialize(data);
+        final LargeMessagePayload payload = serde.deserialize(data, headers);
         final byte[] deserializedData = payload.getData();
         if (payload.isBacked()) {
             return this.retrieveBackedBytes(deserializedData);

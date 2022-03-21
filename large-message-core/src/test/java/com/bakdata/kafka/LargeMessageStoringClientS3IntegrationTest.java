@@ -62,7 +62,7 @@ class LargeMessageStoringClientS3IntegrationTest {
     private static final Deserializer<String> STRING_DESERIALIZER = Serdes.String().deserializer();
     private static final Serializer<String> STRING_SERIALIZER = Serdes.String().serializer();
     @Mock
-    static IdGenerator idGenerator;
+    private static IdGenerator idGenerator;
 
     static BlobStorageURI deserializeUriWithFlag(final byte[] data) {
         final byte[] uriBytes = getBytes(data);

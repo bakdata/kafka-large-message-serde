@@ -24,40 +24,41 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.AbstractLargeMessageConfig.PREFIX;
 import static com.bakdata.kafka.FlagHelper.asFlag;
 import static com.bakdata.kafka.FlagHelper.isBacked;
 
-import lombok.NonNull;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 
-@RequiredArgsConstructor
-class HeaderLargeMessagePayloadSerde implements LargeMessagePayloadSerde {
-    static final String HEADER = "__large.message.backed";
-    private final @NonNull Headers headers;
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+final class HeaderLargeMessagePayloadSerde implements LargeMessagePayloadSerde {
+    static final String HEADER = "__" + PREFIX + "backed";
+    static final LargeMessagePayloadSerde INSTANCE = new HeaderLargeMessagePayloadSerde();
 
     static boolean usesHeaders(final Headers headers) {
         return headers.lastHeader(HEADER) != null;
     }
 
+    private static void addHeader(final Headers headers, final byte flag) {
+        headers.remove(HEADER);
+        headers.add(HEADER, new byte[]{flag});
+    }
+
     @Override
-    public byte[] serialize(final LargeMessagePayload payload) {
+    public byte[] serialize(final LargeMessagePayload payload, final Headers headers) {
         final byte flag = asFlag(payload.isBacked());
-        this.addHeader(flag);
+        addHeader(headers, flag);
         return payload.getData();
     }
 
     @Override
-    public LargeMessagePayload deserialize(final byte[] bytes) {
-        final Header header = this.headers.lastHeader(HEADER);
-        this.headers.remove(HEADER);
+    public LargeMessagePayload deserialize(final byte[] bytes, final Headers headers) {
+        final Header header = headers.lastHeader(HEADER);
+        headers.remove(HEADER);
         final byte flag = header.value()[0];
         return new LargeMessagePayload(isBacked(flag), bytes);
-    }
-
-    private void addHeader(final byte flag) {
-        this.headers.remove(HEADER);
-        this.headers.add(HEADER, new byte[]{flag});
     }
 }
