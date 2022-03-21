@@ -73,7 +73,7 @@ class LargeMessageConverterTest {
     }
 
     private static byte[] serialize(final String uri, final Headers headers) {
-        return new ByteArrayLargeMessagePayloadSerde().serialize(ofUri(uri), headers);
+        return new HeaderLargeMessagePayloadSerde(true).serialize(ofUri(uri), headers);
     }
 
     private static byte[] serialize(final byte[] bytes) {
@@ -81,7 +81,7 @@ class LargeMessageConverterTest {
     }
 
     private static byte[] serialize(final byte[] bytes, final Headers headers) {
-        return new ByteArrayLargeMessagePayloadSerde().serialize(ofBytes(bytes), headers);
+        return new HeaderLargeMessagePayloadSerde(true).serialize(ofBytes(bytes), headers);
     }
 
     private static byte[] createBackedText(final String bucket, final String key) {
@@ -145,7 +145,7 @@ class LargeMessageConverterTest {
             final String type, final Headers headers) {
         final BlobStorageURI uri = deserializeUri(s3BackedText);
         expectBackedText(uri, basePath, type, expected);
-        assertThat(headers.headers(HEADER)).hasSize(1);
+        assertHasHeader(headers);
     }
 
     private static void expectBackedText(final BlobStorageURI uri, final String basePath, final String type,
@@ -167,6 +167,10 @@ class LargeMessageConverterTest {
         assertThat(STRING_DESERIALIZER.deserialize(null, s3BackedText))
                 .isInstanceOf(String.class)
                 .isEqualTo(expected);
+        assertHasHeader(headers);
+    }
+
+    private static void assertHasHeader(final Headers headers) {
         assertThat(headers.headers(HEADER)).hasSize(1);
     }
 
@@ -191,7 +195,7 @@ class LargeMessageConverterTest {
         final SchemaAndValue schemaAndValue =
                 this.converter.toConnectData(TOPIC, headers, createNonBackedText(text, headers));
         assertThat(schemaAndValue).isEqualTo(expected);
-        assertThat(headers).isEmpty();
+        assertHasHeader(headers);
     }
 
     @ParameterizedTest
@@ -232,7 +236,7 @@ class LargeMessageConverterTest {
         final SchemaAndValue schemaAndValue =
                 this.converter.toConnectData(TOPIC, headers, createBackedText(bucket, key, headers));
         assertThat(schemaAndValue).isEqualTo(expected);
-        assertThat(headers).isEmpty();
+        assertHasHeader(headers);
     }
 
     @ParameterizedTest
