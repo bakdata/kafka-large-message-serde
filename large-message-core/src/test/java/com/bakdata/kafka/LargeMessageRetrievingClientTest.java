@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,6 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.ByteArrayLargeMessagePayloadSerde.INSTANCE;
 import static com.bakdata.kafka.FlagHelper.IS_BACKED;
 import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
 import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.HEADER;
@@ -69,7 +68,7 @@ class LargeMessageRetrievingClientTest {
     }
 
     static byte[] serializeUri(final String uri) {
-        return INSTANCE.serialize(ofUri(uri), new RecordHeaders());
+        return new ByteArrayLargeMessagePayloadSerde().serialize(ofUri(uri), new RecordHeaders());
     }
 
     private static void assertNoHeader(final Headers headers) {
@@ -77,7 +76,7 @@ class LargeMessageRetrievingClientTest {
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return INSTANCE.serialize(ofBytes(bytes), new RecordHeaders());
+        return new ByteArrayLargeMessagePayloadSerde().serialize(ofBytes(bytes), new RecordHeaders());
     }
 
     private static byte[] createNonBackedText(final String text) {
@@ -221,7 +220,7 @@ class LargeMessageRetrievingClientTest {
 
     private LargeMessageRetrievingClient createRetriever() {
         return new LargeMessageRetrievingClient(Collections.singletonMap("foo", () -> this.client),
-                HeaderLargeMessagePayloadSerde.STREAMS);
+                new HeaderLargeMessagePayloadSerde(true));
     }
 
 }

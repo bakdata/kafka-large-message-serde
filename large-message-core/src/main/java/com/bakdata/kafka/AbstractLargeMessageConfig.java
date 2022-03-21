@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2020 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -231,12 +231,12 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .maxSize(this.getMaxSize())
                 .idGenerator(this.getConfiguredInstance(ID_GENERATOR_CONFIG, IdGenerator.class))
                 .serde(this.getBoolean(USE_HEADERS_CONFIG) ? this.getHeaderSerde()
-                        : ByteArrayLargeMessagePayloadSerde.INSTANCE)
+                        : new ByteArrayLargeMessagePayloadSerde())
                 .build();
     }
 
     protected HeaderLargeMessagePayloadSerde getHeaderSerde() {
-        return HeaderLargeMessagePayloadSerde.STREAMS;
+        return new HeaderLargeMessagePayloadSerde(true);
     }
 
     private BlobStorageClient getClient() {

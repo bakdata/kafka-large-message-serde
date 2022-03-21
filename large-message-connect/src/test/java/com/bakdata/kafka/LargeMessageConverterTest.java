@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2020 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 package com.bakdata.kafka;
 
 
-import static com.bakdata.kafka.ByteArrayLargeMessagePayloadSerde.INSTANCE;
 import static com.bakdata.kafka.ByteArrayLargeMessagePayloadSerde.getBytes;
 import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.HEADER;
 import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
@@ -70,19 +69,19 @@ class LargeMessageConverterTest {
     private LargeMessageConverter converter = null;
 
     private static byte[] serialize(final String uri) {
-        return INSTANCE.serialize(ofUri(uri), new RecordHeaders());
+        return new ByteArrayLargeMessagePayloadSerde().serialize(ofUri(uri), new RecordHeaders());
     }
 
     private static byte[] serialize(final String uri, final Headers headers) {
-        return INSTANCE.serialize(ofUri(uri), headers);
+        return new ByteArrayLargeMessagePayloadSerde().serialize(ofUri(uri), headers);
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return INSTANCE.serialize(ofBytes(bytes), new RecordHeaders());
+        return new ByteArrayLargeMessagePayloadSerde().serialize(ofBytes(bytes), new RecordHeaders());
     }
 
     private static byte[] serialize(final byte[] bytes, final Headers headers) {
-        return INSTANCE.serialize(ofBytes(bytes), headers);
+        return new ByteArrayLargeMessagePayloadSerde().serialize(ofBytes(bytes), headers);
     }
 
     private static byte[] createBackedText(final String bucket, final String key) {

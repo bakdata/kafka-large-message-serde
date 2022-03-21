@@ -28,16 +28,13 @@ import static com.bakdata.kafka.AbstractLargeMessageConfig.PREFIX;
 import static com.bakdata.kafka.FlagHelper.asFlag;
 import static com.bakdata.kafka.FlagHelper.isBacked;
 
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
 final class HeaderLargeMessagePayloadSerde implements LargeMessagePayloadSerde {
     static final String HEADER = "__" + PREFIX + "backed";
-    static final HeaderLargeMessagePayloadSerde STREAMS = new HeaderLargeMessagePayloadSerde(true);
-    static final HeaderLargeMessagePayloadSerde CONNECT = new HeaderLargeMessagePayloadSerde(false);
 
     private final boolean removeHeaders;
 

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2019 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -61,19 +61,19 @@ class LargeMessageDeserializerTest {
     private TestTopology<Integer, String> topology = null;
 
     private static byte[] serializeUri(final String uri) {
-        return ByteArrayLargeMessagePayloadSerde.INSTANCE.serialize(ofUri(uri), new RecordHeaders());
+        return new ByteArrayLargeMessagePayloadSerde().serialize(ofUri(uri), new RecordHeaders());
     }
 
     private static byte[] serializeUri(final String uri, final Headers headers) {
-        return HeaderLargeMessagePayloadSerde.STREAMS.serialize(ofUri(uri), headers);
+        return new HeaderLargeMessagePayloadSerde(true).serialize(ofUri(uri), headers);
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return ByteArrayLargeMessagePayloadSerde.INSTANCE.serialize(ofBytes(bytes), new RecordHeaders());
+        return new ByteArrayLargeMessagePayloadSerde().serialize(ofBytes(bytes), new RecordHeaders());
     }
 
     private static byte[] serialize(final byte[] bytes, final Headers headers) {
-        return HeaderLargeMessagePayloadSerde.STREAMS.serialize(ofBytes(bytes), headers);
+        return new HeaderLargeMessagePayloadSerde(true).serialize(ofBytes(bytes), headers);
     }
 
     private static Properties createProperties() {

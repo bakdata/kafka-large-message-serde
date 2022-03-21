@@ -27,14 +27,11 @@ package com.bakdata.kafka;
 import static com.bakdata.kafka.FlagHelper.asFlag;
 import static com.bakdata.kafka.FlagHelper.isBacked;
 
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.header.Headers;
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
 final class ByteArrayLargeMessagePayloadSerde implements LargeMessagePayloadSerde {
-
-    static final ByteArrayLargeMessagePayloadSerde INSTANCE = new ByteArrayLargeMessagePayloadSerde();
 
     static byte[] getBytes(final byte[] data) {
         final byte[] bytes = new byte[data.length - 1];
