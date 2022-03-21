@@ -64,6 +64,7 @@ import org.apache.kafka.common.errors.SerializationException;
  *     <li> maximum serialized message size in bytes
  *     <li> base path
  *     <li> id generator
+ *     <li> usage of headers to store large message flag
  * </ul>
  * <p></p>
  * Amazon S3 specific
