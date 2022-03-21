@@ -59,6 +59,11 @@ public class LargeMessageDeserializer<T> implements Deserializer<T> {
         this.deserializer.configure(configs, isKey);
     }
 
+    /**
+     * @since 2.2.0
+     * @deprecated Use {@link #deserialize(String, Headers, byte[])}
+     */
+    @Deprecated
     @Override
     public T deserialize(final String topic, final byte[] data) {
         return this.deserialize(topic, new RecordHeaders(), data);

@@ -174,17 +174,18 @@ class LargeMessageConverterTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldConvertNonBackedToConnectData(final boolean isKey) {
-        this.initSetup(isKey, 5000, "s3://bucket/base");
+        this.initSetup(isKey, 5000, "s3://bucket/base", false);
         final String text = "test";
         final SchemaAndValue expected = toConnectData(text);
-        final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, createNonBackedText(text));
+        final SchemaAndValue schemaAndValue =
+                this.converter.toConnectData(TOPIC, new RecordHeaders(), createNonBackedText(text));
         assertThat(schemaAndValue).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldConvertNonBackedToConnectDataWithHeaders(final boolean isKey) {
-        this.initSetup(isKey, 5000, "s3://bucket/base");
+        this.initSetup(isKey, 5000, "s3://bucket/base", false);
         final String text = "test";
         final SchemaAndValue expected = toConnectData(text);
         final Headers headers = new RecordHeaders();
@@ -197,30 +198,31 @@ class LargeMessageConverterTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldConvertNonBackedNullToConnectData(final boolean isKey) {
-        this.initSetup(isKey, 5000, "s3://bucket/base");
+        this.initSetup(isKey, 5000, "s3://bucket/base", false);
         final SchemaAndValue expected = STRING_CONVERTER.toConnectData(null, null);
-        final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, null);
+        final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, new RecordHeaders(), null);
         assertThat(schemaAndValue).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldConvertBackedToConnectData(final boolean isKey) {
-        this.initSetup(isKey, 0, "s3://bucket/base");
+        this.initSetup(isKey, 0, "s3://bucket/base", false);
         final String bucket = "bucket";
         final String key = "key";
         final String text = "test";
         this.s3Client.createBucket("bucket");
         final SchemaAndValue expected = toConnectData(text);
         this.store(bucket, key, text, TOPIC);
-        final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, createBackedText(bucket, key));
+        final SchemaAndValue schemaAndValue =
+                this.converter.toConnectData(TOPIC, new RecordHeaders(), createBackedText(bucket, key));
         assertThat(schemaAndValue).isEqualTo(expected);
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldConvertBackedToConnectDataWithHeaders(final boolean isKey) {
-        this.initSetup(isKey, 0, "s3://bucket/base");
+        this.initSetup(isKey, 0, "s3://bucket/base", false);
         final String bucket = "bucket";
         final String key = "key";
         final String text = "test";
@@ -237,9 +239,9 @@ class LargeMessageConverterTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldConvertBackedNullToConnectData(final boolean isKey) {
-        this.initSetup(isKey, 0, "s3://bucket/base");
+        this.initSetup(isKey, 0, "s3://bucket/base", false);
         final SchemaAndValue expected = STRING_CONVERTER.toConnectData(null, null);
-        final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, null);
+        final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, new RecordHeaders(), null);
         assertThat(schemaAndValue).isEqualTo(expected);
     }
 
@@ -247,13 +249,13 @@ class LargeMessageConverterTest {
     void shouldCreateBackedDataKey() {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base";
-        this.initSetup(true, 0, basePath);
+        this.initSetup(true, 0, basePath, false);
 
         final String text = "test";
         final SchemaAndValue data = toConnectData(text);
         this.s3Client.createBucket(bucket);
 
-        final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
+        final byte[] bytes = this.converter.fromConnectData(TOPIC, new RecordHeaders(), data.schema(), data.value());
         expectBackedText(basePath, text, bytes, "keys");
     }
 
@@ -276,13 +278,13 @@ class LargeMessageConverterTest {
     void shouldCreateBackedDataValue() {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base";
-        this.initSetup(false, 0, basePath);
+        this.initSetup(false, 0, basePath, false);
 
         final String text = "test";
         final SchemaAndValue data = toConnectData(text);
         this.s3Client.createBucket(bucket);
 
-        final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
+        final byte[] bytes = this.converter.fromConnectData(TOPIC, new RecordHeaders(), data.schema(), data.value());
         expectBackedText(basePath, text, bytes, "values");
     }
 
@@ -304,21 +306,21 @@ class LargeMessageConverterTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldCreateBackedNullData(final boolean isKey) {
-        this.initSetup(isKey, 0, "s3://bucket/base");
+        this.initSetup(isKey, 0, "s3://bucket/base", false);
 
         final SchemaAndValue data = STRING_CONVERTER.toConnectData(null, null);
-        final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
+        final byte[] bytes = this.converter.fromConnectData(TOPIC, new RecordHeaders(), data.schema(), data.value());
         assertThat(bytes).isNull();
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldCreateNonBackedData(final boolean isKey) {
-        this.initSetup(isKey, 5000, "s3://bucket/base");
+        this.initSetup(isKey, 5000, "s3://bucket/base", false);
 
         final String text = "test";
         final SchemaAndValue data = toConnectData(text);
-        final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
+        final byte[] bytes = this.converter.fromConnectData(TOPIC, new RecordHeaders(), data.schema(), data.value());
         expectNonBackedText(text, bytes);
     }
 
@@ -337,20 +339,16 @@ class LargeMessageConverterTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldCreateNonBackedNullData(final boolean isKey) {
-        this.initSetup(isKey, 5000, "s3://bucket/base");
+        this.initSetup(isKey, 5000, "s3://bucket/base", false);
 
         final SchemaAndValue data = STRING_CONVERTER.toConnectData(null, null);
-        final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
+        final byte[] bytes = this.converter.fromConnectData(TOPIC, new RecordHeaders(), data.schema(), data.value());
         assertThat(bytes).isNull();
     }
 
     private void store(final String bucket, final String key, final String s, final String topic) {
         this.s3Client.putObject(bucket, key, new ByteArrayInputStream(STRING_SERIALIZER.serialize(topic, s)),
                 new ObjectMetadata());
-    }
-
-    private void initSetup(final boolean isKey, final int maxSize, final String basePath) {
-        this.initSetup(isKey, maxSize, basePath, false);
     }
 
     private void initSetup(final boolean isKey, final int maxSize, final String basePath, final boolean useHeaders) {
