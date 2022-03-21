@@ -27,7 +27,8 @@ package com.bakdata.kafka;
 import static com.bakdata.kafka.ByteArrayLargeMessagePayloadSerde.getBytes;
 import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
 import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.HEADER;
-import static com.bakdata.kafka.LargeMessageStoringClient.getUriBytes;
+import static com.bakdata.kafka.LargeMessagePayload.getUriBytes;
+import static com.bakdata.kafka.LargeMessagePayload.ofUri;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
@@ -71,8 +72,7 @@ class LargeMessageStoringClientTest {
     private LargeMessagePayloadSerde serde;
 
     static byte[] serializeUri(final String uri) {
-        return LargeMessageStoringClient.serialize(uri, ByteArrayLargeMessagePayloadSerde.INSTANCE,
-                new RecordHeaders());
+        return ByteArrayLargeMessagePayloadSerde.INSTANCE.serialize(ofUri(uri), new RecordHeaders());
     }
 
     private static void expectNonBackedText(final String expected, final byte[] backedText) {

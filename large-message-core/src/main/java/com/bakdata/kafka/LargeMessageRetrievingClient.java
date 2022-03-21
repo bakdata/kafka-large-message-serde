@@ -25,7 +25,6 @@
 package com.bakdata.kafka;
 
 import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.usesHeaders;
-import static com.bakdata.kafka.LargeMessageStoringClient.CHARSET;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +47,7 @@ public class LargeMessageRetrievingClient {
     private final @NonNull Map<String, BlobStorageClient> clientCache = new HashMap<>();
 
     static BlobStorageURI deserializeUri(final byte[] uriBytes) {
-        final String rawUri = new String(uriBytes, CHARSET);
+        final String rawUri = LargeMessagePayload.asUri(uriBytes);
         return BlobStorageURI.create(rawUri);
     }
 

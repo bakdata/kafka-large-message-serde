@@ -24,6 +24,8 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
+import static com.bakdata.kafka.LargeMessagePayload.ofUri;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
@@ -58,13 +60,11 @@ class LargeMessageDeserializerTest {
     private TestTopology<Integer, String> topology = null;
 
     private static byte[] serialize(final String uri) {
-        return LargeMessageStoringClient.serialize(uri, ByteArrayLargeMessagePayloadSerde.INSTANCE,
-                new RecordHeaders());
+        return ByteArrayLargeMessagePayloadSerde.INSTANCE.serialize(ofUri(uri), new RecordHeaders());
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return LargeMessageStoringClient.serialize(bytes, ByteArrayLargeMessagePayloadSerde.INSTANCE,
-                new RecordHeaders());
+        return ByteArrayLargeMessagePayloadSerde.INSTANCE.serialize(ofBytes(bytes), new RecordHeaders());
     }
 
     private static Properties createProperties() {

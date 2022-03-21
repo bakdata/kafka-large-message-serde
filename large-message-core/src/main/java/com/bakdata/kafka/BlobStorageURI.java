@@ -40,7 +40,7 @@ class BlobStorageURI {
         try {
             final URI uri = new URI(rawUri);
             return new BlobStorageURI(uri);
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throw new SerializationException("Invalid URI", e);
         }
     }

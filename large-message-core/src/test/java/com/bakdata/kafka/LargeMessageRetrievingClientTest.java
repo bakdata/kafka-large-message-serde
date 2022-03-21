@@ -27,6 +27,7 @@ package com.bakdata.kafka;
 import static com.bakdata.kafka.FlagHelper.IS_BACKED;
 import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
 import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.HEADER;
+import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
@@ -70,8 +71,7 @@ class LargeMessageRetrievingClientTest {
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return LargeMessageStoringClient.serialize(bytes, ByteArrayLargeMessagePayloadSerde.INSTANCE,
-                new RecordHeaders());
+        return ByteArrayLargeMessagePayloadSerde.INSTANCE.serialize(ofBytes(bytes), new RecordHeaders());
     }
 
     private static byte[] createNonBackedText(final String text) {
@@ -85,7 +85,7 @@ class LargeMessageRetrievingClientTest {
 
     private static byte[] createBackedText_(final String bucket, final String key) {
         final String uri = "foo://" + bucket + "/" + key;
-        return LargeMessageStoringClient.getUriBytes(uri);
+        return LargeMessagePayload.getUriBytes(uri);
     }
 
     private static byte[] serialize(final String s) {

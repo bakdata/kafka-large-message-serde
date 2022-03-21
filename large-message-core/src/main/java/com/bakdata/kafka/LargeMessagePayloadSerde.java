@@ -26,9 +26,27 @@ package com.bakdata.kafka;
 
 import org.apache.kafka.common.header.Headers;
 
-interface LargeMessagePayloadSerde {
+/**
+ * Serialize and deserialize {@link LargeMessagePayload}
+ */
+public interface LargeMessagePayloadSerde {
 
+    /**
+     * Serialize a large message payload to bytes. Headers might be modified to store information for deserialization.
+     *
+     * @param payload large message payload
+     * @param headers headers that might be used to store information for deserialization
+     * @return bytes representing serialized payload
+     */
     byte[] serialize(LargeMessagePayload payload, Headers headers);
 
+    /**
+     * Deserialize a large message payload from bytes and headers. Headers might be modified to remove deserialization
+     * information.
+     *
+     * @param bytes serialized large message payload
+     * @param headers headers that might be queried to retrieve information for deserialization
+     * @return deserialized payload
+     */
     LargeMessagePayload deserialize(byte[] bytes, Headers headers);
 }

@@ -24,11 +24,34 @@
 
 package com.bakdata.kafka;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import lombok.NonNull;
 import lombok.Value;
 
+/**
+ * Class representing a large message. Contains info whether message is backed or not and the respective data.
+ */
 @Value
-class LargeMessagePayload {
+public class LargeMessagePayload {
+    private static final Charset CHARSET = StandardCharsets.UTF_8;
     boolean backed;
     @NonNull byte[] data;
+
+    static byte[] getUriBytes(final String uri) {
+        return uri.getBytes(CHARSET);
+    }
+
+    static String asUri(final byte[] uriBytes) {
+        return new String(uriBytes, CHARSET);
+    }
+
+    static LargeMessagePayload ofUri(final String uri) {
+        final byte[] uriBytes = getUriBytes(uri);
+        return new LargeMessagePayload(true, uriBytes);
+    }
+
+    static LargeMessagePayload ofBytes(final byte[] bytes) {
+        return new LargeMessagePayload(false, bytes);
+    }
 }
