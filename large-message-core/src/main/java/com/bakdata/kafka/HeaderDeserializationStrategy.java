@@ -26,16 +26,25 @@ package com.bakdata.kafka;
 
 import org.apache.kafka.common.header.Headers;
 
-enum HeaderDeserializationStrategy {
+/**
+ * Strategy for handling headers when deserializing message using {@link HeaderLargeMessagePayloadProtocol}
+ */
+public enum HeaderDeserializationStrategy {
+    /**
+     * Remove large message headers when deserializing a message
+     */
     REMOVE {
         @Override
-        public void consume(final Headers headers) {
+        void consume(final Headers headers) {
             headers.remove(HeaderLargeMessagePayloadProtocol.HEADER);
         }
     },
+    /**
+     * Retain large message headers when deserializing a message
+     */
     RETAIN {
         @Override
-        public void consume(final Headers headers) {
+        void consume(final Headers headers) {
             //do nothing
         }
     },

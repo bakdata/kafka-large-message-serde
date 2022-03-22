@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
+import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,13 +41,25 @@ import org.apache.kafka.common.header.Headers;
  * Client for retrieving actual bytes of messages stored with {@link LargeMessageStoringClient}.
  */
 @Slf4j
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class LargeMessageRetrievingClient {
 
     private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
     private final @NonNull Map<String, Supplier<BlobStorageClient>> clientFactories;
-    private final @NonNull HeaderLargeMessagePayloadProtocol headerProtocol;
+    private final @NonNull LargeMessagePayloadProtocol headerProtocol;
     private final @NonNull Map<String, BlobStorageClient> clientCache = new HashMap<>();
+
+    /**
+     * Create a new {@code LargeMessageRetrievingClient}
+     *
+     * @param clientFactories factories for supported blob storage systems indexed by scheme
+     * @param strategy strategy to use when handling headers in deserialization
+     * @return Client for retrieving actual bytes of messages stored with {@link LargeMessageStoringClient}.
+     */
+    public static LargeMessageRetrievingClient create(final Map<String, Supplier<BlobStorageClient>> clientFactories,
+            final HeaderDeserializationStrategy strategy) {
+        return new LargeMessageRetrievingClient(clientFactories, new HeaderLargeMessagePayloadProtocol(strategy));
+    }
 
     static BlobStorageURI deserializeUri(final byte[] uriBytes) {
         final String rawUri = LargeMessagePayload.asUri(uriBytes);
