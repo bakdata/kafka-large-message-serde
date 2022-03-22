@@ -1,5 +1,17 @@
 # Change Log
 
+## [2.2.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.2.0) (2022-03-22)
+[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.5...2.2.0)
+
+**Closed issues:**
+
+- Optimize memory usage [\#32](https://github.com/bakdata/kafka-large-message-serde/issues/32)
+
+**Merged pull requests:**
+
+- Use Kafka message headers to store large message flag [\#34](https://github.com/bakdata/kafka-large-message-serde/pull/34) ([@philipp94831](https://github.com/philipp94831))
+- Reformat code [\#33](https://github.com/bakdata/kafka-large-message-serde/pull/33) ([@philipp94831](https://github.com/philipp94831))
+
 ## [2.1.5](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.5) (2022-02-08)
 [Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.4...2.1.5)
 
