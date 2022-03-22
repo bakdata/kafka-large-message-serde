@@ -224,9 +224,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
 
     public LargeMessageRetrievingClient getRetriever() {
         final HeaderDeserializationStrategy headerDeserializationStrategy = this.getHeaderDeserializationStrategy();
-        final HeaderLargeMessagePayloadProtocol headerProtocol =
-                new HeaderLargeMessagePayloadProtocol(headerDeserializationStrategy);
-        return new LargeMessageRetrievingClient(this.clientFactories, headerProtocol);
+        return LargeMessageRetrievingClient.create(this.clientFactories, headerDeserializationStrategy);
     }
 
     public LargeMessageStoringClient getStorer() {

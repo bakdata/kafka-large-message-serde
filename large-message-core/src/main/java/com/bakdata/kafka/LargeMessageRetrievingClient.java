@@ -58,7 +58,8 @@ public class LargeMessageRetrievingClient {
      */
     public static LargeMessageRetrievingClient create(final Map<String, Supplier<BlobStorageClient>> clientFactories,
             final HeaderDeserializationStrategy strategy) {
-        return new LargeMessageRetrievingClient(clientFactories, new HeaderLargeMessagePayloadProtocol(strategy));
+        final LargeMessagePayloadProtocol headerProtocol = new HeaderLargeMessagePayloadProtocol(strategy);
+        return new LargeMessageRetrievingClient(clientFactories, headerProtocol);
     }
 
     static BlobStorageURI deserializeUri(final byte[] uriBytes) {

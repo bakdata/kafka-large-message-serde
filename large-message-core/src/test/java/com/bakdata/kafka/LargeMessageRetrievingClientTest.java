@@ -221,8 +221,7 @@ class LargeMessageRetrievingClientTest {
     }
 
     private LargeMessageRetrievingClient createRetriever() {
-        return new LargeMessageRetrievingClient(Collections.singletonMap("foo", () -> this.client),
-                new HeaderLargeMessagePayloadProtocol(REMOVE));
+        return LargeMessageRetrievingClient.create(Collections.singletonMap("foo", () -> this.client), REMOVE);
     }
 
 }
