@@ -24,23 +24,28 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.HeaderDeserializationStrategy.REMOVE;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.HEADER;
 import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
 import static com.bakdata.kafka.LargeMessagePayload.ofUri;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.bakdata.fluent_kafka_streams_tests.TestTopology;
 import java.io.ByteArrayInputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.function.Function;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
+import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.Serdes.IntegerSerde;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
@@ -51,6 +56,8 @@ import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class LargeMessageDeserializerTest {
 
@@ -66,7 +73,7 @@ class LargeMessageDeserializerTest {
     }
 
     private static byte[] serializeUri(final String uri, final Headers headers) {
-        return new HeaderLargeMessagePayloadProtocol(REMOVE).serialize(ofUri(uri), headers);
+        return new HeaderLargeMessagePayloadProtocol().serialize(ofUri(uri), headers);
     }
 
     private static byte[] serialize(final byte[] bytes) {
@@ -74,7 +81,7 @@ class LargeMessageDeserializerTest {
     }
 
     private static byte[] serialize(final byte[] bytes, final Headers headers) {
-        return new HeaderLargeMessagePayloadProtocol(REMOVE).serialize(ofBytes(bytes), headers);
+        return new HeaderLargeMessagePayloadProtocol().serialize(ofBytes(bytes), headers);
     }
 
     private static Properties createProperties() {
@@ -341,6 +348,38 @@ class LargeMessageDeserializerTest {
                     assertThat(record.key()).isEqualTo("foo");
                     assertThat(record.headers()).isEmpty();
                 });
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldRetainBackedHeadersOnSerializationException(final boolean isKey) {
+        final String bucket = "bucket";
+        S3_MOCK.createS3Client().createBucket(bucket);
+        final String key = "key";
+        store(bucket, key, "foo");
+        try (final Deserializer<String> deserializer = new LargeMessageDeserializer<>()) {
+            deserializer.configure(Collections.singletonMap(isKey ? LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG
+                    : LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, IntegerSerde.class), isKey);
+            final Headers headers = new RecordHeaders();
+            final byte[] backedText = createBackedText(bucket, key, headers);
+            assertThatThrownBy(() -> deserializer.deserialize(null, backedText))
+                    .isInstanceOf(SerializationException.class);
+            assertThat(headers.headers(HEADER)).hasSize(1);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldRetainNonBackedHeadersOnSerializationException(final boolean isKey) {
+        try (final Deserializer<String> deserializer = new LargeMessageDeserializer<>()) {
+            deserializer.configure(Collections.singletonMap(isKey ? LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG
+                    : LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, IntegerSerde.class), isKey);
+            final Headers headers = new RecordHeaders();
+            final byte[] nonBackedText = createNonBackedText("foo", headers);
+            assertThatThrownBy(() -> deserializer.deserialize(null, nonBackedText))
+                    .isInstanceOf(SerializationException.class);
+            assertThat(headers.headers(HEADER)).hasSize(1);
+        }
     }
 
     private void createTopology(final Function<? super Properties, ? extends Topology> topologyFactory) {

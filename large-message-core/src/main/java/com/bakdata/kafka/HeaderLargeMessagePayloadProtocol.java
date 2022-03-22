@@ -28,7 +28,6 @@ import static com.bakdata.kafka.AbstractLargeMessageConfig.PREFIX;
 import static com.bakdata.kafka.FlagHelper.asFlag;
 import static com.bakdata.kafka.FlagHelper.isBacked;
 
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
@@ -36,8 +35,6 @@ import org.apache.kafka.common.header.Headers;
 @RequiredArgsConstructor
 final class HeaderLargeMessagePayloadProtocol implements LargeMessagePayloadProtocol {
     static final String HEADER = "__" + PREFIX + "backed";
-
-    private final @NonNull HeaderDeserializationStrategy strategy;
 
     static boolean usesHeaders(final Headers headers) {
         return headers.lastHeader(HEADER) != null;
@@ -58,7 +55,6 @@ final class HeaderLargeMessagePayloadProtocol implements LargeMessagePayloadProt
     @Override
     public LargeMessagePayload deserialize(final byte[] bytes, final Headers headers) {
         final Header header = headers.lastHeader(HEADER);
-        this.strategy.consume(headers);
         final byte flag = header.value()[0];
         return new LargeMessagePayload(isBacked(flag), bytes);
     }
