@@ -145,6 +145,17 @@ class LargeMessageDeserializerTest {
         return serializeUri(uri, headers);
     }
 
+    private static void assertCorrectSerializationExceptionBehavior(final boolean isKey, final byte[] bytes,
+            final Headers headers) {
+        try (final Deserializer<String> deserializer = new LargeMessageDeserializer<>()) {
+            deserializer.configure(Collections.singletonMap(isKey ? LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG
+                    : LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, IntegerSerde.class), isKey);
+            assertThatThrownBy(() -> deserializer.deserialize(null, bytes))
+                    .isInstanceOf(SerializationException.class);
+            assertThat(headers.headers(HEADER)).hasSize(1);
+        }
+    }
+
     @AfterEach
     void tearDown() {
         if (this.topology != null) {
@@ -357,29 +368,17 @@ class LargeMessageDeserializerTest {
         S3_MOCK.createS3Client().createBucket(bucket);
         final String key = "key";
         store(bucket, key, "foo");
-        try (final Deserializer<String> deserializer = new LargeMessageDeserializer<>()) {
-            deserializer.configure(Collections.singletonMap(isKey ? LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG
-                    : LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, IntegerSerde.class), isKey);
-            final Headers headers = new RecordHeaders();
-            final byte[] backedText = createBackedText(bucket, key, headers);
-            assertThatThrownBy(() -> deserializer.deserialize(null, backedText))
-                    .isInstanceOf(SerializationException.class);
-            assertThat(headers.headers(HEADER)).hasSize(1);
-        }
+        final Headers headers = new RecordHeaders();
+        final byte[] backedText = createBackedText(bucket, key, headers);
+        assertCorrectSerializationExceptionBehavior(isKey, backedText, headers);
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldRetainNonBackedHeadersOnSerializationException(final boolean isKey) {
-        try (final Deserializer<String> deserializer = new LargeMessageDeserializer<>()) {
-            deserializer.configure(Collections.singletonMap(isKey ? LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG
-                    : LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, IntegerSerde.class), isKey);
-            final Headers headers = new RecordHeaders();
-            final byte[] nonBackedText = createNonBackedText("foo", headers);
-            assertThatThrownBy(() -> deserializer.deserialize(null, nonBackedText))
-                    .isInstanceOf(SerializationException.class);
-            assertThat(headers.headers(HEADER)).hasSize(1);
-        }
+        final Headers headers = new RecordHeaders();
+        final byte[] nonBackedText = createNonBackedText("foo", headers);
+        assertCorrectSerializationExceptionBehavior(isKey, nonBackedText, headers);
     }
 
     private void createTopology(final Function<? super Properties, ? extends Topology> topologyFactory) {
