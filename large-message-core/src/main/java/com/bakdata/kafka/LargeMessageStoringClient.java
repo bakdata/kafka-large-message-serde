@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2020 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,12 +24,11 @@
 
 package com.bakdata.kafka;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.header.Headers;
 
 /**
  * Client for storing large {@code byte[]} on blob storage if the size exceeds a defined limit.
@@ -38,34 +37,26 @@ import lombok.extern.slf4j.Slf4j;
 @Builder
 public class LargeMessageStoringClient {
 
-    static final byte IS_NOT_BACKED = 0;
-    static final byte IS_BACKED = 1;
-    static final Charset CHARSET = StandardCharsets.UTF_8;
     private static final String VALUE_PREFIX = "values";
     private static final String KEY_PREFIX = "keys";
     private final @NonNull BlobStorageClient client;
     private final BlobStorageURI basePath;
     private final int maxSize;
     private final IdGenerator idGenerator;
+    private final @NonNull LargeMessagePayloadProtocol protocol;
 
-    static byte[] serialize(final String uri) {
-        final byte[] uriBytes = uri.getBytes(CHARSET);
-        return serialize(uriBytes, IS_BACKED);
+    private static byte[] serialize(final LargeMessagePayloadProtocol protocol, final String uri,
+            final Headers headers) {
+        return protocol.serialize(LargeMessagePayload.ofUri(uri), headers);
     }
 
-    static byte[] serialize(final byte[] bytes) {
-        return serialize(bytes, IS_NOT_BACKED);
+    private static byte[] serialize(final LargeMessagePayloadProtocol protocol, final byte[] bytes,
+            final Headers headers) {
+        return protocol.serialize(LargeMessagePayload.ofBytes(bytes), headers);
     }
 
     private static String toString(final String s) {
         return s == null ? "" : s;
-    }
-
-    private static byte[] serialize(final byte[] bytes, final byte flag) {
-        final byte[] fullBytes = new byte[bytes.length + 1];
-        fullBytes[0] = flag;
-        System.arraycopy(bytes, 0, fullBytes, 1, bytes.length);
-        return fullBytes;
     }
 
     /**
@@ -74,18 +65,19 @@ public class LargeMessageStoringClient {
      * @param topic name of the topic the bytes are associated with
      * @param bytes payload
      * @param isKey whether the bytes represent the key of a message
+     * @param headers headers used to store flag distinguishing blob storage backed payloads
      * @return bytes representing the payload. Can be read using {@link LargeMessageRetrievingClient}
      */
-    public byte[] storeBytes(final String topic, final byte[] bytes, final boolean isKey) {
+    public byte[] storeBytes(final String topic, final byte[] bytes, final boolean isKey, final Headers headers) {
         if (bytes == null) {
             return null;
         }
         if (this.needsBacking(bytes)) {
             final String key = this.createBlobStorageKey(topic, isKey, bytes);
             final String uri = this.uploadToBlobStorage(key, bytes);
-            return serialize(uri);
+            return serialize(this.protocol, uri, headers);
         } else {
-            return serialize(bytes);
+            return serialize(this.protocol, bytes, headers);
         }
     }
 

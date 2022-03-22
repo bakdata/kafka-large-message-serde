@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2020 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.HeaderDeserializationStrategy.REMOVE;
 import static org.apache.http.util.TextUtils.isEmpty;
 
 import com.amazonaws.auth.AWSCredentials;
@@ -64,6 +65,7 @@ import org.apache.kafka.common.errors.SerializationException;
  *     <li> maximum serialized message size in bytes
  *     <li> base path
  *     <li> id generator
+ *     <li> usage of headers to store large message flag
  * </ul>
  * <p></p>
  * Amazon S3 specific
@@ -103,6 +105,12 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
             + "generators are: " + RandomUUIDGenerator.class.getName() + ", " + Sha256HashIdGenerator.class.getName()
             + ", " + MurmurHashIdGenerator.class.getName() + ".";
     public static final Class<? extends IdGenerator> ID_GENERATOR_DEFAULT = RandomUUIDGenerator.class;
+    public static final String USE_HEADERS_CONFIG = PREFIX + "use.headers";
+    public static final String USE_HEADERS_DOC =
+            "Enable if Kafka message headers should be used to distinguish blob storage backed messages. This is "
+                    + "disabled by default for backwards compatibility but leads to increased memory usage. It is "
+                    + "recommended to enable this option.";
+    public static final boolean USE_HEADERS_DEFAULT = false;
 
     public static final String S3_PREFIX = PREFIX + AmazonS3Client.SCHEME + ".";
     public static final String S3_ENDPOINT_CONFIG = S3_PREFIX + "endpoint";
@@ -179,6 +187,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         return new ConfigDef()
                 .define(MAX_BYTE_SIZE_CONFIG, Type.INT, MAX_BYTE_SIZE_DEFAULT, Importance.MEDIUM, MAX_BYTE_SIZE_DOC)
                 .define(BASE_PATH_CONFIG, Type.STRING, BASE_PATH_DEFAULT, Importance.HIGH, BASE_PATH_DOC)
+                .define(USE_HEADERS_CONFIG, Type.BOOLEAN, USE_HEADERS_DEFAULT, Importance.MEDIUM, USE_HEADERS_DOC)
                 .define(ID_GENERATOR_CONFIG, Type.CLASS, ID_GENERATOR_DEFAULT, Importance.MEDIUM, ID_GENERATOR_DOC)
                 // Amazon S3
                 .define(S3_ENDPOINT_CONFIG, Type.STRING, S3_ENDPOINT_DEFAULT, Importance.LOW, S3_ENDPOINT_DOC)
@@ -214,7 +223,8 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     }
 
     public LargeMessageRetrievingClient getRetriever() {
-        return new LargeMessageRetrievingClient(this.clientFactories);
+        final HeaderDeserializationStrategy headerDeserializationStrategy = this.getHeaderDeserializationStrategy();
+        return LargeMessageRetrievingClient.create(this.clientFactories, headerDeserializationStrategy);
     }
 
     public LargeMessageStoringClient getStorer() {
@@ -224,7 +234,13 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .basePath(this.getBasePath().orElse(null))
                 .maxSize(this.getMaxSize())
                 .idGenerator(this.getConfiguredInstance(ID_GENERATOR_CONFIG, IdGenerator.class))
+                .protocol(this.getBoolean(USE_HEADERS_CONFIG) ? new HeaderLargeMessagePayloadProtocol(
+                        this.getHeaderDeserializationStrategy()) : new ByteFlagLargeMessagePayloadProtocol())
                 .build();
+    }
+
+    protected HeaderDeserializationStrategy getHeaderDeserializationStrategy() {
+        return REMOVE;
     }
 
     private BlobStorageClient getClient() {

@@ -25,6 +25,8 @@
 package com.bakdata.kafka;
 
 import java.util.Map;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.storage.Converter;
@@ -50,16 +52,36 @@ public class LargeMessageConverter implements Converter {
         this.converter.configure(configs, isKey);
     }
 
+    /**
+     * @since 2.2.0
+     * @deprecated Use {@link #fromConnectData(String, Headers, Schema, Object)}
+     */
+    @Deprecated
     @Override
     public byte[] fromConnectData(final String topic, final Schema schema, final Object value) {
-        final byte[] inner = this.converter.fromConnectData(topic, schema, value);
-        return this.storingClient.storeBytes(topic, inner, this.isKey);
+        return this.fromConnectData(topic, new RecordHeaders(), schema, value);
     }
 
     @Override
+    public byte[] fromConnectData(final String topic, final Headers headers, final Schema schema, final Object value) {
+        final byte[] inner = this.converter.fromConnectData(topic, schema, value);
+        return this.storingClient.storeBytes(topic, inner, this.isKey, headers);
+    }
+
+    /**
+     * @since 2.2.0
+     * @deprecated Use {@link #toConnectData(String, Headers, byte[])}
+     */
+    @Deprecated
+    @Override
     public SchemaAndValue toConnectData(final String topic, final byte[] value) {
-        final byte[] inner = this.retrievingClient.retrieveBytes(value);
-        return this.converter.toConnectData(topic, inner);
+        return this.toConnectData(topic, new RecordHeaders(), value);
+    }
+
+    @Override
+    public SchemaAndValue toConnectData(final String topic, final Headers headers, final byte[] value) {
+        final byte[] inner = this.retrievingClient.retrieveBytes(value, headers);
+        return this.converter.toConnectData(topic, headers, inner);
     }
 
 }

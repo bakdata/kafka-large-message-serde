@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2019 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,8 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
 import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
-import static com.bakdata.kafka.LargeMessageRetrievingClient.getBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -37,6 +37,7 @@ import com.amazonaws.util.IOUtils;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.util.Map;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
@@ -61,7 +62,12 @@ class LargeMessageStoringClientS3IntegrationTest {
     private static final Deserializer<String> STRING_DESERIALIZER = Serdes.String().deserializer();
     private static final Serializer<String> STRING_SERIALIZER = Serdes.String().serializer();
     @Mock
-    static IdGenerator idGenerator;
+    private static IdGenerator idGenerator;
+
+    static BlobStorageURI deserializeUriWithFlag(final byte[] data) {
+        final byte[] uriBytes = stripFlag(data);
+        return deserializeUri(uriBytes);
+    }
 
     private static Map<String, Object> createProperties(final Map<String, Object> properties) {
         return ImmutableMap.<String, Object>builder()
@@ -75,14 +81,14 @@ class LargeMessageStoringClientS3IntegrationTest {
     }
 
     private static void expectNonBackedText(final String expected, final byte[] backedText) {
-        assertThat(STRING_DESERIALIZER.deserialize(null, getBytes(backedText)))
+        assertThat(STRING_DESERIALIZER.deserialize(null, stripFlag(backedText)))
                 .isInstanceOf(String.class)
                 .isEqualTo(expected);
     }
 
     private static void expectBackedText(final String basePath, final String expected, final byte[] backedText,
             final String type) {
-        final BlobStorageURI uri = deserializeUri(backedText);
+        final BlobStorageURI uri = deserializeUriWithFlag(backedText);
         expectBackedText(basePath, expected, uri, type);
     }
 
@@ -120,7 +126,7 @@ class LargeMessageStoringClientS3IntegrationTest {
                 .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE)
                 .build();
         final LargeMessageStoringClient storer = createStorer(properties);
-        assertThat(storer.storeBytes(null, serialize("foo"), isKey))
+        assertThat(storer.storeBytes(null, serialize("foo"), isKey, new RecordHeaders()))
                 .satisfies(backedText -> expectNonBackedText("foo", backedText));
     }
 
@@ -135,7 +141,7 @@ class LargeMessageStoringClientS3IntegrationTest {
         final AmazonS3 s3 = S3_MOCK.createS3Client();
         s3.createBucket(bucket);
         final LargeMessageStoringClient storer = createStorer(properties);
-        assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
+        assertThat(storer.storeBytes(TOPIC, serialize("foo"), true, new RecordHeaders()))
                 .satisfies(backedText -> expectBackedText(basePath, "foo", backedText, "keys"));
         s3.deleteBucket(bucket);
     }
@@ -153,9 +159,9 @@ class LargeMessageStoringClientS3IntegrationTest {
         s3.createBucket(bucket);
         final LargeMessageStoringClient storer = createStorer(properties);
         when(idGenerator.generateId("foo".getBytes())).thenReturn("bar");
-        assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
+        assertThat(storer.storeBytes(TOPIC, serialize("foo"), true, new RecordHeaders()))
                 .satisfies(backedText -> {
-                    final BlobStorageURI uri = deserializeUri(backedText);
+                    final BlobStorageURI uri = deserializeUriWithFlag(backedText);
                     expectBackedText(basePath, "foo", uri, "keys");
                     assertThat(uri).asString().endsWith("bar");
                 });

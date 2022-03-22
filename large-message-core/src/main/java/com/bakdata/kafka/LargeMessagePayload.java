@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,41 +24,34 @@
 
 package com.bakdata.kafka;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.regex.Pattern;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import org.apache.kafka.common.errors.SerializationException;
+import lombok.Value;
 
-@RequiredArgsConstructor
-class BlobStorageURI {
-    private static final Pattern LEADING_SLASH = Pattern.compile("^/");
-    private final @NonNull URI uri;
+/**
+ * Class representing a large message. Contains info whether message is backed or not and the respective data.
+ */
+@Value
+public class LargeMessagePayload {
+    private static final Charset CHARSET = StandardCharsets.UTF_8;
+    boolean backed;
+    @NonNull byte[] data;
 
-    static BlobStorageURI create(final String rawUri) {
-        try {
-            final URI uri = new URI(rawUri);
-            return new BlobStorageURI(uri);
-        } catch (final URISyntaxException e) {
-            throw new SerializationException("Invalid URI", e);
-        }
+    static byte[] getUriBytes(final String uri) {
+        return uri.getBytes(CHARSET);
     }
 
-    @Override
-    public String toString() {
-        return this.uri.toString();
+    static String asUri(final byte[] uriBytes) {
+        return new String(uriBytes, CHARSET);
     }
 
-    String getScheme() {
-        return this.uri.getScheme();
+    static LargeMessagePayload ofUri(final String uri) {
+        final byte[] uriBytes = getUriBytes(uri);
+        return new LargeMessagePayload(true, uriBytes);
     }
 
-    String getBucket() {
-        return this.uri.getHost();
-    }
-
-    String getKey() {
-        return LEADING_SLASH.matcher(this.uri.getPath()).replaceAll("");
+    static LargeMessagePayload ofBytes(final byte[] bytes) {
+        return new LargeMessagePayload(false, bytes);
     }
 }

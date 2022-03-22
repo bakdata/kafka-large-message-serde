@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,41 +24,31 @@
 
 package com.bakdata.kafka;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.regex.Pattern;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import org.apache.kafka.common.errors.SerializationException;
+import org.apache.kafka.common.header.Headers;
 
-@RequiredArgsConstructor
-class BlobStorageURI {
-    private static final Pattern LEADING_SLASH = Pattern.compile("^/");
-    private final @NonNull URI uri;
-
-    static BlobStorageURI create(final String rawUri) {
-        try {
-            final URI uri = new URI(rawUri);
-            return new BlobStorageURI(uri);
-        } catch (final URISyntaxException e) {
-            throw new SerializationException("Invalid URI", e);
+/**
+ * Strategy for handling headers when deserializing message using {@link HeaderLargeMessagePayloadProtocol}
+ */
+public enum HeaderDeserializationStrategy {
+    /**
+     * Remove large message headers when deserializing a message
+     */
+    REMOVE {
+        @Override
+        void consume(final Headers headers) {
+            headers.remove(HeaderLargeMessagePayloadProtocol.HEADER);
         }
-    }
+    },
+    /**
+     * Retain large message headers when deserializing a message
+     */
+    RETAIN {
+        @Override
+        void consume(final Headers headers) {
+            //do nothing
+        }
+    },
+    ;
 
-    @Override
-    public String toString() {
-        return this.uri.toString();
-    }
-
-    String getScheme() {
-        return this.uri.getScheme();
-    }
-
-    String getBucket() {
-        return this.uri.getHost();
-    }
-
-    String getKey() {
-        return LEADING_SLASH.matcher(this.uri.getPath()).replaceAll("");
-    }
+    abstract void consume(Headers headers);
 }

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,41 +24,25 @@
 
 package com.bakdata.kafka;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.regex.Pattern;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import lombok.experimental.UtilityClass;
 import org.apache.kafka.common.errors.SerializationException;
 
-@RequiredArgsConstructor
-class BlobStorageURI {
-    private static final Pattern LEADING_SLASH = Pattern.compile("^/");
-    private final @NonNull URI uri;
+@UtilityClass
+class FlagHelper {
+    static final byte IS_NOT_BACKED = 0;
+    static final byte IS_BACKED = 1;
 
-    static BlobStorageURI create(final String rawUri) {
-        try {
-            final URI uri = new URI(rawUri);
-            return new BlobStorageURI(uri);
-        } catch (final URISyntaxException e) {
-            throw new SerializationException("Invalid URI", e);
+    static boolean isBacked(final byte flag) {
+        if (flag == IS_BACKED) {
+            return true;
         }
+        if (flag != IS_NOT_BACKED) {
+            throw new SerializationException("Message can only be marked as backed or non-backed");
+        }
+        return false;
     }
 
-    @Override
-    public String toString() {
-        return this.uri.toString();
-    }
-
-    String getScheme() {
-        return this.uri.getScheme();
-    }
-
-    String getBucket() {
-        return this.uri.getHost();
-    }
-
-    String getKey() {
-        return LEADING_SLASH.matcher(this.uri.getPath()).replaceAll("");
+    static byte asFlag(final boolean backed) {
+        return backed ? IS_BACKED : IS_NOT_BACKED;
     }
 }

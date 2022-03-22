@@ -24,7 +24,7 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.LargeMessageStoringClient.serialize;
+import static com.bakdata.kafka.LargeMessageRetrievingClientTest.serializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
@@ -34,6 +34,7 @@ import com.google.common.collect.ImmutableMap;
 import io.confluent.common.config.ConfigDef;
 import java.io.ByteArrayInputStream;
 import java.util.Map;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.api.Test;
@@ -62,7 +63,7 @@ class LargeMessageRetrievingClientS3IntegrationTest {
 
     private static byte[] createBackedText(final String bucket, final String key) {
         final String uri = "s3://" + bucket + "/" + key;
-        return serialize(uri);
+        return serializeUri(uri);
     }
 
     private static LargeMessageRetrievingClient createRetriever() {
@@ -80,7 +81,7 @@ class LargeMessageRetrievingClientS3IntegrationTest {
         final String key = "key";
         store(bucket, key, "foo");
         final LargeMessageRetrievingClient retriever = createRetriever();
-        assertThat(retriever.retrieveBytes(createBackedText(bucket, key)))
+        assertThat(retriever.retrieveBytes(createBackedText(bucket, key), new RecordHeaders()))
                 .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
         s3.deleteBucket(bucket);
     }

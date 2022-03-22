@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,41 +24,29 @@
 
 package com.bakdata.kafka;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.regex.Pattern;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import org.apache.kafka.common.errors.SerializationException;
+import org.apache.kafka.common.header.Headers;
 
-@RequiredArgsConstructor
-class BlobStorageURI {
-    private static final Pattern LEADING_SLASH = Pattern.compile("^/");
-    private final @NonNull URI uri;
+/**
+ * Serialize and deserialize {@link LargeMessagePayload}
+ */
+public interface LargeMessagePayloadProtocol {
 
-    static BlobStorageURI create(final String rawUri) {
-        try {
-            final URI uri = new URI(rawUri);
-            return new BlobStorageURI(uri);
-        } catch (final URISyntaxException e) {
-            throw new SerializationException("Invalid URI", e);
-        }
-    }
+    /**
+     * Serialize a large message payload to bytes. Headers might be modified to store information for deserialization.
+     *
+     * @param payload large message payload
+     * @param headers headers that might be used to store information for deserialization
+     * @return bytes representing serialized payload
+     */
+    byte[] serialize(LargeMessagePayload payload, Headers headers);
 
-    @Override
-    public String toString() {
-        return this.uri.toString();
-    }
-
-    String getScheme() {
-        return this.uri.getScheme();
-    }
-
-    String getBucket() {
-        return this.uri.getHost();
-    }
-
-    String getKey() {
-        return LEADING_SLASH.matcher(this.uri.getPath()).replaceAll("");
-    }
+    /**
+     * Deserialize a large message payload from bytes and headers. Headers might be modified to remove deserialization
+     * information.
+     *
+     * @param bytes serialized large message payload
+     * @param headers headers that might be queried to retrieve information for deserialization
+     * @return deserialized payload
+     */
+    LargeMessagePayload deserialize(byte[] bytes, Headers headers);
 }

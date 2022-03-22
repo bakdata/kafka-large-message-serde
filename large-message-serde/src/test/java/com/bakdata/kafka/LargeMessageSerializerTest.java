@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2019 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,9 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.HEADER;
 import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
-import static com.bakdata.kafka.LargeMessageRetrievingClient.getBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
@@ -40,6 +41,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.function.Function;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
@@ -64,9 +66,16 @@ class LargeMessageSerializerTest {
     private static final Deserializer<String> STRING_DESERIALIZER = Serdes.String().deserializer();
     private TestTopology<Integer, String> topology = null;
 
+    private static BlobStorageURI deserializeUriWithFlag(final byte[] data) {
+        final byte[] uriBytes = stripFlag(data);
+        return deserializeUri(uriBytes);
+    }
+
     private static Properties createProperties(final Properties properties) {
-        properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy");
+        properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "broker");
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
+        properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.ByteArraySerde.class);
+        properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.ByteArraySerde.class);
         properties.setProperty(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG,
                 "http://localhost:" + S3_MOCK.getHttpPort());
         properties.setProperty(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1");
@@ -102,11 +111,22 @@ class LargeMessageSerializerTest {
 
     private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
             final String type) {
+        final BlobStorageURI uri = deserializeUriWithFlag(s3BackedText);
+        expectBackedText(uri, basePath, type, expected);
+    }
+
+    private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
+            final String type, final Headers headers) {
         final BlobStorageURI uri = deserializeUri(s3BackedText);
+        expectBackedText(uri, basePath, type, expected);
+        assertThat(headers.headers(HEADER)).hasSize(1);
+    }
+
+    private static void expectBackedText(final BlobStorageURI uri, final String basePath, final String type,
+            final String expected) {
         assertThat(uri).asString().startsWith(basePath + OUTPUT_TOPIC + "/" + type + "/");
         final byte[] bytes = readBytes(uri);
-        final String deserialized = STRING_DESERIALIZER
-                .deserialize(null, bytes);
+        final String deserialized = STRING_DESERIALIZER.deserialize(null, bytes);
         assertThat(deserialized).isEqualTo(expected);
     }
 
@@ -120,9 +140,16 @@ class LargeMessageSerializerTest {
     }
 
     private static void expectNonBackedText(final String expected, final byte[] s3BackedText) {
-        assertThat(STRING_DESERIALIZER.deserialize(null, getBytes(s3BackedText)))
+        assertThat(STRING_DESERIALIZER.deserialize(null, stripFlag(s3BackedText)))
                 .isInstanceOf(String.class)
                 .isEqualTo(expected);
+    }
+
+    private static void expectNonBackedText(final String expected, final byte[] s3BackedText, final Headers headers) {
+        assertThat(STRING_DESERIALIZER.deserialize(null, s3BackedText))
+                .isInstanceOf(String.class)
+                .isEqualTo(expected);
+        assertThat(headers.headers(HEADER)).hasSize(1);
     }
 
     @AfterEach
@@ -149,6 +176,25 @@ class LargeMessageSerializerTest {
                 .hasSize(1)
                 .extracting(ProducerRecord::key)
                 .anySatisfy(s3BackedText -> expectNonBackedText("foo", s3BackedText));
+    }
+
+    @Test
+    void shouldWriteNonBackedTextKeyWithHeaders() {
+        final Properties properties = new Properties();
+        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
+        properties.put(AbstractLargeMessageConfig.USE_HEADERS_CONFIG, true);
+        this.createTopology(LargeMessageSerializerTest::createKeyTopology, properties);
+        this.topology.input()
+                .withKeySerde(Serdes.String())
+                .withValueSerde(Serdes.Integer())
+                .add("foo", 1);
+        final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
+                        .withKeySerde(Serdes.ByteArray())
+                        .withValueSerde(Serdes.Integer()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .anySatisfy(record -> expectNonBackedText("foo", record.key(), record.headers()));
     }
 
     @Test
@@ -187,6 +233,25 @@ class LargeMessageSerializerTest {
                 .hasSize(1)
                 .extracting(ProducerRecord::value)
                 .anySatisfy(s3BackedText -> expectNonBackedText("foo", s3BackedText));
+    }
+
+    @Test
+    void shouldWriteNonBackedTextValueWithHeaders() {
+        final Properties properties = new Properties();
+        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
+        properties.put(AbstractLargeMessageConfig.USE_HEADERS_CONFIG, true);
+        this.createTopology(LargeMessageSerializerTest::createValueTopology, properties);
+        this.topology.input()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.String())
+                .add(1, "foo");
+        final List<ProducerRecord<Integer, byte[]>> records = Seq.seq(this.topology.streamOutput()
+                        .withKeySerde(Serdes.Integer())
+                        .withValueSerde(Serdes.ByteArray()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .anySatisfy(record -> expectNonBackedText("foo", record.value(), record.headers()));
     }
 
     @Test
@@ -234,6 +299,31 @@ class LargeMessageSerializerTest {
     }
 
     @Test
+    void shouldWriteBackedTextKeyWithHeaders() {
+        final String bucket = "bucket";
+        final String basePath = "s3://" + bucket + "/base/";
+        final Properties properties = new Properties();
+        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0);
+        properties.setProperty(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
+        properties.put(AbstractLargeMessageConfig.USE_HEADERS_CONFIG, true);
+        this.createTopology(LargeMessageSerializerTest::createKeyTopology, properties);
+        final AmazonS3 s3Client = S3_MOCK.createS3Client();
+        s3Client.createBucket(bucket);
+        this.topology.input()
+                .withKeySerde(Serdes.String())
+                .withValueSerde(Serdes.Integer())
+                .add("foo", 1);
+        final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
+                        .withKeySerde(Serdes.ByteArray())
+                        .withValueSerde(Serdes.Integer()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .anySatisfy(record -> expectBackedText(basePath, "foo", record.key(), "keys", record.headers()));
+        s3Client.deleteBucket(bucket);
+    }
+
+    @Test
     void shouldWriteBackedNullKey() {
         final Properties properties = new Properties();
         properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0);
@@ -274,6 +364,31 @@ class LargeMessageSerializerTest {
                 .hasSize(1)
                 .extracting(ProducerRecord::value)
                 .anySatisfy(s3BackedText -> expectBackedText(basePath, "foo", s3BackedText, "values"));
+        s3Client.deleteBucket(bucket);
+    }
+
+    @Test
+    void shouldWriteBackedTextValueWithHeaders() {
+        final String bucket = "bucket";
+        final String basePath = "s3://" + bucket + "/base/";
+        final Properties properties = new Properties();
+        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0);
+        properties.setProperty(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
+        properties.put(AbstractLargeMessageConfig.USE_HEADERS_CONFIG, true);
+        this.createTopology(LargeMessageSerializerTest::createValueTopology, properties);
+        final AmazonS3 s3Client = S3_MOCK.createS3Client();
+        s3Client.createBucket(bucket);
+        this.topology.input()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.String())
+                .add(1, "foo");
+        final List<ProducerRecord<Integer, byte[]>> records = Seq.seq(this.topology.streamOutput()
+                        .withKeySerde(Serdes.Integer())
+                        .withValueSerde(Serdes.ByteArray()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .anySatisfy(record -> expectBackedText(basePath, "foo", record.value(), "values", record.headers()));
         s3Client.deleteBucket(bucket);
     }
 

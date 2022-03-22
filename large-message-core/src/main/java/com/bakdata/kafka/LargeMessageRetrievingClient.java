@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2020 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,60 +24,76 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.LargeMessageStoringClient.CHARSET;
-import static com.bakdata.kafka.LargeMessageStoringClient.IS_BACKED;
-import static com.bakdata.kafka.LargeMessageStoringClient.IS_NOT_BACKED;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.usesHeaders;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
+import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.errors.SerializationException;
+import org.apache.kafka.common.header.Headers;
 
 /**
  * Client for retrieving actual bytes of messages stored with {@link LargeMessageStoringClient}.
  */
 @Slf4j
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class LargeMessageRetrievingClient {
 
+    private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
     private final @NonNull Map<String, Supplier<BlobStorageClient>> clientFactories;
+    private final @NonNull LargeMessagePayloadProtocol headerProtocol;
     private final @NonNull Map<String, BlobStorageClient> clientCache = new HashMap<>();
 
-    static BlobStorageURI deserializeUri(final byte[] data) {
-        final byte[] uriBytes = getBytes(data);
-        final String rawUri = new String(uriBytes, CHARSET);
-        return BlobStorageURI.create(rawUri);
+    /**
+     * Create a new {@code LargeMessageRetrievingClient}
+     *
+     * @param clientFactories factories for supported blob storage systems indexed by scheme
+     * @param strategy strategy to use when handling headers in deserialization
+     * @return Client for retrieving actual bytes of messages stored with {@link LargeMessageStoringClient}.
+     */
+    public static LargeMessageRetrievingClient create(final Map<String, Supplier<BlobStorageClient>> clientFactories,
+            final HeaderDeserializationStrategy strategy) {
+        final LargeMessagePayloadProtocol headerProtocol = new HeaderLargeMessagePayloadProtocol(strategy);
+        return new LargeMessageRetrievingClient(clientFactories, headerProtocol);
     }
 
-    static byte[] getBytes(final byte[] data) {
-        final byte[] bytes = new byte[data.length - 1];
-        // flag is stored in first byte
-        System.arraycopy(data, 1, bytes, 0, data.length - 1);
-        return bytes;
+    static BlobStorageURI deserializeUri(final byte[] uriBytes) {
+        final String rawUri = LargeMessagePayload.asUri(uriBytes);
+        return BlobStorageURI.create(rawUri);
     }
 
     /**
      * Retrieve a payload that may have been stored on blob storage
      *
      * @param data payload
+     * @param headers headers that might contain flag to distinguish blob storage backed messages
      * @return actual payload retrieved from blob storage
      */
-    public byte[] retrieveBytes(final byte[] data) {
+    public byte[] retrieveBytes(final byte[] data, final Headers headers) {
         if (data == null) {
             return null;
         }
-        if (data[0] == IS_NOT_BACKED) {
-            return getBytes(data);
+        final LargeMessagePayloadProtocol protocol = this.getProtocol(headers);
+        final LargeMessagePayload payload = protocol.deserialize(data, headers);
+        final byte[] deserializedData = payload.getData();
+        if (payload.isBacked()) {
+            return this.retrieveBackedBytes(deserializedData);
+        } else {
+            return deserializedData;
         }
-        if (data[0] != IS_BACKED) {
-            throw new SerializationException("Message can only be marked as backed or non-backed");
+    }
+
+    private LargeMessagePayloadProtocol getProtocol(final Headers headers) {
+        if (usesHeaders(headers)) {
+            return this.headerProtocol;
+        } else {
+            return BYTE_FLAG_PROTOCOL;
         }
-        return this.retrieveBackedBytes(data);
     }
 
     private byte[] retrieveBackedBytes(final byte[] data) {

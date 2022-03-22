@@ -24,16 +24,17 @@
 
 package com.bakdata.kafka;
 
+import static net.mguenther.kafka.junit.Wait.delay;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import net.mguenther.kafka.junit.EmbeddedConnectConfig;
 import net.mguenther.kafka.junit.EmbeddedKafkaCluster;
 import net.mguenther.kafka.junit.EmbeddedKafkaClusterConfig;
@@ -90,7 +91,7 @@ class LargeMessageConverterIntegrationTest {
                 .withAll(this.createProducerProperties(false)).build());
 
         // makes sure that both records are processed
-        Thread.sleep(Duration.ofSeconds(2).toMillis());
+        delay(2, TimeUnit.SECONDS);
         final List<String> output = Files.readAllLines(this.outputFile);
         assertThat(output).containsExactly("toS3", "local");
     }

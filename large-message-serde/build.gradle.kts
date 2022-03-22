@@ -10,7 +10,7 @@ dependencies {
     testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
     testImplementation(group = "org.assertj", name = "assertj-core", version = "3.20.2")
 
-    testImplementation(group = "com.bakdata.fluent-kafka-streams-tests", name = "fluent-kafka-streams-tests-junit5", version = "2.4.2")
+    testImplementation(group = "com.bakdata.fluent-kafka-streams-tests", name = "fluent-kafka-streams-tests-junit5", version = "2.5.3")
     testImplementation(group = "com.adobe.testing", name = "s3mock-junit5", version = "2.1.8") {
         exclude(group = "ch.qos.logback")
         exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")

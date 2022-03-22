@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2019 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,9 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.LargeMessageStoringClient.serialize;
+import static com.bakdata.kafka.HeaderDeserializationStrategy.REMOVE;
+import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
+import static com.bakdata.kafka.LargeMessagePayload.ofUri;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
@@ -35,6 +37,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.function.Function;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -57,10 +61,28 @@ class LargeMessageDeserializerTest {
     private static final String OUTPUT_TOPIC = "output";
     private TestTopology<Integer, String> topology = null;
 
+    private static byte[] serializeUri(final String uri) {
+        return new ByteFlagLargeMessagePayloadProtocol().serialize(ofUri(uri), new RecordHeaders());
+    }
+
+    private static byte[] serializeUri(final String uri, final Headers headers) {
+        return new HeaderLargeMessagePayloadProtocol(REMOVE).serialize(ofUri(uri), headers);
+    }
+
+    private static byte[] serialize(final byte[] bytes) {
+        return new ByteFlagLargeMessagePayloadProtocol().serialize(ofBytes(bytes), new RecordHeaders());
+    }
+
+    private static byte[] serialize(final byte[] bytes, final Headers headers) {
+        return new HeaderLargeMessagePayloadProtocol(REMOVE).serialize(ofBytes(bytes), headers);
+    }
+
     private static Properties createProperties() {
         final Properties properties = new Properties();
-        properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy");
+        properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "broker");
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
+        properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.ByteArraySerde.class);
+        properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.ByteArraySerde.class);
         properties.setProperty(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG,
                 "http://localhost:" + S3_MOCK.getHttpPort());
         properties.setProperty(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1");
@@ -95,12 +117,25 @@ class LargeMessageDeserializerTest {
     }
 
     private static byte[] createNonBackedText(final String text) {
-        return serialize(Serdes.String().serializer().serialize(null, text));
+        return serialize(serialize(text));
+    }
+
+    private static byte[] createNonBackedText(final String text, final Headers headers) {
+        return serialize(serialize(text), headers);
+    }
+
+    private static byte[] serialize(final String text) {
+        return Serdes.String().serializer().serialize(null, text);
     }
 
     private static byte[] createBackedText(final String bucket, final String key) {
         final String uri = "s3://" + bucket + "/" + key;
-        return serialize(uri);
+        return serializeUri(uri);
+    }
+
+    private static byte[] createBackedText(final String bucket, final String key, final Headers headers) {
+        final String uri = "s3://" + bucket + "/" + key;
+        return serializeUri(uri, headers);
     }
 
     @AfterEach
@@ -125,6 +160,26 @@ class LargeMessageDeserializerTest {
                 .hasSize(1)
                 .extracting(ProducerRecord::value)
                 .containsExactlyInAnyOrder("foo");
+    }
+
+    @Test
+    void shouldReadNonBackedTextValueWithHeaders() {
+        this.createTopology(LargeMessageDeserializerTest::createValueTopology);
+        final Headers headers = new RecordHeaders();
+        this.topology.input()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.ByteArray())
+                .add(1, createNonBackedText("foo", headers), headers);
+        final List<ProducerRecord<Integer, String>> records = Seq.seq(this.topology.streamOutput()
+                        .withKeySerde(Serdes.Integer())
+                        .withValueSerde(Serdes.String()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .anySatisfy(record -> {
+                    assertThat(record.value()).isEqualTo("foo");
+                    assertThat(record.headers()).isEmpty();
+                });
     }
 
     @Test
@@ -159,6 +214,26 @@ class LargeMessageDeserializerTest {
                 .hasSize(1)
                 .extracting(ProducerRecord::key)
                 .containsExactlyInAnyOrder("foo");
+    }
+
+    @Test
+    void shouldReadNonBackedTextKeyWithHeaders() {
+        this.createTopology(LargeMessageDeserializerTest::createKeyTopology);
+        final Headers headers = new RecordHeaders();
+        this.topology.input()
+                .withKeySerde(Serdes.ByteArray())
+                .withValueSerde(Serdes.Integer())
+                .add(createNonBackedText("foo", headers), 1, headers);
+        final List<ProducerRecord<String, Integer>> records = Seq.seq(this.topology.streamOutput()
+                        .withKeySerde(Serdes.String())
+                        .withValueSerde(Serdes.Integer()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .anySatisfy(record -> {
+                    assertThat(record.key()).isEqualTo("foo");
+                    assertThat(record.headers()).isEmpty();
+                });
     }
 
     @Test
@@ -200,6 +275,30 @@ class LargeMessageDeserializerTest {
     }
 
     @Test
+    void shouldReadBackedTextValueWithHeaders() {
+        final String bucket = "bucket";
+        S3_MOCK.createS3Client().createBucket(bucket);
+        final String key = "key";
+        store(bucket, key, "foo");
+        this.createTopology(LargeMessageDeserializerTest::createValueTopology);
+        final Headers headers = new RecordHeaders();
+        this.topology.input()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.ByteArray())
+                .add(1, createBackedText(bucket, key, headers), headers);
+        final List<ProducerRecord<Integer, String>> records = Seq.seq(this.topology.streamOutput()
+                        .withKeySerde(Serdes.Integer())
+                        .withValueSerde(Serdes.String()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .anySatisfy(record -> {
+                    assertThat(record.value()).isEqualTo("foo");
+                    assertThat(record.headers()).isEmpty();
+                });
+    }
+
+    @Test
     void shouldReadBackedTextKey() {
         final String bucket = "bucket";
         S3_MOCK.createS3Client().createBucket(bucket);
@@ -218,6 +317,30 @@ class LargeMessageDeserializerTest {
                 .hasSize(1)
                 .extracting(ProducerRecord::key)
                 .containsExactlyInAnyOrder("foo");
+    }
+
+    @Test
+    void shouldReadBackedTextKeyWithHeaders() {
+        final String bucket = "bucket";
+        S3_MOCK.createS3Client().createBucket(bucket);
+        final String key = "key";
+        store(bucket, key, "foo");
+        this.createTopology(LargeMessageDeserializerTest::createKeyTopology);
+        final Headers headers = new RecordHeaders();
+        this.topology.input()
+                .withKeySerde(Serdes.ByteArray())
+                .withValueSerde(Serdes.Integer())
+                .add(createBackedText(bucket, key, headers), 1, headers);
+        final List<ProducerRecord<String, Integer>> records = Seq.seq(this.topology.streamOutput()
+                        .withKeySerde(Serdes.String())
+                        .withValueSerde(Serdes.Integer()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .anySatisfy(record -> {
+                    assertThat(record.key()).isEqualTo("foo");
+                    assertThat(record.headers()).isEmpty();
+                });
     }
 
     private void createTopology(final Function<? super Properties, ? extends Topology> topologyFactory) {

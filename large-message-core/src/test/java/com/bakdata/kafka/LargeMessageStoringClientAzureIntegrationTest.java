@@ -24,13 +24,14 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
+import static com.bakdata.kafka.LargeMessageStoringClientS3IntegrationTest.deserializeUriWithFlag;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
@@ -59,7 +60,7 @@ class LargeMessageStoringClientAzureIntegrationTest extends AzureBlobStorageInte
         try {
             containerClient.create();
             final LargeMessageStoringClient storer = this.createStorer(properties);
-            assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
+            assertThat(storer.storeBytes(TOPIC, serialize("foo"), true, new RecordHeaders()))
                     .satisfies(backedText -> this.expectBackedText(basePath, "foo", backedText, "keys"));
         } finally {
             containerClient.delete();
@@ -75,7 +76,7 @@ class LargeMessageStoringClientAzureIntegrationTest extends AzureBlobStorageInte
 
     private void expectBackedText(final String basePath, final String expected, final byte[] backedText,
             final String type) {
-        final BlobStorageURI uri = deserializeUri(backedText);
+        final BlobStorageURI uri = deserializeUriWithFlag(backedText);
         this.expectBackedText(basePath, expected, uri, type);
     }
 
