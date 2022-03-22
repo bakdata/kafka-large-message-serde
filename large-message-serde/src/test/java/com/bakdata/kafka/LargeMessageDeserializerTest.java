@@ -24,6 +24,7 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.HeaderDeserializationStrategy.REMOVE;
 import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
 import static com.bakdata.kafka.LargeMessagePayload.ofUri;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,7 +66,7 @@ class LargeMessageDeserializerTest {
     }
 
     private static byte[] serializeUri(final String uri, final Headers headers) {
-        return new HeaderLargeMessagePayloadProtocol(true).serialize(ofUri(uri), headers);
+        return new HeaderLargeMessagePayloadProtocol(REMOVE).serialize(ofUri(uri), headers);
     }
 
     private static byte[] serialize(final byte[] bytes) {
@@ -73,7 +74,7 @@ class LargeMessageDeserializerTest {
     }
 
     private static byte[] serialize(final byte[] bytes, final Headers headers) {
-        return new HeaderLargeMessagePayloadProtocol(true).serialize(ofBytes(bytes), headers);
+        return new HeaderLargeMessagePayloadProtocol(REMOVE).serialize(ofBytes(bytes), headers);
     }
 
     private static Properties createProperties() {

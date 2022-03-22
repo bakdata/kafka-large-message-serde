@@ -24,6 +24,8 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.HeaderDeserializationStrategy.RETAIN;
+
 import io.confluent.common.config.ConfigDef;
 import io.confluent.common.config.ConfigDef.Importance;
 import io.confluent.common.config.ConfigDef.Type;
@@ -76,11 +78,12 @@ public class LargeMessageConverterConfig extends AbstractLargeMessageConfig {
     }
 
     @Override
-    protected HeaderLargeMessagePayloadProtocol getHeaderProtocol() {
-        // We cannot remove headers here because we need to retain them in case a dead letter is created from the
-        // respective record without calling the converter. Because there are no producer records created from a
-        // record with sink connectors, this cannot lead to corrupted headers
-        return new HeaderLargeMessagePayloadProtocol(false);
+    protected HeaderDeserializationStrategy getHeaderDeserializationStrategy() {
+        // We cannot remove headers when deserializing because we need to retain them in case a dead letter is
+        // created from the respective record. This is done without calling the converter.
+        // Because there are no producer records created from a record with sink connectors, this cannot lead to
+        // corrupted headers
+        return RETAIN;
     }
 
     Converter getConverter() {

@@ -26,6 +26,7 @@ package com.bakdata.kafka;
 
 
 import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
+import static com.bakdata.kafka.HeaderDeserializationStrategy.REMOVE;
 import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.HEADER;
 import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
 import static com.bakdata.kafka.LargeMessagePayload.ofUri;
@@ -73,7 +74,7 @@ class LargeMessageConverterTest {
     }
 
     private static byte[] serialize(final String uri, final Headers headers) {
-        return new HeaderLargeMessagePayloadProtocol(true).serialize(ofUri(uri), headers);
+        return new HeaderLargeMessagePayloadProtocol(REMOVE).serialize(ofUri(uri), headers);
     }
 
     private static byte[] serialize(final byte[] bytes) {
@@ -81,7 +82,7 @@ class LargeMessageConverterTest {
     }
 
     private static byte[] serialize(final byte[] bytes, final Headers headers) {
-        return new HeaderLargeMessagePayloadProtocol(true).serialize(ofBytes(bytes), headers);
+        return new HeaderLargeMessagePayloadProtocol(REMOVE).serialize(ofBytes(bytes), headers);
     }
 
     private static byte[] createBackedText(final String bucket, final String key) {

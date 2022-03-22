@@ -24,6 +24,7 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.HeaderDeserializationStrategy.REMOVE;
 import static org.apache.http.util.TextUtils.isEmpty;
 
 import com.amazonaws.auth.AWSCredentials;
@@ -222,7 +223,10 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     }
 
     public LargeMessageRetrievingClient getRetriever() {
-        return new LargeMessageRetrievingClient(this.clientFactories, this.getHeaderProtocol());
+        final HeaderDeserializationStrategy headerDeserializationStrategy = this.getHeaderDeserializationStrategy();
+        final HeaderLargeMessagePayloadProtocol headerProtocol =
+                new HeaderLargeMessagePayloadProtocol(headerDeserializationStrategy);
+        return new LargeMessageRetrievingClient(this.clientFactories, headerProtocol);
     }
 
     public LargeMessageStoringClient getStorer() {
@@ -232,13 +236,13 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .basePath(this.getBasePath().orElse(null))
                 .maxSize(this.getMaxSize())
                 .idGenerator(this.getConfiguredInstance(ID_GENERATOR_CONFIG, IdGenerator.class))
-                .protocol(this.getBoolean(USE_HEADERS_CONFIG) ? this.getHeaderProtocol()
-                        : new ByteFlagLargeMessagePayloadProtocol())
+                .protocol(this.getBoolean(USE_HEADERS_CONFIG) ? new HeaderLargeMessagePayloadProtocol(
+                        this.getHeaderDeserializationStrategy()) : new ByteFlagLargeMessagePayloadProtocol())
                 .build();
     }
 
-    protected HeaderLargeMessagePayloadProtocol getHeaderProtocol() {
-        return new HeaderLargeMessagePayloadProtocol(true);
+    protected HeaderDeserializationStrategy getHeaderDeserializationStrategy() {
+        return REMOVE;
     }
 
     private BlobStorageClient getClient() {

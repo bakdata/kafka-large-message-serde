@@ -26,6 +26,7 @@ package com.bakdata.kafka;
 
 import static com.bakdata.kafka.FlagHelper.IS_BACKED;
 import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
+import static com.bakdata.kafka.HeaderDeserializationStrategy.REMOVE;
 import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.HEADER;
 import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
 import static com.bakdata.kafka.LargeMessagePayload.ofUri;
@@ -221,7 +222,7 @@ class LargeMessageRetrievingClientTest {
 
     private LargeMessageRetrievingClient createRetriever() {
         return new LargeMessageRetrievingClient(Collections.singletonMap("foo", () -> this.client),
-                new HeaderLargeMessagePayloadProtocol(true));
+                new HeaderLargeMessagePayloadProtocol(REMOVE));
     }
 
 }
