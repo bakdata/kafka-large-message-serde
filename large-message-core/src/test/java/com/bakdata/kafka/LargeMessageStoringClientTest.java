@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,9 +24,9 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.ByteArrayLargeMessagePayloadSerde.getBytes;
+import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
 import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
-import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.HEADER;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.HEADER;
 import static com.bakdata.kafka.LargeMessagePayload.getUriBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -68,11 +68,11 @@ class LargeMessageStoringClientTest {
     @Mock
     private BlobStorageClient client;
     @Mock
-    private LargeMessagePayloadSerde serde;
+    private LargeMessagePayloadProtocol protocol;
 
     private static void expectNonBackedText(final String expected, final byte[] backedText) {
         assertThat(backedText[0]).isEqualTo(IS_NOT_BACKED);
-        assertThat(STRING_DESERIALIZER.deserialize(null, getBytes(backedText)))
+        assertThat(STRING_DESERIALIZER.deserialize(null, stripFlag(backedText)))
                 .isInstanceOf(String.class)
                 .isEqualTo(expected);
     }
@@ -108,7 +108,7 @@ class LargeMessageStoringClientTest {
         final Headers headers = new RecordHeaders();
         final byte[] fooBytes = serialize("foo");
         final byte[] returnBytes = {2};
-        when(this.serde.serialize(new LargeMessagePayload(false, fooBytes), headers)).thenReturn(returnBytes);
+        when(this.protocol.serialize(new LargeMessagePayload(false, fooBytes), headers)).thenReturn(returnBytes);
         assertThat(storer.storeBytes(null, fooBytes, isKey, headers)).isEqualTo(returnBytes);
     }
 
@@ -120,7 +120,7 @@ class LargeMessageStoringClientTest {
                 .build();
         assertThat(storer.storeBytes(null, null, isKey, new RecordHeaders()))
                 .isNull();
-        verify(this.serde, never()).serialize(any(), any());
+        verify(this.protocol, never()).serialize(any(), any());
     }
 
     @Test
@@ -137,7 +137,7 @@ class LargeMessageStoringClientTest {
         final Headers headers = new RecordHeaders();
         final byte[] uriBytes = getUriBytes("uri");
         final byte[] returnBytes = {2};
-        when(this.serde.serialize(new LargeMessagePayload(true, uriBytes), headers)).thenReturn(returnBytes);
+        when(this.protocol.serialize(new LargeMessagePayload(true, uriBytes), headers)).thenReturn(returnBytes);
         assertThat(storer.storeBytes(TOPIC, serialize("foo"), true, headers))
                 .isEqualTo(returnBytes);
     }
@@ -150,7 +150,7 @@ class LargeMessageStoringClientTest {
                 .build();
         assertThat(storer.storeBytes(null, null, isKey, new RecordHeaders()))
                 .isNull();
-        verify(this.serde, never()).serialize(any(), any());
+        verify(this.protocol, never()).serialize(any(), any());
     }
 
     @Test
@@ -167,7 +167,7 @@ class LargeMessageStoringClientTest {
         final Headers headers = new RecordHeaders();
         final byte[] uriBytes = getUriBytes("uri");
         final byte[] returnBytes = {2};
-        when(this.serde.serialize(new LargeMessagePayload(true, uriBytes), headers)).thenReturn(returnBytes);
+        when(this.protocol.serialize(new LargeMessagePayload(true, uriBytes), headers)).thenReturn(returnBytes);
         assertThat(storer.storeBytes(TOPIC, serialize("foo"), false, headers))
                 .isEqualTo(returnBytes);
     }
@@ -199,7 +199,7 @@ class LargeMessageStoringClientTest {
         final Headers headers = new RecordHeaders();
         assertThatExceptionOfType(UncheckedIOException.class)
                 .isThrownBy(() -> storer.storeBytes(TOPIC, foo, isKey, headers));
-        verify(this.serde, never()).serialize(any(), any());
+        verify(this.protocol, never()).serialize(any(), any());
     }
 
     @ParameterizedTest
@@ -216,7 +216,7 @@ class LargeMessageStoringClientTest {
         assertThatNullPointerException()
                 .isThrownBy(() -> storer.storeBytes(null, foo, isKey, headers))
                 .withMessage("Topic must not be null");
-        verify(this.serde, never()).serialize(any(), any());
+        verify(this.protocol, never()).serialize(any(), any());
     }
 
     @ParameterizedTest
@@ -231,7 +231,7 @@ class LargeMessageStoringClientTest {
         assertThatNullPointerException()
                 .isThrownBy(() -> storer.storeBytes(TOPIC, foo, isKey, headers))
                 .withMessage("Base path must not be null");
-        verify(this.serde, never()).serialize(any(), any());
+        verify(this.protocol, never()).serialize(any(), any());
     }
 
     @ParameterizedTest
@@ -249,7 +249,7 @@ class LargeMessageStoringClientTest {
         assertThatNullPointerException()
                 .isThrownBy(() -> storer.storeBytes(TOPIC, foo, isKey, headers))
                 .withMessage("Id generator must not be null");
-        verify(this.serde, never()).serialize(any(), any());
+        verify(this.protocol, never()).serialize(any(), any());
     }
 
     @ParameterizedTest
@@ -288,13 +288,13 @@ class LargeMessageStoringClientTest {
         assertThatNullPointerException()
                 .isThrownBy(() -> storer.storeBytes(TOPIC, foo, isKey, headers))
                 .withMessage("Base path must not be null");
-        verify(this.serde, never()).serialize(any(), any());
+        verify(this.protocol, never()).serialize(any(), any());
     }
 
     private LargeMessageStoringClientBuilder createStorer() {
         return LargeMessageStoringClient.builder()
                 .idGenerator(this.idGenerator)
                 .client(this.client)
-                .serde(this.serde);
+                .protocol(this.protocol);
     }
 }

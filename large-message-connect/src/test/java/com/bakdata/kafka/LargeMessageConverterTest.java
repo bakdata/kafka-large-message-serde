@@ -25,8 +25,8 @@
 package com.bakdata.kafka;
 
 
-import static com.bakdata.kafka.ByteArrayLargeMessagePayloadSerde.getBytes;
-import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.HEADER;
+import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.HEADER;
 import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
 import static com.bakdata.kafka.LargeMessagePayload.ofUri;
 import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
@@ -69,19 +69,19 @@ class LargeMessageConverterTest {
     private LargeMessageConverter converter = null;
 
     private static byte[] serialize(final String uri) {
-        return new ByteArrayLargeMessagePayloadSerde().serialize(ofUri(uri), new RecordHeaders());
+        return new ByteFlagLargeMessagePayloadProtocol().serialize(ofUri(uri), new RecordHeaders());
     }
 
     private static byte[] serialize(final String uri, final Headers headers) {
-        return new HeaderLargeMessagePayloadSerde(true).serialize(ofUri(uri), headers);
+        return new HeaderLargeMessagePayloadProtocol(true).serialize(ofUri(uri), headers);
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return new ByteArrayLargeMessagePayloadSerde().serialize(ofBytes(bytes), new RecordHeaders());
+        return new ByteFlagLargeMessagePayloadProtocol().serialize(ofBytes(bytes), new RecordHeaders());
     }
 
     private static byte[] serialize(final byte[] bytes, final Headers headers) {
-        return new HeaderLargeMessagePayloadSerde(true).serialize(ofBytes(bytes), headers);
+        return new HeaderLargeMessagePayloadProtocol(true).serialize(ofBytes(bytes), headers);
     }
 
     private static byte[] createBackedText(final String bucket, final String key) {
@@ -131,7 +131,7 @@ class LargeMessageConverterTest {
     }
 
     private static BlobStorageURI deserializeUriWithFlag(final byte[] data) {
-        final byte[] uriBytes = getBytes(data);
+        final byte[] uriBytes = stripFlag(data);
         return deserializeUri(uriBytes);
     }
 
@@ -158,7 +158,7 @@ class LargeMessageConverterTest {
     }
 
     private static void expectNonBackedText(final String expected, final byte[] s3BackedText) {
-        assertThat(STRING_DESERIALIZER.deserialize(null, getBytes(s3BackedText)))
+        assertThat(STRING_DESERIALIZER.deserialize(null, stripFlag(s3BackedText)))
                 .isInstanceOf(String.class)
                 .isEqualTo(expected);
     }

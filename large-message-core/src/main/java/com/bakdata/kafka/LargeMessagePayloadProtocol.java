@@ -24,33 +24,29 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.FlagHelper.asFlag;
-import static com.bakdata.kafka.FlagHelper.isBacked;
-
-import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.header.Headers;
 
-@RequiredArgsConstructor
-final class ByteArrayLargeMessagePayloadSerde implements LargeMessagePayloadSerde {
+/**
+ * Serialize and deserialize {@link LargeMessagePayload}
+ */
+public interface LargeMessagePayloadProtocol {
 
-    static byte[] getBytes(final byte[] data) {
-        final byte[] bytes = new byte[data.length - 1];
-        // flag is stored in first byte
-        System.arraycopy(data, 1, bytes, 0, data.length - 1);
-        return bytes;
-    }
+    /**
+     * Serialize a large message payload to bytes. Headers might be modified to store information for deserialization.
+     *
+     * @param payload large message payload
+     * @param headers headers that might be used to store information for deserialization
+     * @return bytes representing serialized payload
+     */
+    byte[] serialize(LargeMessagePayload payload, Headers headers);
 
-    @Override
-    public byte[] serialize(final LargeMessagePayload payload, final Headers headers) {
-        final byte[] bytes = payload.getData();
-        final byte[] fullBytes = new byte[bytes.length + 1];
-        fullBytes[0] = asFlag(payload.isBacked());
-        System.arraycopy(bytes, 0, fullBytes, 1, bytes.length);
-        return fullBytes;
-    }
-
-    @Override
-    public LargeMessagePayload deserialize(final byte[] data, final Headers headers) {
-        return new LargeMessagePayload(isBacked(data[0]), getBytes(data));
-    }
+    /**
+     * Deserialize a large message payload from bytes and headers. Headers might be modified to remove deserialization
+     * information.
+     *
+     * @param bytes serialized large message payload
+     * @param headers headers that might be queried to retrieve information for deserialization
+     * @return deserialized payload
+     */
+    LargeMessagePayload deserialize(byte[] bytes, Headers headers);
 }

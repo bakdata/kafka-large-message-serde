@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2019 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,8 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
 import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
-import static com.bakdata.kafka.ByteArrayLargeMessagePayloadSerde.getBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -65,7 +65,7 @@ class LargeMessageStoringClientS3IntegrationTest {
     private static IdGenerator idGenerator;
 
     static BlobStorageURI deserializeUriWithFlag(final byte[] data) {
-        final byte[] uriBytes = getBytes(data);
+        final byte[] uriBytes = stripFlag(data);
         return deserializeUri(uriBytes);
     }
 
@@ -81,7 +81,7 @@ class LargeMessageStoringClientS3IntegrationTest {
     }
 
     private static void expectNonBackedText(final String expected, final byte[] backedText) {
-        assertThat(STRING_DESERIALIZER.deserialize(null, getBytes(backedText)))
+        assertThat(STRING_DESERIALIZER.deserialize(null, stripFlag(backedText)))
                 .isInstanceOf(String.class)
                 .isEqualTo(expected);
     }

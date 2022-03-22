@@ -106,7 +106,9 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final Class<? extends IdGenerator> ID_GENERATOR_DEFAULT = RandomUUIDGenerator.class;
     public static final String USE_HEADERS_CONFIG = PREFIX + "use.headers";
     public static final String USE_HEADERS_DOC =
-            "Enable if Kafka message headers should be used to distinguish blob storage backed messages.";
+            "Enable if Kafka message headers should be used to distinguish blob storage backed messages. This is "
+                    + "disabled by default for backwards compatibility but leads to increased memory usage. It is "
+                    + "recommended to enable this option.";
     public static final boolean USE_HEADERS_DEFAULT = false;
 
     public static final String S3_PREFIX = PREFIX + AmazonS3Client.SCHEME + ".";
@@ -220,7 +222,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     }
 
     public LargeMessageRetrievingClient getRetriever() {
-        return new LargeMessageRetrievingClient(this.clientFactories, this.getHeaderSerde());
+        return new LargeMessageRetrievingClient(this.clientFactories, this.getHeaderProtocol());
     }
 
     public LargeMessageStoringClient getStorer() {
@@ -230,13 +232,13 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .basePath(this.getBasePath().orElse(null))
                 .maxSize(this.getMaxSize())
                 .idGenerator(this.getConfiguredInstance(ID_GENERATOR_CONFIG, IdGenerator.class))
-                .serde(this.getBoolean(USE_HEADERS_CONFIG) ? this.getHeaderSerde()
-                        : new ByteArrayLargeMessagePayloadSerde())
+                .protocol(this.getBoolean(USE_HEADERS_CONFIG) ? this.getHeaderProtocol()
+                        : new ByteFlagLargeMessagePayloadProtocol())
                 .build();
     }
 
-    protected HeaderLargeMessagePayloadSerde getHeaderSerde() {
-        return new HeaderLargeMessagePayloadSerde(true);
+    protected HeaderLargeMessagePayloadProtocol getHeaderProtocol() {
+        return new HeaderLargeMessagePayloadProtocol(true);
     }
 
     private BlobStorageClient getClient() {

@@ -24,7 +24,7 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.usesHeaders;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.usesHeaders;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,8 +43,9 @@ import org.apache.kafka.common.header.Headers;
 @RequiredArgsConstructor
 public class LargeMessageRetrievingClient {
 
+    private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
     private final @NonNull Map<String, Supplier<BlobStorageClient>> clientFactories;
-    private final @NonNull HeaderLargeMessagePayloadSerde headerLargeMessagePayloadSerde;
+    private final @NonNull HeaderLargeMessagePayloadProtocol headerProtocol;
     private final @NonNull Map<String, BlobStorageClient> clientCache = new HashMap<>();
 
     static BlobStorageURI deserializeUri(final byte[] uriBytes) {
@@ -63,8 +64,8 @@ public class LargeMessageRetrievingClient {
         if (data == null) {
             return null;
         }
-        final LargeMessagePayloadSerde serde = this.getSerde(headers);
-        final LargeMessagePayload payload = serde.deserialize(data, headers);
+        final LargeMessagePayloadProtocol protocol = this.getProtocol(headers);
+        final LargeMessagePayload payload = protocol.deserialize(data, headers);
         final byte[] deserializedData = payload.getData();
         if (payload.isBacked()) {
             return this.retrieveBackedBytes(deserializedData);
@@ -73,11 +74,11 @@ public class LargeMessageRetrievingClient {
         }
     }
 
-    private LargeMessagePayloadSerde getSerde(final Headers headers) {
+    private LargeMessagePayloadProtocol getProtocol(final Headers headers) {
         if (usesHeaders(headers)) {
-            return this.headerLargeMessagePayloadSerde;
+            return this.headerProtocol;
         } else {
-            return new ByteArrayLargeMessagePayloadSerde();
+            return BYTE_FLAG_PROTOCOL;
         }
     }
 

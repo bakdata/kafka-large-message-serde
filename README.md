@@ -72,7 +72,8 @@ The following configuration options are available:
   * Importance: medium
   
 ``large.message.use.headers``
-  Enable if Kafka message headers should be used to distinguish blob storage backed messages.
+Enable if Kafka message headers should be used to distinguish blob storage backed messages. This is disabled by default
+for backwards compatibility but leads to increased memory usage. It is recommended to enable this option.
 
   * Type: boolean
   * Default: false

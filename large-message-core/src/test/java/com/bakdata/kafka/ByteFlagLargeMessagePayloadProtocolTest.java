@@ -26,7 +26,7 @@ package com.bakdata.kafka;
 
 import static com.bakdata.kafka.FlagHelper.IS_BACKED;
 import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
-import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.HEADER;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.HEADER;
 
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.header.Headers;
@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class ByteArrayLargeMessagePayloadSerdeTest {
+class ByteFlagLargeMessagePayloadProtocolTest {
     @InjectSoftAssertions
     private SoftAssertions softly;
 
@@ -47,7 +47,7 @@ class ByteArrayLargeMessagePayloadSerdeTest {
         final byte[] payload = {2};
         final Headers headers = new RecordHeaders();
         this.softly.assertThat(
-                        new ByteArrayLargeMessagePayloadSerde().serialize(new LargeMessagePayload(true, payload),
+                        new ByteFlagLargeMessagePayloadProtocol().serialize(new LargeMessagePayload(true, payload),
                                 headers))
                 .isEqualTo(new byte[]{IS_BACKED, 2});
         this.assertNoHeaders(headers);
@@ -58,7 +58,7 @@ class ByteArrayLargeMessagePayloadSerdeTest {
         final byte[] payload = {2};
         final Headers headers = new RecordHeaders();
         this.softly.assertThat(
-                        new ByteArrayLargeMessagePayloadSerde().serialize(new LargeMessagePayload(false, payload),
+                        new ByteFlagLargeMessagePayloadProtocol().serialize(new LargeMessagePayload(false, payload),
                                 headers))
                 .isEqualTo(new byte[]{IS_NOT_BACKED, 2});
         this.assertNoHeaders(headers);
@@ -69,7 +69,7 @@ class ByteArrayLargeMessagePayloadSerdeTest {
         final byte[] payload = {2};
         final Headers headers = new RecordHeaders().add(HEADER, new byte[]{3});
         this.softly.assertThat(
-                        new ByteArrayLargeMessagePayloadSerde().serialize(new LargeMessagePayload(true, payload),
+                        new ByteFlagLargeMessagePayloadProtocol().serialize(new LargeMessagePayload(true, payload),
                                 headers))
                 .isEqualTo(new byte[]{IS_BACKED, 2});
         this.softly.assertThat(headers.headers(HEADER)).hasSize(1);
@@ -79,7 +79,7 @@ class ByteArrayLargeMessagePayloadSerdeTest {
     void shouldDeserializeBacked() {
         final byte[] payload = {IS_BACKED, 2};
         final Headers headers = new RecordHeaders();
-        this.softly.assertThat(new ByteArrayLargeMessagePayloadSerde().deserialize(payload, headers))
+        this.softly.assertThat(new ByteFlagLargeMessagePayloadProtocol().deserialize(payload, headers))
                 .satisfies(largeMessagePayload -> {
                     this.softly.assertThat(largeMessagePayload.getData()).isEqualTo(new byte[]{2});
                     this.softly.assertThat(largeMessagePayload.isBacked()).isTrue();
@@ -91,7 +91,7 @@ class ByteArrayLargeMessagePayloadSerdeTest {
     void shouldDeserializeNonBacked() {
         final byte[] payload = {IS_NOT_BACKED, 2};
         final Headers headers = new RecordHeaders();
-        this.softly.assertThat(new ByteArrayLargeMessagePayloadSerde().deserialize(payload, headers))
+        this.softly.assertThat(new ByteFlagLargeMessagePayloadProtocol().deserialize(payload, headers))
                 .satisfies(largeMessagePayload -> {
                     this.softly.assertThat(largeMessagePayload.getData()).isEqualTo(new byte[]{2});
                     this.softly.assertThat(largeMessagePayload.isBacked()).isFalse();
@@ -104,7 +104,7 @@ class ByteArrayLargeMessagePayloadSerdeTest {
         final byte[] payload = {IS_BACKED, 2};
         final Headers headers = new RecordHeaders()
                 .add("foo", new byte[]{1});
-        this.softly.assertThat(new ByteArrayLargeMessagePayloadSerde().deserialize(payload, headers))
+        this.softly.assertThat(new ByteFlagLargeMessagePayloadProtocol().deserialize(payload, headers))
                 .satisfies(largeMessagePayload -> {
                     this.softly.assertThat(largeMessagePayload.getData()).isEqualTo(new byte[]{2});
                     this.softly.assertThat(largeMessagePayload.isBacked()).isTrue();
@@ -116,7 +116,7 @@ class ByteArrayLargeMessagePayloadSerdeTest {
     void shouldThrowExceptionOnErroneousFlag() {
         final byte[] payload = {2, 2};
         final Headers headers = new RecordHeaders();
-        this.softly.assertThatThrownBy(() -> new ByteArrayLargeMessagePayloadSerde().deserialize(payload, headers))
+        this.softly.assertThatThrownBy(() -> new ByteFlagLargeMessagePayloadProtocol().deserialize(payload, headers))
                 .isInstanceOf(SerializationException.class)
                 .hasMessage("Message can only be marked as backed or non-backed");
         this.assertNoHeaders(headers);

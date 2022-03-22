@@ -26,8 +26,8 @@ package com.bakdata.kafka;
 
 import static com.bakdata.kafka.FlagHelper.IS_BACKED;
 import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
-import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.HEADER;
-import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.usesHeaders;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.HEADER;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.usesHeaders;
 
 import com.google.common.collect.Lists;
 import org.apache.kafka.common.errors.SerializationException;
@@ -43,7 +43,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 @ExtendWith(SoftAssertionsExtension.class)
-class HeaderLargeMessagePayloadSerdeTest {
+class HeaderLargeMessagePayloadProtocolTest {
     @InjectSoftAssertions
     private SoftAssertions softly;
 
@@ -52,7 +52,7 @@ class HeaderLargeMessagePayloadSerdeTest {
     void shouldSerializeBacked(final boolean removeHeaders) {
         final byte[] payload = {2};
         final Headers headers = new RecordHeaders();
-        final LargeMessagePayloadSerde serde = new HeaderLargeMessagePayloadSerde(removeHeaders);
+        final LargeMessagePayloadProtocol serde = new HeaderLargeMessagePayloadProtocol(removeHeaders);
         this.softly.assertThat(serde.serialize(new LargeMessagePayload(true, payload), headers)).isEqualTo(payload);
         this.assertHasHeader(headers, IS_BACKED);
     }
@@ -62,7 +62,7 @@ class HeaderLargeMessagePayloadSerdeTest {
     void shouldSerializeNonBacked(final boolean removeHeaders) {
         final byte[] payload = {2};
         final Headers headers = new RecordHeaders();
-        final LargeMessagePayloadSerde serde = new HeaderLargeMessagePayloadSerde(removeHeaders);
+        final LargeMessagePayloadProtocol serde = new HeaderLargeMessagePayloadProtocol(removeHeaders);
         this.softly.assertThat(serde.serialize(new LargeMessagePayload(false, payload), headers)).isEqualTo(payload);
         this.assertHasHeader(headers, IS_NOT_BACKED);
     }
@@ -72,7 +72,7 @@ class HeaderLargeMessagePayloadSerdeTest {
     void shouldReplaceHeader(final boolean removeHeaders) {
         final byte[] payload = {2};
         final Headers headers = new RecordHeaders().add(HEADER, new byte[]{3});
-        final LargeMessagePayloadSerde serde = new HeaderLargeMessagePayloadSerde(removeHeaders);
+        final LargeMessagePayloadProtocol serde = new HeaderLargeMessagePayloadProtocol(removeHeaders);
         this.softly.assertThat(serde.serialize(new LargeMessagePayload(true, payload), headers)).isEqualTo(payload);
         this.assertHasHeader(headers, IS_BACKED);
     }
@@ -82,7 +82,7 @@ class HeaderLargeMessagePayloadSerdeTest {
     void shouldIgnoreOtherHeadersWhenSerializing(final boolean removeHeaders) {
         final byte[] payload = {2};
         final Headers headers = new RecordHeaders().add("foo", new byte[]{3});
-        final LargeMessagePayloadSerde serde = new HeaderLargeMessagePayloadSerde(removeHeaders);
+        final LargeMessagePayloadProtocol serde = new HeaderLargeMessagePayloadProtocol(removeHeaders);
         this.softly.assertThat(serde.serialize(new LargeMessagePayload(true, payload), headers)).isEqualTo(payload);
         this.assertHasHeader(headers, IS_BACKED);
         this.softly.assertThat(headers.headers("foo")).hasSize(1);
@@ -93,7 +93,7 @@ class HeaderLargeMessagePayloadSerdeTest {
         final byte[] payload = {2};
         final Headers headers = new RecordHeaders()
                 .add(HEADER, new byte[]{IS_BACKED});
-        this.softly.assertThat(new HeaderLargeMessagePayloadSerde(true).deserialize(payload, headers))
+        this.softly.assertThat(new HeaderLargeMessagePayloadProtocol(true).deserialize(payload, headers))
                 .satisfies(largeMessagePayload -> {
                     this.softly.assertThat(largeMessagePayload.getData()).isEqualTo(payload);
                     this.softly.assertThat(largeMessagePayload.isBacked()).isTrue();
@@ -106,7 +106,7 @@ class HeaderLargeMessagePayloadSerdeTest {
         final byte[] payload = {2};
         final Headers headers = new RecordHeaders()
                 .add(HEADER, new byte[]{IS_BACKED});
-        this.softly.assertThat(new HeaderLargeMessagePayloadSerde(false).deserialize(payload, headers))
+        this.softly.assertThat(new HeaderLargeMessagePayloadProtocol(false).deserialize(payload, headers))
                 .satisfies(largeMessagePayload -> {
                     this.softly.assertThat(largeMessagePayload.getData()).isEqualTo(payload);
                     this.softly.assertThat(largeMessagePayload.isBacked()).isTrue();
@@ -119,7 +119,7 @@ class HeaderLargeMessagePayloadSerdeTest {
         final byte[] payload = {2};
         final Headers headers = new RecordHeaders()
                 .add(HEADER, new byte[]{IS_NOT_BACKED});
-        this.softly.assertThat(new HeaderLargeMessagePayloadSerde(true).deserialize(payload, headers))
+        this.softly.assertThat(new HeaderLargeMessagePayloadProtocol(true).deserialize(payload, headers))
                 .satisfies(largeMessagePayload -> {
                     this.softly.assertThat(largeMessagePayload.getData()).isEqualTo(payload);
                     this.softly.assertThat(largeMessagePayload.isBacked()).isFalse();
@@ -132,7 +132,7 @@ class HeaderLargeMessagePayloadSerdeTest {
         final byte[] payload = {2};
         final Headers headers = new RecordHeaders()
                 .add(HEADER, new byte[]{IS_NOT_BACKED});
-        this.softly.assertThat(new HeaderLargeMessagePayloadSerde(false).deserialize(payload, headers))
+        this.softly.assertThat(new HeaderLargeMessagePayloadProtocol(false).deserialize(payload, headers))
                 .satisfies(largeMessagePayload -> {
                     this.softly.assertThat(largeMessagePayload.getData()).isEqualTo(payload);
                     this.softly.assertThat(largeMessagePayload.isBacked()).isFalse();
@@ -146,7 +146,7 @@ class HeaderLargeMessagePayloadSerdeTest {
         final Headers headers = new RecordHeaders()
                 .add("foo", new byte[]{1})
                 .add(HEADER, new byte[]{IS_BACKED});
-        this.softly.assertThat(new HeaderLargeMessagePayloadSerde(true).deserialize(payload, headers))
+        this.softly.assertThat(new HeaderLargeMessagePayloadProtocol(true).deserialize(payload, headers))
                 .satisfies(largeMessagePayload -> {
                     this.softly.assertThat(largeMessagePayload.getData()).isEqualTo(payload);
                     this.softly.assertThat(largeMessagePayload.isBacked()).isTrue();
@@ -161,7 +161,7 @@ class HeaderLargeMessagePayloadSerdeTest {
         final Headers headers = new RecordHeaders()
                 .add("foo", new byte[]{1})
                 .add(HEADER, new byte[]{IS_BACKED});
-        this.softly.assertThat(new HeaderLargeMessagePayloadSerde(false).deserialize(payload, headers))
+        this.softly.assertThat(new HeaderLargeMessagePayloadProtocol(false).deserialize(payload, headers))
                 .satisfies(largeMessagePayload -> {
                     this.softly.assertThat(largeMessagePayload.getData()).isEqualTo(payload);
                     this.softly.assertThat(largeMessagePayload.isBacked()).isTrue();
@@ -176,7 +176,7 @@ class HeaderLargeMessagePayloadSerdeTest {
         final Headers headers = new RecordHeaders()
                 .add(HEADER, new byte[]{2});
         this.assertThatErroneousFlagExceptionIsThrownBy(
-                () -> new HeaderLargeMessagePayloadSerde(true).deserialize(payload, headers));
+                () -> new HeaderLargeMessagePayloadProtocol(true).deserialize(payload, headers));
         this.assertNoHeader(headers);
     }
 
@@ -186,7 +186,7 @@ class HeaderLargeMessagePayloadSerdeTest {
         final Headers headers = new RecordHeaders()
                 .add(HEADER, new byte[]{2});
         this.assertThatErroneousFlagExceptionIsThrownBy(
-                () -> new HeaderLargeMessagePayloadSerde(false).deserialize(payload, headers));
+                () -> new HeaderLargeMessagePayloadProtocol(false).deserialize(payload, headers));
         this.assertHasHeader(headers, (byte) 2);
     }
 

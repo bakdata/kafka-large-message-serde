@@ -33,7 +33,7 @@ import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 
 @RequiredArgsConstructor
-final class HeaderLargeMessagePayloadSerde implements LargeMessagePayloadSerde {
+final class HeaderLargeMessagePayloadProtocol implements LargeMessagePayloadProtocol {
     static final String HEADER = "__" + PREFIX + "backed";
 
     private final boolean removeHeaders;

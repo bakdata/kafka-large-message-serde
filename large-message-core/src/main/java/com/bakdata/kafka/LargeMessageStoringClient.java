@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2020 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,14 +43,16 @@ public class LargeMessageStoringClient {
     private final BlobStorageURI basePath;
     private final int maxSize;
     private final IdGenerator idGenerator;
-    private final @NonNull LargeMessagePayloadSerde serde;
+    private final @NonNull LargeMessagePayloadProtocol protocol;
 
-    private static byte[] serialize(final LargeMessagePayloadSerde serde, final String uri, final Headers headers) {
-        return serde.serialize(LargeMessagePayload.ofUri(uri), headers);
+    private static byte[] serialize(final LargeMessagePayloadProtocol protocol, final String uri,
+            final Headers headers) {
+        return protocol.serialize(LargeMessagePayload.ofUri(uri), headers);
     }
 
-    private static byte[] serialize(final LargeMessagePayloadSerde serde, final byte[] bytes, final Headers headers) {
-        return serde.serialize(LargeMessagePayload.ofBytes(bytes), headers);
+    private static byte[] serialize(final LargeMessagePayloadProtocol protocol, final byte[] bytes,
+            final Headers headers) {
+        return protocol.serialize(LargeMessagePayload.ofBytes(bytes), headers);
     }
 
     private static String toString(final String s) {
@@ -73,9 +75,9 @@ public class LargeMessageStoringClient {
         if (this.needsBacking(bytes)) {
             final String key = this.createBlobStorageKey(topic, isKey, bytes);
             final String uri = this.uploadToBlobStorage(key, bytes);
-            return serialize(this.serde, uri, headers);
+            return serialize(this.protocol, uri, headers);
         } else {
-            return serialize(this.serde, bytes, headers);
+            return serialize(this.protocol, bytes, headers);
         }
     }
 

@@ -76,8 +76,11 @@ public class LargeMessageConverterConfig extends AbstractLargeMessageConfig {
     }
 
     @Override
-    protected HeaderLargeMessagePayloadSerde getHeaderSerde() {
-        return new HeaderLargeMessagePayloadSerde(false);
+    protected HeaderLargeMessagePayloadProtocol getHeaderProtocol() {
+        // We cannot remove headers here because we need to retain them in case a dead letter is created from the
+        // respective record without calling the converter. Because there are no producer records created from a
+        // record with sink connectors, this cannot lead to corrupted headers
+        return new HeaderLargeMessagePayloadProtocol(false);
     }
 
     Converter getConverter() {

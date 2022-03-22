@@ -26,7 +26,7 @@ package com.bakdata.kafka;
 
 import static com.bakdata.kafka.FlagHelper.IS_BACKED;
 import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
-import static com.bakdata.kafka.HeaderLargeMessagePayloadSerde.HEADER;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.HEADER;
 import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
 import static com.bakdata.kafka.LargeMessagePayload.ofUri;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,12 +63,13 @@ class LargeMessageRetrievingClientTest {
     static Stream<Arguments> generateHeaders() {
         return Stream.of(
                 new RecordHeaders(),
-                nonBackedHeaders()
+                nonBackedHeaders(),
+                backedHeaders()
         ).map(Arguments::of);
     }
 
     static byte[] serializeUri(final String uri) {
-        return new ByteArrayLargeMessagePayloadSerde().serialize(ofUri(uri), new RecordHeaders());
+        return new ByteFlagLargeMessagePayloadProtocol().serialize(ofUri(uri), new RecordHeaders());
     }
 
     private static void assertNoHeader(final Headers headers) {
@@ -76,7 +77,7 @@ class LargeMessageRetrievingClientTest {
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return new ByteArrayLargeMessagePayloadSerde().serialize(ofBytes(bytes), new RecordHeaders());
+        return new ByteFlagLargeMessagePayloadProtocol().serialize(ofBytes(bytes), new RecordHeaders());
     }
 
     private static byte[] createNonBackedText(final String text) {
@@ -220,7 +221,7 @@ class LargeMessageRetrievingClientTest {
 
     private LargeMessageRetrievingClient createRetriever() {
         return new LargeMessageRetrievingClient(Collections.singletonMap("foo", () -> this.client),
-                new HeaderLargeMessagePayloadSerde(true));
+                new HeaderLargeMessagePayloadProtocol(true));
     }
 
 }

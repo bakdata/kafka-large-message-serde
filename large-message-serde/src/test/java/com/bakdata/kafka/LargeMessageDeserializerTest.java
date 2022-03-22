@@ -61,19 +61,19 @@ class LargeMessageDeserializerTest {
     private TestTopology<Integer, String> topology = null;
 
     private static byte[] serializeUri(final String uri) {
-        return new ByteArrayLargeMessagePayloadSerde().serialize(ofUri(uri), new RecordHeaders());
+        return new ByteFlagLargeMessagePayloadProtocol().serialize(ofUri(uri), new RecordHeaders());
     }
 
     private static byte[] serializeUri(final String uri, final Headers headers) {
-        return new HeaderLargeMessagePayloadSerde(true).serialize(ofUri(uri), headers);
+        return new HeaderLargeMessagePayloadProtocol(true).serialize(ofUri(uri), headers);
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return new ByteArrayLargeMessagePayloadSerde().serialize(ofBytes(bytes), new RecordHeaders());
+        return new ByteFlagLargeMessagePayloadProtocol().serialize(ofBytes(bytes), new RecordHeaders());
     }
 
     private static byte[] serialize(final byte[] bytes, final Headers headers) {
-        return new HeaderLargeMessagePayloadSerde(true).serialize(ofBytes(bytes), headers);
+        return new HeaderLargeMessagePayloadProtocol(true).serialize(ofBytes(bytes), headers);
     }
 
     private static Properties createProperties() {
