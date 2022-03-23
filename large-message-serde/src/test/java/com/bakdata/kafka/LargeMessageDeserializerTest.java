@@ -164,7 +164,8 @@ class LargeMessageDeserializerTest {
             config.put(isKey ? LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG
                     : LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, IntegerSerde.class);
             deserializer.configure(config, isKey);
-            assertThatThrownBy(() -> deserializer.deserialize(null, headers, messageFactory.apply("foo", headers)))
+            final byte[] message = messageFactory.apply("foo", headers);
+            assertThatThrownBy(() -> deserializer.deserialize(null, headers, message))
                     .isInstanceOf(SerializationException.class)
                     .hasMessage("Size of data received by IntegerDeserializer is not 4");
             assertThat(headers.headers(HEADER)).hasSize(1);
