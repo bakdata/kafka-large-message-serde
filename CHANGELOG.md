@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.2.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.2.1) (2022-03-23)
+[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.2.0...2.2.1)
+
+**Merged pull requests:**
+
+- Remove large message headers after deserialization [\#35](https://github.com/bakdata/kafka-large-message-serde/pull/35) ([@philipp94831](https://github.com/philipp94831))
+
 ## [2.2.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.2.0) (2022-03-22)
 [Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.5...2.2.0)
 
