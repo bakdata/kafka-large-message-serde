@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2019 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,8 @@
  */
 
 package com.bakdata.kafka;
+
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.HEADER;
 
 import java.util.Map;
 import java.util.Objects;
@@ -74,7 +76,10 @@ public class LargeMessageDeserializer<T> implements Deserializer<T> {
         Objects.requireNonNull(this.deserializer);
         Objects.requireNonNull(this.client);
         final byte[] bytes = this.client.retrieveBytes(data, headers);
-        return this.deserializer.deserialize(topic, headers, bytes);
+        final T deserialized = this.deserializer.deserialize(topic, headers, bytes);
+        // remove all headers associated with large message because the record might be serialized with different flags
+        headers.remove(HEADER);
+        return deserialized;
     }
 
     @Override

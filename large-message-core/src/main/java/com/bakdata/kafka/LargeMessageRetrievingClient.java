@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
-import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,30 +40,21 @@ import org.apache.kafka.common.header.Headers;
  * Client for retrieving actual bytes of messages stored with {@link LargeMessageStoringClient}.
  */
 @Slf4j
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
 public class LargeMessageRetrievingClient {
 
     private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
+    private static final LargeMessagePayloadProtocol HEADER_PROTOCOL = new HeaderLargeMessagePayloadProtocol();
     private final @NonNull Map<String, Supplier<BlobStorageClient>> clientFactories;
-    private final @NonNull LargeMessagePayloadProtocol headerProtocol;
     private final @NonNull Map<String, BlobStorageClient> clientCache = new HashMap<>();
-
-    /**
-     * Create a new {@code LargeMessageRetrievingClient}
-     *
-     * @param clientFactories factories for supported blob storage systems indexed by scheme
-     * @param strategy strategy to use when handling headers in deserialization
-     * @return Client for retrieving actual bytes of messages stored with {@link LargeMessageStoringClient}.
-     */
-    public static LargeMessageRetrievingClient create(final Map<String, Supplier<BlobStorageClient>> clientFactories,
-            final HeaderDeserializationStrategy strategy) {
-        final LargeMessagePayloadProtocol headerProtocol = new HeaderLargeMessagePayloadProtocol(strategy);
-        return new LargeMessageRetrievingClient(clientFactories, headerProtocol);
-    }
 
     static BlobStorageURI deserializeUri(final byte[] uriBytes) {
         final String rawUri = LargeMessagePayload.asUri(uriBytes);
         return BlobStorageURI.create(rawUri);
+    }
+
+    private static LargeMessagePayloadProtocol getProtocol(final Headers headers) {
+        return usesHeaders(headers) ? HEADER_PROTOCOL : BYTE_FLAG_PROTOCOL;
     }
 
     /**
@@ -78,21 +68,13 @@ public class LargeMessageRetrievingClient {
         if (data == null) {
             return null;
         }
-        final LargeMessagePayloadProtocol protocol = this.getProtocol(headers);
+        final LargeMessagePayloadProtocol protocol = getProtocol(headers);
         final LargeMessagePayload payload = protocol.deserialize(data, headers);
         final byte[] deserializedData = payload.getData();
         if (payload.isBacked()) {
             return this.retrieveBackedBytes(deserializedData);
         } else {
             return deserializedData;
-        }
-    }
-
-    private LargeMessagePayloadProtocol getProtocol(final Headers headers) {
-        if (usesHeaders(headers)) {
-            return this.headerProtocol;
-        } else {
-            return BYTE_FLAG_PROTOCOL;
         }
     }
 

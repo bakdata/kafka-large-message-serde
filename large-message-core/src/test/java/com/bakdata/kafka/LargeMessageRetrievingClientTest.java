@@ -26,7 +26,6 @@ package com.bakdata.kafka;
 
 import static com.bakdata.kafka.FlagHelper.IS_BACKED;
 import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
-import static com.bakdata.kafka.HeaderDeserializationStrategy.REMOVE;
 import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.HEADER;
 import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
 import static com.bakdata.kafka.LargeMessagePayload.ofUri;
@@ -73,8 +72,8 @@ class LargeMessageRetrievingClientTest {
         return new ByteFlagLargeMessagePayloadProtocol().serialize(ofUri(uri), new RecordHeaders());
     }
 
-    private static void assertNoHeader(final Headers headers) {
-        assertThat(headers.headers(HEADER)).isEmpty();
+    private static void assertHasHeader(final Headers headers) {
+        assertThat(headers.headers(HEADER)).hasSize(1);
     }
 
     private static byte[] serialize(final byte[] bytes) {
@@ -125,7 +124,7 @@ class LargeMessageRetrievingClientTest {
         final Headers headers = nonBackedHeaders();
         assertThat(retriever.retrieveBytes(serialize("foo"), headers))
                 .isEqualTo(serialize("foo"));
-        assertNoHeader(headers);
+        assertHasHeader(headers);
     }
 
     @ParameterizedTest
@@ -155,7 +154,7 @@ class LargeMessageRetrievingClientTest {
         final Headers headers = backedHeaders();
         assertThat(retriever.retrieveBytes(createBackedText_(bucket, key), headers))
                 .isEqualTo(serialize("foo"));
-        assertNoHeader(headers);
+        assertHasHeader(headers);
     }
 
     @Test
@@ -221,7 +220,7 @@ class LargeMessageRetrievingClientTest {
     }
 
     private LargeMessageRetrievingClient createRetriever() {
-        return LargeMessageRetrievingClient.create(Collections.singletonMap("foo", () -> this.client), REMOVE);
+        return new LargeMessageRetrievingClient(Collections.singletonMap("foo", () -> this.client));
     }
 
 }
