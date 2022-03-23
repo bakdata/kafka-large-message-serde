@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.SerializationException;
@@ -155,15 +156,17 @@ class LargeMessageDeserializerTest {
         return serializeUri(uri, headers);
     }
 
-    private static void assertCorrectSerializationExceptionBehavior(final boolean isKey, final byte[] bytes,
-            final Headers headers) {
+    private static void assertCorrectSerializationExceptionBehavior(final boolean isKey,
+            final BiFunction<? super String, ? super Headers, byte[]> messageFactory) {
         try (final Deserializer<String> deserializer = new LargeMessageDeserializer<>()) {
+            final Headers headers = new RecordHeaders();
             final Map<String, Object> config = new HashMap<>(getEndpointConfig());
             config.put(isKey ? LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG
                     : LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, IntegerSerde.class);
             deserializer.configure(config, isKey);
-            assertThatThrownBy(() -> deserializer.deserialize(null, headers, bytes))
-                    .isInstanceOf(SerializationException.class);
+            assertThatThrownBy(() -> deserializer.deserialize(null, headers, messageFactory.apply("foo", headers)))
+                    .isInstanceOf(SerializationException.class)
+                    .hasMessage("Size of data received by IntegerDeserializer is not 4");
             assertThat(headers.headers(HEADER)).hasSize(1);
         }
     }
@@ -378,19 +381,17 @@ class LargeMessageDeserializerTest {
     void shouldRetainBackedHeadersOnSerializationException(final boolean isKey) {
         final String bucket = "bucket";
         S3_MOCK.createS3Client().createBucket(bucket);
-        final String key = "key";
-        store(bucket, key, "foo");
-        final Headers headers = new RecordHeaders();
-        final byte[] backedText = createBackedText(bucket, key, headers);
-        assertCorrectSerializationExceptionBehavior(isKey, backedText, headers);
+        assertCorrectSerializationExceptionBehavior(isKey, (content, headers) -> {
+            final String key = "key";
+            store(bucket, key, content);
+            return createBackedText(bucket, key, headers);
+        });
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldRetainNonBackedHeadersOnSerializationException(final boolean isKey) {
-        final Headers headers = new RecordHeaders();
-        final byte[] nonBackedText = createNonBackedText("foo", headers);
-        assertCorrectSerializationExceptionBehavior(isKey, nonBackedText, headers);
+        assertCorrectSerializationExceptionBehavior(isKey, LargeMessageDeserializerTest::createNonBackedText);
     }
 
     private void createTopology(final Function<? super Properties, ? extends Topology> topologyFactory) {
