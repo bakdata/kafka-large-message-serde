@@ -45,7 +45,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -65,23 +64,25 @@ class LargeMessageConverterTest {
     private static final Converter STRING_CONVERTER = new StringConverter();
     private static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
     private static final Deserializer<String> STRING_DESERIALIZER = new StringDeserializer();
+    private static final LargeMessagePayloadProtocol HEADER_PROTOCOL = new HeaderLargeMessagePayloadProtocol();
+    private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
     private final AmazonS3 s3Client = S3_MOCK.createS3Client();
     private LargeMessageConverter converter = null;
 
     private static byte[] serialize(final String uri) {
-        return new ByteFlagLargeMessagePayloadProtocol().serialize(ofUri(uri), new RecordHeaders());
+        return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders());
     }
 
     private static byte[] serialize(final String uri, final Headers headers) {
-        return new HeaderLargeMessagePayloadProtocol().serialize(ofUri(uri), headers);
+        return HEADER_PROTOCOL.serialize(ofUri(uri), headers);
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return new ByteFlagLargeMessagePayloadProtocol().serialize(ofBytes(bytes), new RecordHeaders());
+        return BYTE_FLAG_PROTOCOL.serialize(ofBytes(bytes), new RecordHeaders());
     }
 
     private static byte[] serialize(final byte[] bytes, final Headers headers) {
-        return new HeaderLargeMessagePayloadProtocol().serialize(ofBytes(bytes), headers);
+        return HEADER_PROTOCOL.serialize(ofBytes(bytes), headers);
     }
 
     private static byte[] createBackedText(final String bucket, final String key) {
@@ -152,8 +153,7 @@ class LargeMessageConverterTest {
             final String expected) {
         assertThat(uri).asString().startsWith(basePath + TOPIC + "/" + type + "/");
         final byte[] bytes = readBytes(uri);
-        final String deserialized = Serdes.String().deserializer()
-                .deserialize(null, bytes);
+        final String deserialized = STRING_DESERIALIZER.deserialize(null, bytes);
         assertThat(deserialized).isEqualTo(expected);
     }
 

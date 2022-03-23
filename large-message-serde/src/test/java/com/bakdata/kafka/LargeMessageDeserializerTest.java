@@ -34,8 +34,9 @@ import com.adobe.testing.s3mock.junit5.S3MockExtension;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.bakdata.fluent_kafka_streams_tests.TestTopology;
 import java.io.ByteArrayInputStream;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.function.Function;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -66,39 +67,48 @@ class LargeMessageDeserializerTest {
             .withSecureConnection(false).build();
     private static final String INPUT_TOPIC = "input";
     private static final String OUTPUT_TOPIC = "output";
+    private static final LargeMessagePayloadProtocol HEADER_PROTOCOL = new HeaderLargeMessagePayloadProtocol();
+    private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
     private TestTopology<Integer, String> topology = null;
 
     private static byte[] serializeUri(final String uri) {
-        return new ByteFlagLargeMessagePayloadProtocol().serialize(ofUri(uri), new RecordHeaders());
+        return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders());
     }
 
     private static byte[] serializeUri(final String uri, final Headers headers) {
-        return new HeaderLargeMessagePayloadProtocol().serialize(ofUri(uri), headers);
+        return HEADER_PROTOCOL.serialize(ofUri(uri), headers);
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return new ByteFlagLargeMessagePayloadProtocol().serialize(ofBytes(bytes), new RecordHeaders());
+        return BYTE_FLAG_PROTOCOL.serialize(ofBytes(bytes), new RecordHeaders());
     }
 
     private static byte[] serialize(final byte[] bytes, final Headers headers) {
-        return new HeaderLargeMessagePayloadProtocol().serialize(ofBytes(bytes), headers);
+        return HEADER_PROTOCOL.serialize(ofBytes(bytes), headers);
     }
 
     private static Properties createProperties() {
+        final Map<String, Object> endpointConfig = getEndpointConfig();
         final Properties properties = new Properties();
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "broker");
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.ByteArraySerde.class);
         properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.ByteArraySerde.class);
-        properties.setProperty(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG,
-                "http://localhost:" + S3_MOCK.getHttpPort());
-        properties.setProperty(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1");
-        properties.setProperty(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo");
-        properties.setProperty(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar");
-        properties.put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
+        properties.putAll(endpointConfig);
         properties.put(LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         properties.put(LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         return properties;
+    }
+
+    private static Map<String, Object> getEndpointConfig() {
+        final Map<String, Object> largeMessageConfig = new HashMap<>();
+        largeMessageConfig.put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG,
+                "http://localhost:" + S3_MOCK.getHttpPort());
+        largeMessageConfig.put(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1");
+        largeMessageConfig.put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo");
+        largeMessageConfig.put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar");
+        largeMessageConfig.put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
+        return largeMessageConfig;
     }
 
     private static Topology createKeyTopology(final Properties properties) {
@@ -148,9 +158,11 @@ class LargeMessageDeserializerTest {
     private static void assertCorrectSerializationExceptionBehavior(final boolean isKey, final byte[] bytes,
             final Headers headers) {
         try (final Deserializer<String> deserializer = new LargeMessageDeserializer<>()) {
-            deserializer.configure(Collections.singletonMap(isKey ? LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG
-                    : LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, IntegerSerde.class), isKey);
-            assertThatThrownBy(() -> deserializer.deserialize(null, bytes))
+            final Map<String, Object> config = new HashMap<>(getEndpointConfig());
+            config.put(isKey ? LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG
+                    : LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, IntegerSerde.class);
+            deserializer.configure(config, isKey);
+            assertThatThrownBy(() -> deserializer.deserialize(null, headers, bytes))
                     .isInstanceOf(SerializationException.class);
             assertThat(headers.headers(HEADER)).hasSize(1);
         }
