@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.Function;
-import org.apache.commons.lang3.function.TriFunction;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.header.Headers;
@@ -169,7 +168,7 @@ class LargeMessageDeserializerTest {
     }
 
     private static void assertCorrectSerializationExceptionBehavior(final boolean isKey,
-            final TriFunction<? super String, ? super Headers, ? super Boolean, byte[]> messageFactory) {
+            final MessageFactory messageFactory) {
         try (final Deserializer<String> deserializer = new LargeMessageDeserializer<>()) {
             final Headers headers = new RecordHeaders();
             final Map<String, Object> config = new HashMap<>(getEndpointConfig());
@@ -460,6 +459,11 @@ class LargeMessageDeserializerTest {
     private void createTopology(final Function<? super Properties, ? extends Topology> topologyFactory) {
         this.topology = new TestTopology<>(topologyFactory, createProperties());
         this.topology.start();
+    }
+
+    @FunctionalInterface
+    private interface MessageFactory {
+        byte[] apply(String content, Headers headers, boolean isKey);
     }
 
 }
