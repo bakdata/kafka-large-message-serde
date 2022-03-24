@@ -67,7 +67,9 @@ class LargeMessageRetrievingClientTest {
                 bool -> new RecordHeaders(),
                 LargeMessageRetrievingClientTest::nonBackedHeaders,
                 LargeMessageRetrievingClientTest::backedHeaders
-        ).flatMap(f -> Stream.of(false, true).map(bool -> Arguments.of(f.apply(bool), bool)));
+        ).flatMap(factory -> Stream.of(false, true)
+                .map(bool -> Arguments.of(factory.apply(bool), bool))
+        );
     }
 
     static byte[] serializeUri(final String uri) {

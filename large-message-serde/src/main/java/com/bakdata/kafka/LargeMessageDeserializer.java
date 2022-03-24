@@ -24,8 +24,6 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.getHeaderName;
-
 import java.util.Map;
 import java.util.Objects;
 import lombok.NoArgsConstructor;
@@ -78,10 +76,7 @@ public class LargeMessageDeserializer<T> implements Deserializer<T> {
         Objects.requireNonNull(this.deserializer);
         Objects.requireNonNull(this.client);
         final byte[] bytes = this.client.retrieveBytes(data, headers, this.isKey);
-        final T deserialized = this.deserializer.deserialize(topic, headers, bytes);
-        // remove all headers associated with large message because the record might be serialized with different flags
-        headers.remove(getHeaderName(this.isKey));
-        return deserialized;
+        return this.deserializer.deserialize(topic, headers, bytes);
     }
 
     @Override

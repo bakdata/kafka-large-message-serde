@@ -125,8 +125,8 @@ class ByteFlagLargeMessagePayloadProtocolTest {
     void shouldThrowExceptionOnErroneousFlag(final boolean isKey) {
         final byte[] payload = {2, 2};
         final Headers headers = new RecordHeaders();
-        this.softly.assertThatThrownBy(() -> new ByteFlagLargeMessagePayloadProtocol().deserialize(payload, headers,
-                        isKey))
+        this.softly.assertThatThrownBy(
+                        () -> new ByteFlagLargeMessagePayloadProtocol().deserialize(payload, headers, isKey))
                 .isInstanceOf(SerializationException.class)
                 .hasMessage("Message can only be marked as backed or non-backed");
         this.assertNoHeaders(headers);
