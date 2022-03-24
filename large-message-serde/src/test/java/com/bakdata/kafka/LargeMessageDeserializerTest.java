@@ -38,8 +38,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.function.BiFunction;
 import java.util.function.Function;
+import org.apache.commons.lang3.function.TriFunction;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.header.Headers;
@@ -169,14 +169,14 @@ class LargeMessageDeserializerTest {
     }
 
     private static void assertCorrectSerializationExceptionBehavior(final boolean isKey,
-            final BiFunction<? super String, ? super Headers, byte[]> messageFactory) {
+            final TriFunction<? super String, ? super Headers, ? super Boolean, byte[]> messageFactory) {
         try (final Deserializer<String> deserializer = new LargeMessageDeserializer<>()) {
             final Headers headers = new RecordHeaders();
             final Map<String, Object> config = new HashMap<>(getEndpointConfig());
             config.put(isKey ? LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG
                     : LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, IntegerSerde.class);
             deserializer.configure(config, isKey);
-            final byte[] message = messageFactory.apply("foo", headers);
+            final byte[] message = messageFactory.apply("foo", headers, isKey);
             assertThatThrownBy(() -> deserializer.deserialize(null, headers, message))
                     .isInstanceOf(SerializationException.class)
                     .hasMessage("Size of data received by IntegerDeserializer is not 4");
@@ -394,18 +394,17 @@ class LargeMessageDeserializerTest {
     void shouldRetainBackedHeadersOnSerializationException(final boolean isKey) {
         final String bucket = "bucket";
         S3_MOCK.createS3Client().createBucket(bucket);
-        assertCorrectSerializationExceptionBehavior(isKey, (content, headers) -> {
+        assertCorrectSerializationExceptionBehavior(isKey, (content, headers, _isKey) -> {
             final String key = "key";
             store(bucket, key, content);
-            return createBackedText(bucket, key, headers, isKey);
+            return createBackedText(bucket, key, headers, _isKey);
         });
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldRetainNonBackedHeadersOnSerializationException(final boolean isKey) {
-        assertCorrectSerializationExceptionBehavior(isKey,
-                (text, headers) -> createNonBackedText(text, headers, isKey));
+        assertCorrectSerializationExceptionBehavior(isKey, LargeMessageDeserializerTest::createNonBackedText);
     }
 
     @Test
