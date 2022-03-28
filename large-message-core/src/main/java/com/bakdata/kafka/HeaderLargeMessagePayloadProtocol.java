@@ -39,15 +39,15 @@ final class HeaderLargeMessagePayloadProtocol implements LargeMessagePayloadProt
     private static final String VALUE_HEADER_SUFFIX = "value";
     private final boolean isKey;
 
+    static String getHeaderName(final boolean isKey) {
+        return HEADER_PREFIX + (isKey ? KEY_HEADER_SUFFIX : VALUE_HEADER_SUFFIX);
+    }
+
     @Override
     public byte[] serialize(final LargeMessagePayload payload, final Headers headers) {
         final byte flag = asFlag(payload.isBacked());
         this.addHeader(headers, flag);
         return payload.getData();
-    }
-
-    static String getHeaderName(final boolean isKey) {
-        return HEADER_PREFIX + (isKey ? KEY_HEADER_SUFFIX : VALUE_HEADER_SUFFIX);
     }
 
     @Override
@@ -61,13 +61,13 @@ final class HeaderLargeMessagePayloadProtocol implements LargeMessagePayloadProt
         return headers.lastHeader(this.getHeaderName()) != null;
     }
 
+    String getHeaderName() {
+        return getHeaderName(this.isKey);
+    }
+
     private void addHeader(final Headers headers, final byte flag) {
         final String header = this.getHeaderName();
         headers.remove(header);
         headers.add(header, new byte[]{flag});
-    }
-
-    private String getHeaderName() {
-        return getHeaderName(this.isKey);
     }
 }

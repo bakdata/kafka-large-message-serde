@@ -78,6 +78,10 @@ public class LargeMessageRetrievingClient {
         }
     }
 
+    public String getHeaderName() {
+        return this.headerProtocol.getHeaderName();
+    }
+
     private LargeMessagePayloadProtocol getProtocol(final Headers headers) {
         return this.headerProtocol.usesHeaders(headers) ? this.headerProtocol : BYTE_FLAG_PROTOCOL;
     }

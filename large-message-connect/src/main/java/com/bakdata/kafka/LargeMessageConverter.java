@@ -40,14 +40,12 @@ public class LargeMessageConverter implements Converter {
     private Converter converter;
     private LargeMessageStoringClient storingClient;
     private LargeMessageRetrievingClient retrievingClient;
-    private boolean isKey;
 
     @Override
     public void configure(final Map<String, ?> configs, final boolean isKey) {
         final LargeMessageConverterConfig config = new LargeMessageConverterConfig(configs);
         this.storingClient = config.getStorer(isKey);
         this.retrievingClient = config.getRetriever(isKey);
-        this.isKey = isKey;
         this.converter = config.getConverter();
         this.converter.configure(configs, isKey);
     }

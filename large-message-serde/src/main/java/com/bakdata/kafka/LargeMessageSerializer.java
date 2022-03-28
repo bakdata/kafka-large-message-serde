@@ -52,7 +52,6 @@ import org.apache.kafka.common.serialization.Serializer;
 public class LargeMessageSerializer<T> implements Serializer<T> {
     private LargeMessageStoringClient client;
     private Serializer<? super T> serializer;
-    private boolean isKey;
 
     @Override
     public void configure(final Map<String, ?> configs, final boolean isKey) {
@@ -61,7 +60,6 @@ public class LargeMessageSerializer<T> implements Serializer<T> {
         this.serializer = serde.serializer();
         this.client = serdeConfig.getStorer(isKey);
         this.serializer.configure(configs, isKey);
-        this.isKey = isKey;
     }
 
     /**
