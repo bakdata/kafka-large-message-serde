@@ -27,10 +27,8 @@ package com.bakdata.kafka;
 import static com.bakdata.kafka.FlagHelper.asFlag;
 import static com.bakdata.kafka.FlagHelper.isBacked;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.header.Headers;
 
-@RequiredArgsConstructor
 final class ByteFlagLargeMessagePayloadProtocol implements LargeMessagePayloadProtocol {
 
     static byte[] stripFlag(final byte[] data) {
