@@ -28,9 +28,11 @@ import static com.bakdata.kafka.AbstractLargeMessageConfig.PREFIX;
 import static com.bakdata.kafka.FlagHelper.asFlag;
 import static com.bakdata.kafka.FlagHelper.isBacked;
 
+import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 
+@RequiredArgsConstructor
 final class HeaderLargeMessagePayloadProtocol implements LargeMessagePayloadProtocol {
     private static final String HEADER_PREFIX = "__" + PREFIX + "backed.";
     private static final String KEY_HEADER_SUFFIX = "key";

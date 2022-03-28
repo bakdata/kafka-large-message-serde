@@ -103,7 +103,7 @@ class LargeMessageStoringClientTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldWriteNonBackedText(final boolean isKey) {
-        final LargeMessageStoringClient storer = this.createStorer()
+        final LargeMessageStoringClient storer = this.createStorer(isKey)
                 .maxSize(Integer.MAX_VALUE)
                 .build();
         final Headers headers = new RecordHeaders();
@@ -116,7 +116,7 @@ class LargeMessageStoringClientTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldWriteNonBackedNull(final boolean isKey) {
-        final LargeMessageStoringClient storer = this.createStorer()
+        final LargeMessageStoringClient storer = this.createStorer(isKey)
                 .maxSize(Integer.MAX_VALUE)
                 .build();
         assertThat(storer.storeBytes(null, null, new RecordHeaders()))
@@ -131,7 +131,7 @@ class LargeMessageStoringClientTest {
         when(this.idGenerator.generateId(serialize("foo"))).thenReturn("key");
         when(this.client.putObject(serialize("foo"), bucket, "base/" + TOPIC + "/keys/key"))
                 .thenReturn("uri");
-        final LargeMessageStoringClient storer = this.createStorer()
+        final LargeMessageStoringClient storer = this.createStorer(true)
                 .basePath(BlobStorageURI.create(basePath))
                 .maxSize(0)
                 .build();
@@ -146,7 +146,7 @@ class LargeMessageStoringClientTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldWriteBackedNull(final boolean isKey) {
-        final LargeMessageStoringClient storer = this.createStorer()
+        final LargeMessageStoringClient storer = this.createStorer(isKey)
                 .maxSize(0)
                 .build();
         assertThat(storer.storeBytes(null, null, new RecordHeaders()))
@@ -161,7 +161,7 @@ class LargeMessageStoringClientTest {
         when(this.idGenerator.generateId(serialize("foo"))).thenReturn("key");
         when(this.client.putObject(serialize("foo"), bucket, "base/" + TOPIC + "/values/key"))
                 .thenReturn("uri");
-        final LargeMessageStoringClient storer = this.createStorer()
+        final LargeMessageStoringClient storer = this.createStorer(false)
                 .basePath(BlobStorageURI.create(basePath))
                 .maxSize(0)
                 .build();
@@ -173,16 +173,17 @@ class LargeMessageStoringClientTest {
                 .isEqualTo(returnBytes);
     }
 
-    @Test
-    void shouldDeleteFiles() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldDeleteFiles(final boolean isKey) {
         final String bucket = "bucket";
         final String basePath = "foo://" + bucket + "/base/";
-        final LargeMessageStoringClient storer = this.createStorer()
+        final LargeMessageStoringClient storer = this.createStorer(isKey)
                 .basePath(BlobStorageURI.create(basePath))
                 .maxSize(0)
                 .build();
         storer.deleteAllFiles(TOPIC);
-        verify(this.client).deleteAllObjects(bucket, "base/" + TOPIC + "/");
+        verify(this.client).deleteAllObjects(bucket, "base/" + TOPIC + "/" + (isKey ? "keys" : "values") + "/");
     }
 
     @ParameterizedTest
@@ -192,7 +193,7 @@ class LargeMessageStoringClientTest {
         final String basePath = "foo://" + bucket + "/base/";
         when(this.idGenerator.generateId(any())).thenReturn("key");
         when(this.client.putObject(any(), eq(bucket), any())).thenThrow(UncheckedIOException.class);
-        final LargeMessageStoringClient storer = this.createStorer()
+        final LargeMessageStoringClient storer = this.createStorer(isKey)
                 .basePath(BlobStorageURI.create(basePath))
                 .maxSize(0)
                 .build();
@@ -208,7 +209,7 @@ class LargeMessageStoringClientTest {
     void shouldThrowExceptionOnNullTopic(final boolean isKey) {
         final String bucket = "bucket";
         final String basePath = "foo://" + bucket + "/base/";
-        final LargeMessageStoringClient storer = this.createStorer()
+        final LargeMessageStoringClient storer = this.createStorer(isKey)
                 .basePath(BlobStorageURI.create(basePath))
                 .maxSize(0)
                 .build();
@@ -223,7 +224,7 @@ class LargeMessageStoringClientTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldThrowExceptionOnNullBasePath(final boolean isKey) {
-        final LargeMessageStoringClient storer = this.createStorer()
+        final LargeMessageStoringClient storer = this.createStorer(isKey)
                 .basePath(null)
                 .maxSize(0)
                 .build();
@@ -240,7 +241,7 @@ class LargeMessageStoringClientTest {
     void shouldThrowExceptionOnNullIdGenerator(final boolean isKey) {
         final String bucket = "bucket";
         final String basePath = "foo://" + bucket + "/base/";
-        final LargeMessageStoringClient storer = this.createStorer()
+        final LargeMessageStoringClient storer = this.createStorer(isKey)
                 .basePath(BlobStorageURI.create(basePath))
                 .maxSize(0)
                 .idGenerator(null)
@@ -292,10 +293,11 @@ class LargeMessageStoringClientTest {
         verify(this.protocol, never()).serialize(any(), any());
     }
 
-    private LargeMessageStoringClientBuilder createStorer() {
+    private LargeMessageStoringClientBuilder createStorer(final boolean isKey) {
         return LargeMessageStoringClient.builder()
                 .idGenerator(this.idGenerator)
                 .client(this.client)
-                .protocol(this.protocol);
+                .protocol(this.protocol)
+                .isKey(isKey);
     }
 }
