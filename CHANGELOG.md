@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.3.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.3.0) (2022-03-28)
+[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.2.1...2.3.0)
+
+**Merged pull requests:**
+
+- Use separate headers to store key and value flags [\#36](https://github.com/bakdata/kafka-large-message-serde/pull/36) ([@philipp94831](https://github.com/philipp94831))
+
 ## [2.2.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.2.1) (2022-03-23)
 [Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.2.0...2.2.1)
 
