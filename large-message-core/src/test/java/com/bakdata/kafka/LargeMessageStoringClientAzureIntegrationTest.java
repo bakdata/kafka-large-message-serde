@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2019 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -59,8 +59,8 @@ class LargeMessageStoringClientAzureIntegrationTest extends AzureBlobStorageInte
         final BlobContainerClient containerClient = client.getBlobContainerClient(bucket);
         try {
             containerClient.create();
-            final LargeMessageStoringClient storer = this.createStorer(properties);
-            assertThat(storer.storeBytes(TOPIC, serialize("foo"), true, new RecordHeaders()))
+            final LargeMessageStoringClient storer = this.createStorer(properties, true);
+            assertThat(storer.storeBytes(TOPIC, serialize("foo"), new RecordHeaders()))
                     .satisfies(backedText -> this.expectBackedText(basePath, "foo", backedText, "keys"));
         } finally {
             containerClient.delete();
@@ -95,9 +95,9 @@ class LargeMessageStoringClientAzureIntegrationTest extends AzureBlobStorageInte
                 .toBytes();
     }
 
-    private LargeMessageStoringClient createStorer(final Map<String, Object> baseProperties) {
+    private LargeMessageStoringClient createStorer(final Map<String, Object> baseProperties, final boolean isKey) {
         final Map<String, Object> properties = this.createProperties(baseProperties);
         final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
-        return config.getStorer();
+        return config.getStorer(isKey);
     }
 }

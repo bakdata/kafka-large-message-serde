@@ -66,11 +66,11 @@ class LargeMessageRetrievingClientS3IntegrationTest {
         return serializeUri(uri);
     }
 
-    private static LargeMessageRetrievingClient createRetriever() {
+    private static LargeMessageRetrievingClient createRetriever(final boolean isKey) {
         final Map<String, Object> properties = createProperties();
         final ConfigDef configDef = AbstractLargeMessageConfig.baseConfigDef();
         final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(configDef, properties);
-        return config.getRetriever();
+        return config.getRetriever(isKey);
     }
 
     @Test
@@ -80,8 +80,8 @@ class LargeMessageRetrievingClientS3IntegrationTest {
         s3.createBucket(bucket);
         final String key = "key";
         store(bucket, key, "foo");
-        final LargeMessageRetrievingClient retriever = createRetriever();
-        assertThat(retriever.retrieveBytes(createBackedText(bucket, key), new RecordHeaders(), false))
+        final LargeMessageRetrievingClient retriever = createRetriever(false);
+        assertThat(retriever.retrieveBytes(createBackedText(bucket, key), new RecordHeaders()))
                 .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
         s3.deleteBucket(bucket);
     }

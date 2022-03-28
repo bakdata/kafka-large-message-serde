@@ -45,8 +45,8 @@ public class LargeMessageConverter implements Converter {
     @Override
     public void configure(final Map<String, ?> configs, final boolean isKey) {
         final LargeMessageConverterConfig config = new LargeMessageConverterConfig(configs);
-        this.storingClient = config.getStorer();
-        this.retrievingClient = config.getRetriever();
+        this.storingClient = config.getStorer(isKey);
+        this.retrievingClient = config.getRetriever(isKey);
         this.isKey = isKey;
         this.converter = config.getConverter();
         this.converter.configure(configs, isKey);
@@ -65,7 +65,7 @@ public class LargeMessageConverter implements Converter {
     @Override
     public byte[] fromConnectData(final String topic, final Headers headers, final Schema schema, final Object value) {
         final byte[] inner = this.converter.fromConnectData(topic, schema, value);
-        return this.storingClient.storeBytes(topic, inner, this.isKey, headers);
+        return this.storingClient.storeBytes(topic, inner, headers);
     }
 
     /**
@@ -80,7 +80,7 @@ public class LargeMessageConverter implements Converter {
 
     @Override
     public SchemaAndValue toConnectData(final String topic, final Headers headers, final byte[] value) {
-        final byte[] inner = this.retrievingClient.retrieveBytes(value, headers, this.isKey);
+        final byte[] inner = this.retrievingClient.retrieveBytes(value, headers);
         return this.converter.toConnectData(topic, headers, inner);
     }
 

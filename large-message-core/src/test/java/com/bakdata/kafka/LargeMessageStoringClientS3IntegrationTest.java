@@ -109,10 +109,11 @@ class LargeMessageStoringClientS3IntegrationTest {
         }
     }
 
-    private static LargeMessageStoringClient createStorer(final Map<String, Object> baseProperties) {
+    private static LargeMessageStoringClient createStorer(final Map<String, Object> baseProperties,
+            final boolean isKey) {
         final Map<String, Object> properties = createProperties(baseProperties);
         final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
-        return config.getStorer();
+        return config.getStorer(isKey);
     }
 
     private static byte[] serialize(final String s) {
@@ -125,8 +126,8 @@ class LargeMessageStoringClientS3IntegrationTest {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
                 .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE)
                 .build();
-        final LargeMessageStoringClient storer = createStorer(properties);
-        assertThat(storer.storeBytes(null, serialize("foo"), isKey, new RecordHeaders()))
+        final LargeMessageStoringClient storer = createStorer(properties, isKey);
+        assertThat(storer.storeBytes(null, serialize("foo"), new RecordHeaders()))
                 .satisfies(backedText -> expectNonBackedText("foo", backedText));
     }
 
@@ -140,8 +141,8 @@ class LargeMessageStoringClientS3IntegrationTest {
                 .build();
         final AmazonS3 s3 = S3_MOCK.createS3Client();
         s3.createBucket(bucket);
-        final LargeMessageStoringClient storer = createStorer(properties);
-        assertThat(storer.storeBytes(TOPIC, serialize("foo"), true, new RecordHeaders()))
+        final LargeMessageStoringClient storer = createStorer(properties, true);
+        assertThat(storer.storeBytes(TOPIC, serialize("foo"), new RecordHeaders()))
                 .satisfies(backedText -> expectBackedText(basePath, "foo", backedText, "keys"));
         s3.deleteBucket(bucket);
     }
@@ -157,9 +158,9 @@ class LargeMessageStoringClientS3IntegrationTest {
                 .build();
         final AmazonS3 s3 = S3_MOCK.createS3Client();
         s3.createBucket(bucket);
-        final LargeMessageStoringClient storer = createStorer(properties);
+        final LargeMessageStoringClient storer = createStorer(properties, true);
         when(idGenerator.generateId("foo".getBytes())).thenReturn("bar");
-        assertThat(storer.storeBytes(TOPIC, serialize("foo"), true, new RecordHeaders()))
+        assertThat(storer.storeBytes(TOPIC, serialize("foo"), new RecordHeaders()))
                 .satisfies(backedText -> {
                     final BlobStorageURI uri = deserializeUriWithFlag(backedText);
                     expectBackedText(basePath, "foo", uri, "keys");

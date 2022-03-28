@@ -64,25 +64,24 @@ class LargeMessageConverterTest {
     private static final Converter STRING_CONVERTER = new StringConverter();
     private static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
     private static final Deserializer<String> STRING_DESERIALIZER = new StringDeserializer();
-    private static final LargeMessagePayloadProtocol HEADER_PROTOCOL = new HeaderLargeMessagePayloadProtocol();
     private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
     private final AmazonS3 s3Client = S3_MOCK.createS3Client();
     private LargeMessageConverter converter = null;
 
     private static byte[] serialize(final String uri) {
-        return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders(), false);
+        return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders());
     }
 
     private static byte[] serialize(final String uri, final Headers headers, final boolean isKey) {
-        return HEADER_PROTOCOL.serialize(ofUri(uri), headers, isKey);
+        return new HeaderLargeMessagePayloadProtocol(isKey).serialize(ofUri(uri), headers);
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return BYTE_FLAG_PROTOCOL.serialize(ofBytes(bytes), new RecordHeaders(), false);
+        return BYTE_FLAG_PROTOCOL.serialize(ofBytes(bytes), new RecordHeaders());
     }
 
     private static byte[] serialize(final byte[] bytes, final Headers headers, final boolean isKey) {
-        return HEADER_PROTOCOL.serialize(ofBytes(bytes), headers, isKey);
+        return new HeaderLargeMessagePayloadProtocol(isKey).serialize(ofBytes(bytes), headers);
     }
 
     private static byte[] createBackedText(final String bucket, final String key) {

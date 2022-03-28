@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2019 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -59,7 +59,7 @@ public class LargeMessageSerializer<T> implements Serializer<T> {
         final LargeMessageSerdeConfig serdeConfig = new LargeMessageSerdeConfig(configs);
         final Serde<T> serde = isKey ? serdeConfig.getKeySerde() : serdeConfig.getValueSerde();
         this.serializer = serde.serializer();
-        this.client = serdeConfig.getStorer();
+        this.client = serdeConfig.getStorer(isKey);
         this.serializer.configure(configs, isKey);
         this.isKey = isKey;
     }
@@ -79,7 +79,7 @@ public class LargeMessageSerializer<T> implements Serializer<T> {
         Objects.requireNonNull(this.serializer);
         Objects.requireNonNull(this.client);
         final byte[] bytes = this.serializer.serialize(topic, headers, data);
-        return this.client.storeBytes(topic, bytes, this.isKey, headers);
+        return this.client.storeBytes(topic, bytes, headers);
     }
 
     @Override

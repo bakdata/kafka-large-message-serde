@@ -221,19 +221,20 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         return new NoBlobStorageClient();
     }
 
-    public LargeMessageRetrievingClient getRetriever() {
-        return new LargeMessageRetrievingClient(this.clientFactories);
+    public LargeMessageRetrievingClient getRetriever(final boolean isKey) {
+        return LargeMessageRetrievingClient.create(this.clientFactories, isKey);
     }
 
-    public LargeMessageStoringClient getStorer() {
+    public LargeMessageStoringClient getStorer(final boolean isKey) {
         final BlobStorageClient client = this.getClient();
         return LargeMessageStoringClient.builder()
                 .client(client)
                 .basePath(this.getBasePath().orElse(null))
                 .maxSize(this.getMaxSize())
                 .idGenerator(this.getConfiguredInstance(ID_GENERATOR_CONFIG, IdGenerator.class))
-                .protocol(this.getBoolean(USE_HEADERS_CONFIG) ? new HeaderLargeMessagePayloadProtocol()
+                .protocol(this.getBoolean(USE_HEADERS_CONFIG) ? new HeaderLargeMessagePayloadProtocol(isKey)
                         : new ByteFlagLargeMessagePayloadProtocol())
+                .isKey(isKey)
                 .build();
     }
 

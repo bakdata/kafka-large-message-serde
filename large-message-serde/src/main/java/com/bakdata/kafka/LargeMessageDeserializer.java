@@ -58,7 +58,7 @@ public class LargeMessageDeserializer<T> implements Deserializer<T> {
         final LargeMessageSerdeConfig serdeConfig = new LargeMessageSerdeConfig(configs);
         final Serde<T> serde = isKey ? serdeConfig.getKeySerde() : serdeConfig.getValueSerde();
         this.deserializer = serde.deserializer();
-        this.client = serdeConfig.getRetriever();
+        this.client = serdeConfig.getRetriever(isKey);
         this.deserializer.configure(configs, isKey);
         this.isKey = isKey;
     }
@@ -77,7 +77,7 @@ public class LargeMessageDeserializer<T> implements Deserializer<T> {
     public T deserialize(final String topic, final Headers headers, final byte[] data) {
         Objects.requireNonNull(this.deserializer);
         Objects.requireNonNull(this.client);
-        final byte[] bytes = this.client.retrieveBytes(data, headers, this.isKey);
+        final byte[] bytes = this.client.retrieveBytes(data, headers);
         final T deserialized = this.deserializer.deserialize(topic, headers, bytes);
         // remove all headers associated with large message because the record might be serialized with different flags
         headers.remove(getHeaderName(this.isKey));

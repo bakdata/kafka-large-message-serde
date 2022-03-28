@@ -67,24 +67,23 @@ class LargeMessageDeserializerTest {
             .withSecureConnection(false).build();
     private static final String INPUT_TOPIC = "input";
     private static final String OUTPUT_TOPIC = "output";
-    private static final LargeMessagePayloadProtocol HEADER_PROTOCOL = new HeaderLargeMessagePayloadProtocol();
     private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
     private TestTopology<Integer, String> topology = null;
 
     private static byte[] serializeUri(final String uri) {
-        return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders(), false);
+        return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders());
     }
 
     private static byte[] serializeUri(final String uri, final Headers headers, final boolean isKey) {
-        return HEADER_PROTOCOL.serialize(ofUri(uri), headers, isKey);
+        return new HeaderLargeMessagePayloadProtocol(isKey).serialize(ofUri(uri), headers);
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return BYTE_FLAG_PROTOCOL.serialize(ofBytes(bytes), new RecordHeaders(), false);
+        return BYTE_FLAG_PROTOCOL.serialize(ofBytes(bytes), new RecordHeaders());
     }
 
     private static byte[] serialize(final byte[] bytes, final Headers headers, final boolean isKey) {
-        return HEADER_PROTOCOL.serialize(ofBytes(bytes), headers, isKey);
+        return new HeaderLargeMessagePayloadProtocol(isKey).serialize(ofBytes(bytes), headers);
     }
 
     private static Properties createProperties() {

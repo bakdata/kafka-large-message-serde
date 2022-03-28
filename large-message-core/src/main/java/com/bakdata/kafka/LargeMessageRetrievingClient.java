@@ -24,13 +24,12 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.usesHeaders;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
+import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,21 +39,22 @@ import org.apache.kafka.common.header.Headers;
  * Client for retrieving actual bytes of messages stored with {@link LargeMessageStoringClient}.
  */
 @Slf4j
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class LargeMessageRetrievingClient {
 
     private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
-    private static final LargeMessagePayloadProtocol HEADER_PROTOCOL = new HeaderLargeMessagePayloadProtocol();
+    private final @NonNull HeaderLargeMessagePayloadProtocol headerProtocol;
     private final @NonNull Map<String, Supplier<BlobStorageClient>> clientFactories;
     private final @NonNull Map<String, BlobStorageClient> clientCache = new HashMap<>();
+
+    public static LargeMessageRetrievingClient create(final Map<String, Supplier<BlobStorageClient>> clientFactories,
+            final boolean isKey) {
+        return new LargeMessageRetrievingClient(new HeaderLargeMessagePayloadProtocol(isKey), clientFactories);
+    }
 
     static BlobStorageURI deserializeUri(final byte[] uriBytes) {
         final String rawUri = LargeMessagePayload.asUri(uriBytes);
         return BlobStorageURI.create(rawUri);
-    }
-
-    private static LargeMessagePayloadProtocol getProtocol(final Headers headers, final boolean isKey) {
-        return usesHeaders(headers, isKey) ? HEADER_PROTOCOL : BYTE_FLAG_PROTOCOL;
     }
 
     /**
@@ -62,21 +62,24 @@ public class LargeMessageRetrievingClient {
      *
      * @param data payload
      * @param headers headers that might contain flag to distinguish blob storage backed messages
-     * @param isKey whether the payload represents the key of a message
      * @return actual payload retrieved from blob storage
      */
-    public byte[] retrieveBytes(final byte[] data, final Headers headers, final boolean isKey) {
+    public byte[] retrieveBytes(final byte[] data, final Headers headers) {
         if (data == null) {
             return null;
         }
-        final LargeMessagePayloadProtocol protocol = getProtocol(headers, isKey);
-        final LargeMessagePayload payload = protocol.deserialize(data, headers, isKey);
+        final LargeMessagePayloadProtocol protocol = this.getProtocol(headers);
+        final LargeMessagePayload payload = protocol.deserialize(data, headers);
         final byte[] deserializedData = payload.getData();
         if (payload.isBacked()) {
             return this.retrieveBackedBytes(deserializedData);
         } else {
             return deserializedData;
         }
+    }
+
+    private LargeMessagePayloadProtocol getProtocol(final Headers headers) {
+        return this.headerProtocol.usesHeaders(headers) ? this.headerProtocol : BYTE_FLAG_PROTOCOL;
     }
 
     private byte[] retrieveBackedBytes(final byte[] data) {

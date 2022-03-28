@@ -58,8 +58,8 @@ class LargeMessageRetrievingClientAzureIntegrationTest extends AzureBlobStorageI
             containerClient.create();
             final String key = "key";
             store(containerClient, key, "foo");
-            final LargeMessageRetrievingClient retriever = this.createRetriever();
-            assertThat(retriever.retrieveBytes(createBackedText(bucket, key), new RecordHeaders(), false))
+            final LargeMessageRetrievingClient retriever = this.createRetriever(false);
+            assertThat(retriever.retrieveBytes(createBackedText(bucket, key), new RecordHeaders()))
                     .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
         } finally {
             containerClient.delete();
@@ -72,11 +72,11 @@ class LargeMessageRetrievingClientAzureIntegrationTest extends AzureBlobStorageI
                 .build();
     }
 
-    private LargeMessageRetrievingClient createRetriever() {
+    private LargeMessageRetrievingClient createRetriever(final boolean isKey) {
         final Map<String, Object> properties = this.createProperties();
         final ConfigDef configDef = AbstractLargeMessageConfig.baseConfigDef();
         final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(configDef, properties);
-        return config.getRetriever();
+        return config.getRetriever(isKey);
     }
 
 }

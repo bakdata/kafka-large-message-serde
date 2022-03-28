@@ -73,7 +73,7 @@ class LargeMessageRetrievingClientTest {
     }
 
     static byte[] serializeUri(final String uri) {
-        return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders(), false);
+        return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders());
     }
 
     private static void assertHasHeader(final Headers headers, final boolean isKey) {
@@ -81,7 +81,7 @@ class LargeMessageRetrievingClientTest {
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return BYTE_FLAG_PROTOCOL.serialize(ofBytes(bytes), new RecordHeaders(), false);
+        return BYTE_FLAG_PROTOCOL.serialize(ofBytes(bytes), new RecordHeaders());
     }
 
     private static byte[] createNonBackedText(final String text) {
@@ -118,17 +118,17 @@ class LargeMessageRetrievingClientTest {
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     void shouldReadNonBackedText(final boolean isKey) {
-        final LargeMessageRetrievingClient retriever = this.createRetriever();
-        assertThat(retriever.retrieveBytes(createNonBackedText("foo"), new RecordHeaders(), isKey))
+        final LargeMessageRetrievingClient retriever = this.createRetriever(isKey);
+        assertThat(retriever.retrieveBytes(createNonBackedText("foo"), new RecordHeaders()))
                 .isEqualTo(serialize("foo"));
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     void shouldReadNonBackedTextWithHeaders(final boolean isKey) {
-        final LargeMessageRetrievingClient retriever = this.createRetriever();
+        final LargeMessageRetrievingClient retriever = this.createRetriever(isKey);
         final Headers headers = nonBackedHeaders(isKey);
-        assertThat(retriever.retrieveBytes(serialize("foo"), headers, isKey))
+        assertThat(retriever.retrieveBytes(serialize("foo"), headers))
                 .isEqualTo(serialize("foo"));
         assertHasHeader(headers, isKey);
     }
@@ -136,8 +136,8 @@ class LargeMessageRetrievingClientTest {
     @ParameterizedTest
     @MethodSource("generateHeaders")
     void shouldReadNull(final Headers headers, final boolean isKey) {
-        final LargeMessageRetrievingClient retriever = this.createRetriever();
-        assertThat(retriever.retrieveBytes(null, headers, isKey))
+        final LargeMessageRetrievingClient retriever = this.createRetriever(isKey);
+        assertThat(retriever.retrieveBytes(null, headers))
                 .isNull();
     }
 
@@ -147,8 +147,8 @@ class LargeMessageRetrievingClientTest {
         final String bucket = "bucket";
         final String key = "key";
         when(this.client.getObject(bucket, key)).thenReturn(serialize("foo"));
-        final LargeMessageRetrievingClient retriever = this.createRetriever();
-        assertThat(retriever.retrieveBytes(createBackedText(bucket, key), new RecordHeaders(), isKey))
+        final LargeMessageRetrievingClient retriever = this.createRetriever(isKey);
+        assertThat(retriever.retrieveBytes(createBackedText(bucket, key), new RecordHeaders()))
                 .isEqualTo(serialize("foo"));
     }
 
@@ -158,9 +158,9 @@ class LargeMessageRetrievingClientTest {
         final String bucket = "bucket";
         final String key = "key";
         when(this.client.getObject(bucket, key)).thenReturn(serialize("foo"));
-        final LargeMessageRetrievingClient retriever = this.createRetriever();
+        final LargeMessageRetrievingClient retriever = this.createRetriever(isKey);
         final Headers headers = backedHeaders(isKey);
-        assertThat(retriever.retrieveBytes(createBackedText_(bucket, key), headers, isKey))
+        assertThat(retriever.retrieveBytes(createBackedText_(bucket, key), headers))
                 .isEqualTo(serialize("foo"));
         assertHasHeader(headers, isKey);
     }
@@ -168,30 +168,30 @@ class LargeMessageRetrievingClientTest {
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     void shouldThrowExceptionOnErroneousFlag(final boolean isKey) {
-        final LargeMessageRetrievingClient retriever = this.createRetriever();
+        final LargeMessageRetrievingClient retriever = this.createRetriever(isKey);
         final Headers headers = new RecordHeaders();
         assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> retriever.retrieveBytes(new byte[]{2}, headers, isKey))
+                .isThrownBy(() -> retriever.retrieveBytes(new byte[]{2}, headers))
                 .withMessage("Message can only be marked as backed or non-backed");
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     void shouldThrowExceptionOnErroneousFlagWithHeaders(final boolean isKey) {
-        final LargeMessageRetrievingClient retriever = this.createRetriever();
+        final LargeMessageRetrievingClient retriever = this.createRetriever(isKey);
         final Headers headers = newHeaders((byte) 2, isKey);
         assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> retriever.retrieveBytes(new byte[]{}, headers, isKey))
+                .isThrownBy(() -> retriever.retrieveBytes(new byte[]{}, headers))
                 .withMessage("Message can only be marked as backed or non-backed");
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     void shouldThrowExceptionOnErroneousUri(final boolean isKey) {
-        final LargeMessageRetrievingClient retriever = this.createRetriever();
+        final LargeMessageRetrievingClient retriever = this.createRetriever(isKey);
         final Headers headers = new RecordHeaders();
         assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> retriever.retrieveBytes(new byte[]{1, 0}, headers, isKey))
+                .isThrownBy(() -> retriever.retrieveBytes(new byte[]{1, 0}, headers))
                 .withCauseInstanceOf(URISyntaxException.class)
                 .withMessage("Invalid URI");
     }
@@ -199,10 +199,10 @@ class LargeMessageRetrievingClientTest {
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
     void shouldThrowExceptionOnErroneousUriWithHeaders(final boolean isKey) {
-        final LargeMessageRetrievingClient retriever = this.createRetriever();
+        final LargeMessageRetrievingClient retriever = this.createRetriever(isKey);
         final Headers headers = backedHeaders(isKey);
         assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> retriever.retrieveBytes(new byte[]{0}, headers, isKey))
+                .isThrownBy(() -> retriever.retrieveBytes(new byte[]{0}, headers))
                 .withCauseInstanceOf(URISyntaxException.class)
                 .withMessage("Invalid URI");
     }
@@ -213,11 +213,11 @@ class LargeMessageRetrievingClientTest {
         final String bucket = "bucket";
         final String key = "key";
         when(this.client.getObject(bucket, key)).thenThrow(UncheckedIOException.class);
-        final LargeMessageRetrievingClient retriever = this.createRetriever();
+        final LargeMessageRetrievingClient retriever = this.createRetriever(isKey);
         final byte[] backedText = createBackedText(bucket, key);
         final Headers headers = new RecordHeaders();
         assertThatExceptionOfType(UncheckedIOException.class)
-                .isThrownBy(() -> retriever.retrieveBytes(backedText, headers, isKey));
+                .isThrownBy(() -> retriever.retrieveBytes(backedText, headers));
     }
 
     @ParameterizedTest
@@ -226,15 +226,15 @@ class LargeMessageRetrievingClientTest {
         final String bucket = "bucket";
         final String key = "key";
         when(this.client.getObject(bucket, key)).thenThrow(UncheckedIOException.class);
-        final LargeMessageRetrievingClient retriever = this.createRetriever();
+        final LargeMessageRetrievingClient retriever = this.createRetriever(isKey);
         final byte[] backedText = createBackedText_(bucket, key);
         final Headers headers = backedHeaders(isKey);
         assertThatExceptionOfType(UncheckedIOException.class)
-                .isThrownBy(() -> retriever.retrieveBytes(backedText, headers, isKey));
+                .isThrownBy(() -> retriever.retrieveBytes(backedText, headers));
     }
 
-    private LargeMessageRetrievingClient createRetriever() {
-        return new LargeMessageRetrievingClient(Collections.singletonMap("foo", () -> this.client));
+    private LargeMessageRetrievingClient createRetriever(final boolean isKey) {
+        return LargeMessageRetrievingClient.create(Collections.singletonMap("foo", () -> this.client), isKey);
     }
 
 }
