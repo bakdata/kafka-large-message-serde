@@ -53,8 +53,8 @@ public class LargeMessageRetrievingClient {
         return BlobStorageURI.create(rawUri);
     }
 
-    private static LargeMessagePayloadProtocol getProtocol(final Headers headers) {
-        return usesHeaders(headers) ? HEADER_PROTOCOL : BYTE_FLAG_PROTOCOL;
+    private static LargeMessagePayloadProtocol getProtocol(final Headers headers, final boolean isKey) {
+        return usesHeaders(headers, isKey) ? HEADER_PROTOCOL : BYTE_FLAG_PROTOCOL;
     }
 
     /**
@@ -62,14 +62,15 @@ public class LargeMessageRetrievingClient {
      *
      * @param data payload
      * @param headers headers that might contain flag to distinguish blob storage backed messages
+     * @param isKey whether the payload represents the key of a message
      * @return actual payload retrieved from blob storage
      */
-    public byte[] retrieveBytes(final byte[] data, final Headers headers) {
+    public byte[] retrieveBytes(final byte[] data, final Headers headers, final boolean isKey) {
         if (data == null) {
             return null;
         }
-        final LargeMessagePayloadProtocol protocol = getProtocol(headers);
-        final LargeMessagePayload payload = protocol.deserialize(data, headers);
+        final LargeMessagePayloadProtocol protocol = getProtocol(headers, isKey);
+        final LargeMessagePayload payload = protocol.deserialize(data, headers, isKey);
         final byte[] deserializedData = payload.getData();
         if (payload.isBacked()) {
             return this.retrieveBackedBytes(deserializedData);

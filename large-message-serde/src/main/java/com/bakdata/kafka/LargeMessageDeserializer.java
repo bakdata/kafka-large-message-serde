@@ -24,7 +24,7 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.HEADER;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.getHeaderName;
 
 import java.util.Map;
 import java.util.Objects;
@@ -51,6 +51,7 @@ import org.apache.kafka.common.serialization.Serde;
 public class LargeMessageDeserializer<T> implements Deserializer<T> {
     private LargeMessageRetrievingClient client;
     private Deserializer<? extends T> deserializer;
+    private boolean isKey;
 
     @Override
     public void configure(final Map<String, ?> configs, final boolean isKey) {
@@ -59,6 +60,7 @@ public class LargeMessageDeserializer<T> implements Deserializer<T> {
         this.deserializer = serde.deserializer();
         this.client = serdeConfig.getRetriever();
         this.deserializer.configure(configs, isKey);
+        this.isKey = isKey;
     }
 
     /**
@@ -75,10 +77,10 @@ public class LargeMessageDeserializer<T> implements Deserializer<T> {
     public T deserialize(final String topic, final Headers headers, final byte[] data) {
         Objects.requireNonNull(this.deserializer);
         Objects.requireNonNull(this.client);
-        final byte[] bytes = this.client.retrieveBytes(data, headers);
+        final byte[] bytes = this.client.retrieveBytes(data, headers, this.isKey);
         final T deserialized = this.deserializer.deserialize(topic, headers, bytes);
         // remove all headers associated with large message because the record might be serialized with different flags
-        headers.remove(HEADER);
+        headers.remove(getHeaderName(this.isKey));
         return deserialized;
     }
 

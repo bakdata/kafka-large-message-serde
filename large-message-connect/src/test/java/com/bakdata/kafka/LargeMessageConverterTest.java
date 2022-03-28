@@ -26,7 +26,7 @@ package com.bakdata.kafka;
 
 
 import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
-import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.HEADER;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.getHeaderName;
 import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
 import static com.bakdata.kafka.LargeMessagePayload.ofUri;
 import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
@@ -70,19 +70,19 @@ class LargeMessageConverterTest {
     private LargeMessageConverter converter = null;
 
     private static byte[] serialize(final String uri) {
-        return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders());
+        return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders(), false);
     }
 
-    private static byte[] serialize(final String uri, final Headers headers) {
-        return HEADER_PROTOCOL.serialize(ofUri(uri), headers);
+    private static byte[] serialize(final String uri, final Headers headers, final boolean isKey) {
+        return HEADER_PROTOCOL.serialize(ofUri(uri), headers, isKey);
     }
 
     private static byte[] serialize(final byte[] bytes) {
-        return BYTE_FLAG_PROTOCOL.serialize(ofBytes(bytes), new RecordHeaders());
+        return BYTE_FLAG_PROTOCOL.serialize(ofBytes(bytes), new RecordHeaders(), false);
     }
 
-    private static byte[] serialize(final byte[] bytes, final Headers headers) {
-        return HEADER_PROTOCOL.serialize(ofBytes(bytes), headers);
+    private static byte[] serialize(final byte[] bytes, final Headers headers, final boolean isKey) {
+        return HEADER_PROTOCOL.serialize(ofBytes(bytes), headers, isKey);
     }
 
     private static byte[] createBackedText(final String bucket, final String key) {
@@ -90,9 +90,10 @@ class LargeMessageConverterTest {
         return serialize(uri);
     }
 
-    private static byte[] createBackedText(final String bucket, final String key, final Headers headers) {
+    private static byte[] createBackedText(final String bucket, final String key, final Headers headers,
+            final boolean isKey) {
         final String uri = "s3://" + bucket + "/" + key;
-        return serialize(uri, headers);
+        return serialize(uri, headers, isKey);
     }
 
     private static byte[] readBytes(final BlobStorageURI uri) {
@@ -127,8 +128,8 @@ class LargeMessageConverterTest {
         return serialize(STRING_SERIALIZER.serialize(null, text));
     }
 
-    private static byte[] createNonBackedText(final String text, final Headers headers) {
-        return serialize(STRING_SERIALIZER.serialize(null, text), headers);
+    private static byte[] createNonBackedText(final String text, final Headers headers, final boolean isKey) {
+        return serialize(STRING_SERIALIZER.serialize(null, text), headers, isKey);
     }
 
     private static BlobStorageURI deserializeUriWithFlag(final byte[] data) {
@@ -143,10 +144,10 @@ class LargeMessageConverterTest {
     }
 
     private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
-            final String type, final Headers headers) {
+            final String type, final Headers headers, final boolean isKey) {
         final BlobStorageURI uri = deserializeUri(s3BackedText);
         expectBackedText(uri, basePath, type, expected);
-        assertHasHeader(headers);
+        assertHasHeader(headers, isKey);
     }
 
     private static void expectBackedText(final BlobStorageURI uri, final String basePath, final String type,
@@ -163,15 +164,16 @@ class LargeMessageConverterTest {
                 .isEqualTo(expected);
     }
 
-    private static void expectNonBackedText(final String expected, final byte[] s3BackedText, final Headers headers) {
+    private static void expectNonBackedText(final String expected, final byte[] s3BackedText, final Headers headers,
+            final boolean isKey) {
         assertThat(STRING_DESERIALIZER.deserialize(null, s3BackedText))
                 .isInstanceOf(String.class)
                 .isEqualTo(expected);
-        assertHasHeader(headers);
+        assertHasHeader(headers, isKey);
     }
 
-    private static void assertHasHeader(final Headers headers) {
-        assertThat(headers.headers(HEADER)).hasSize(1);
+    private static void assertHasHeader(final Headers headers, final boolean isKey) {
+        assertThat(headers.headers(getHeaderName(isKey))).hasSize(1);
     }
 
     @ParameterizedTest
@@ -193,9 +195,9 @@ class LargeMessageConverterTest {
         final SchemaAndValue expected = toConnectData(text);
         final Headers headers = new RecordHeaders();
         final SchemaAndValue schemaAndValue =
-                this.converter.toConnectData(TOPIC, headers, createNonBackedText(text, headers));
+                this.converter.toConnectData(TOPIC, headers, createNonBackedText(text, headers, isKey));
         assertThat(schemaAndValue).isEqualTo(expected);
-        assertHasHeader(headers);
+        assertHasHeader(headers, isKey);
     }
 
     @ParameterizedTest
@@ -234,9 +236,9 @@ class LargeMessageConverterTest {
         this.store(bucket, key, text, TOPIC);
         final Headers headers = new RecordHeaders();
         final SchemaAndValue schemaAndValue =
-                this.converter.toConnectData(TOPIC, headers, createBackedText(bucket, key, headers));
+                this.converter.toConnectData(TOPIC, headers, createBackedText(bucket, key, headers, isKey));
         assertThat(schemaAndValue).isEqualTo(expected);
-        assertHasHeader(headers);
+        assertHasHeader(headers, isKey);
     }
 
     @ParameterizedTest
@@ -274,7 +276,7 @@ class LargeMessageConverterTest {
 
         final Headers headers = new RecordHeaders();
         final byte[] bytes = this.converter.fromConnectData(TOPIC, headers, data.schema(), data.value());
-        expectBackedText(basePath, text, bytes, "keys", headers);
+        expectBackedText(basePath, text, bytes, "keys", headers, true);
     }
 
     @Test
@@ -303,7 +305,7 @@ class LargeMessageConverterTest {
 
         final Headers headers = new RecordHeaders();
         final byte[] bytes = this.converter.fromConnectData(TOPIC, headers, data.schema(), data.value());
-        expectBackedText(basePath, text, bytes, "values", headers);
+        expectBackedText(basePath, text, bytes, "values", headers, false);
     }
 
     @ParameterizedTest
@@ -336,7 +338,7 @@ class LargeMessageConverterTest {
         final SchemaAndValue data = toConnectData(text);
         final Headers headers = new RecordHeaders();
         final byte[] bytes = this.converter.fromConnectData(TOPIC, headers, data.schema(), data.value());
-        expectNonBackedText(text, bytes, headers);
+        expectNonBackedText(text, bytes, headers, isKey);
     }
 
     @ParameterizedTest

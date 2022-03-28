@@ -36,9 +36,10 @@ public interface LargeMessagePayloadProtocol {
      *
      * @param payload large message payload
      * @param headers headers that might be used to store information for deserialization
+     * @param isKey whether payload represents a key or value
      * @return bytes representing serialized payload
      */
-    byte[] serialize(LargeMessagePayload payload, Headers headers);
+    byte[] serialize(LargeMessagePayload payload, Headers headers, boolean isKey);
 
     /**
      * Deserialize a large message payload from bytes and headers. Headers might be modified to remove deserialization
@@ -46,7 +47,8 @@ public interface LargeMessagePayloadProtocol {
      *
      * @param bytes serialized large message payload
      * @param headers headers that might be queried to retrieve information for deserialization
+     * @param isKey whether payload represents a key or value
      * @return deserialized payload
      */
-    LargeMessagePayload deserialize(byte[] bytes, Headers headers);
+    LargeMessagePayload deserialize(byte[] bytes, Headers headers, boolean isKey);
 }

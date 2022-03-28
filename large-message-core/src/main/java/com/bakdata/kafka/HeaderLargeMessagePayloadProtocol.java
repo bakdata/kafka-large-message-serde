@@ -28,33 +28,38 @@ import static com.bakdata.kafka.AbstractLargeMessageConfig.PREFIX;
 import static com.bakdata.kafka.FlagHelper.asFlag;
 import static com.bakdata.kafka.FlagHelper.isBacked;
 
-import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 
-@RequiredArgsConstructor
 final class HeaderLargeMessagePayloadProtocol implements LargeMessagePayloadProtocol {
-    static final String HEADER = "__" + PREFIX + "backed";
+    private static final String HEADER_PREFIX = "__" + PREFIX + "backed.";
+    private static final String KEY_HEADER_SUFFIX = "key";
+    private static final String VALUE_HEADER_SUFFIX = "value";
 
-    static boolean usesHeaders(final Headers headers) {
-        return headers.lastHeader(HEADER) != null;
+    static boolean usesHeaders(final Headers headers, final boolean isKey) {
+        return headers.lastHeader(getHeaderName(isKey)) != null;
     }
 
-    private static void addHeader(final Headers headers, final byte flag) {
-        headers.remove(HEADER);
-        headers.add(HEADER, new byte[]{flag});
+    static String getHeaderName(final boolean isKey) {
+        return HEADER_PREFIX + (isKey ? KEY_HEADER_SUFFIX : VALUE_HEADER_SUFFIX);
+    }
+
+    private static void addHeader(final Headers headers, final byte flag, final boolean isKey) {
+        final String header = getHeaderName(isKey);
+        headers.remove(header);
+        headers.add(header, new byte[]{flag});
     }
 
     @Override
-    public byte[] serialize(final LargeMessagePayload payload, final Headers headers) {
+    public byte[] serialize(final LargeMessagePayload payload, final Headers headers, final boolean isKey) {
         final byte flag = asFlag(payload.isBacked());
-        addHeader(headers, flag);
+        addHeader(headers, flag, isKey);
         return payload.getData();
     }
 
     @Override
-    public LargeMessagePayload deserialize(final byte[] bytes, final Headers headers) {
-        final Header header = headers.lastHeader(HEADER);
+    public LargeMessagePayload deserialize(final byte[] bytes, final Headers headers, final boolean isKey) {
+        final Header header = headers.lastHeader(getHeaderName(isKey));
         final byte flag = header.value()[0];
         return new LargeMessagePayload(isBacked(flag), bytes);
     }

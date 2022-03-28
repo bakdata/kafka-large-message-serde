@@ -25,7 +25,7 @@
 package com.bakdata.kafka;
 
 import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
-import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.HEADER;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.getHeaderName;
 import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -116,10 +116,10 @@ class LargeMessageSerializerTest {
     }
 
     private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
-            final String type, final Headers headers) {
+            final String type, final Headers headers, final boolean isKey) {
         final BlobStorageURI uri = deserializeUri(s3BackedText);
         expectBackedText(uri, basePath, type, expected);
-        assertThat(headers.headers(HEADER)).hasSize(1);
+        assertThat(headers.headers(getHeaderName(isKey))).hasSize(1);
     }
 
     private static void expectBackedText(final BlobStorageURI uri, final String basePath, final String type,
@@ -145,11 +145,12 @@ class LargeMessageSerializerTest {
                 .isEqualTo(expected);
     }
 
-    private static void expectNonBackedText(final String expected, final byte[] s3BackedText, final Headers headers) {
+    private static void expectNonBackedText(final String expected, final byte[] s3BackedText, final Headers headers,
+            final boolean isKey) {
         assertThat(STRING_DESERIALIZER.deserialize(null, s3BackedText))
                 .isInstanceOf(String.class)
                 .isEqualTo(expected);
-        assertThat(headers.headers(HEADER)).hasSize(1);
+        assertThat(headers.headers(getHeaderName(isKey))).hasSize(1);
     }
 
     @AfterEach
@@ -194,7 +195,7 @@ class LargeMessageSerializerTest {
                 .toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(record -> expectNonBackedText("foo", record.key(), record.headers()));
+                .anySatisfy(record -> expectNonBackedText("foo", record.key(), record.headers(), true));
     }
 
     @Test
@@ -251,7 +252,7 @@ class LargeMessageSerializerTest {
                 .toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(record -> expectNonBackedText("foo", record.value(), record.headers()));
+                .anySatisfy(record -> expectNonBackedText("foo", record.value(), record.headers(), false));
     }
 
     @Test
@@ -319,7 +320,7 @@ class LargeMessageSerializerTest {
                 .toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(record -> expectBackedText(basePath, "foo", record.key(), "keys", record.headers()));
+                .anySatisfy(record -> expectBackedText(basePath, "foo", record.key(), "keys", record.headers(), true));
         s3Client.deleteBucket(bucket);
     }
 
@@ -388,7 +389,8 @@ class LargeMessageSerializerTest {
                 .toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(record -> expectBackedText(basePath, "foo", record.value(), "values", record.headers()));
+                .anySatisfy(
+                        record -> expectBackedText(basePath, "foo", record.value(), "values", record.headers(), false));
         s3Client.deleteBucket(bucket);
     }
 
