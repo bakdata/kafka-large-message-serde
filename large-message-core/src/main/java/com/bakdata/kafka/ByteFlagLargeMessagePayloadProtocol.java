@@ -39,7 +39,7 @@ final class ByteFlagLargeMessagePayloadProtocol implements LargeMessagePayloadPr
     }
 
     @Override
-    public byte[] serialize(final LargeMessagePayload payload, final Headers headers) {
+    public byte[] serialize(final LargeMessagePayload payload, final Headers headers, final boolean isKey) {
         final byte[] bytes = payload.getData();
         final byte[] fullBytes = new byte[bytes.length + 1];
         fullBytes[0] = asFlag(payload.isBacked());
@@ -48,7 +48,7 @@ final class ByteFlagLargeMessagePayloadProtocol implements LargeMessagePayloadPr
     }
 
     @Override
-    public LargeMessagePayload deserialize(final byte[] data, final Headers headers) {
+    public LargeMessagePayload deserialize(final byte[] data, final Headers headers, final boolean isKey) {
         return new LargeMessagePayload(isBacked(data[0]), stripFlag(data));
     }
 }

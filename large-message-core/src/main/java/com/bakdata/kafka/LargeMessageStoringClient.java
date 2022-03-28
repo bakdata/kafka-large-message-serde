@@ -47,13 +47,13 @@ public class LargeMessageStoringClient {
     private final boolean isKey;
 
     private static byte[] serialize(final LargeMessagePayloadProtocol protocol, final String uri,
-            final Headers headers) {
-        return protocol.serialize(LargeMessagePayload.ofUri(uri), headers);
+            final Headers headers, final boolean isKey) {
+        return protocol.serialize(LargeMessagePayload.ofUri(uri), headers, isKey);
     }
 
     private static byte[] serialize(final LargeMessagePayloadProtocol protocol, final byte[] bytes,
-            final Headers headers) {
-        return protocol.serialize(LargeMessagePayload.ofBytes(bytes), headers);
+            final Headers headers, final boolean isKey) {
+        return protocol.serialize(LargeMessagePayload.ofBytes(bytes), headers, isKey);
     }
 
     private static String toString(final String s) {
@@ -75,9 +75,9 @@ public class LargeMessageStoringClient {
         if (this.needsBacking(bytes)) {
             final String key = this.createBlobStorageKey(topic, bytes);
             final String uri = this.uploadToBlobStorage(key, bytes);
-            return serialize(this.protocol, uri, headers);
+            return serialize(this.protocol, uri, headers, isKey);
         } else {
-            return serialize(this.protocol, bytes, headers);
+            return serialize(this.protocol, bytes, headers, isKey);
         }
     }
 

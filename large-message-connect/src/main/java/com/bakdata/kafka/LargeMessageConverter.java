@@ -80,7 +80,7 @@ public class LargeMessageConverter implements Converter {
 
     @Override
     public SchemaAndValue toConnectData(final String topic, final Headers headers, final byte[] value) {
-        final byte[] inner = this.retrievingClient.retrieveBytes(value, headers);
+        final byte[] inner = this.retrievingClient.retrieveBytes(value, headers, this.isKey);
         return this.converter.toConnectData(topic, headers, inner);
     }
 
