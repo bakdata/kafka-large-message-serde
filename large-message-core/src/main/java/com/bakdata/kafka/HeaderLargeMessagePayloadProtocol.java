@@ -33,15 +33,15 @@ import org.apache.kafka.common.header.Headers;
 
 final class HeaderLargeMessagePayloadProtocol implements LargeMessagePayloadProtocol {
     private static final String HEADER_PREFIX = "__" + PREFIX + "backed.";
-    private static final String KEY_HEADER_SUFFIX = "key";
-    private static final String VALUE_HEADER_SUFFIX = "value";
+    private static final String KEY_HEADER = HEADER_PREFIX + "key";
+    private static final String VALUE_HEADER = HEADER_PREFIX + "value";
 
     static boolean usesHeaders(final Headers headers, final boolean isKey) {
         return headers.lastHeader(getHeaderName(isKey)) != null;
     }
 
     static String getHeaderName(final boolean isKey) {
-        return HEADER_PREFIX + (isKey ? KEY_HEADER_SUFFIX : VALUE_HEADER_SUFFIX);
+        return isKey ? KEY_HEADER : VALUE_HEADER;
     }
 
     private static void addHeader(final Headers headers, final byte flag, final boolean isKey) {
