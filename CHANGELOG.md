@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.3.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.3.1) (2022-04-28)
+[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.3.0...2.3.1)
+
+**Merged pull requests:**
+
+- don't recompute header name each time [\#37](https://github.com/bakdata/kafka-large-message-serde/pull/37) ([@domsj](https://github.com/domsj))
+
 ## [2.3.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.3.0) (2022-03-28)
 [Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.2.1...2.3.0)
 
