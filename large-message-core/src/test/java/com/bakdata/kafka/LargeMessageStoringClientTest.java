@@ -28,6 +28,7 @@ import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
 import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
 import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.getHeaderName;
 import static com.bakdata.kafka.LargeMessagePayload.getUriBytes;
+import static com.bakdata.kafka.LargeMessageRetrievingClientTest.serializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
@@ -120,9 +121,8 @@ class LargeMessageStoringClientTest {
                 .maxSize(Integer.MAX_VALUE)
                 .build();
         final byte[] fooBytes = serialize("foo");
-        final byte[] returnBytes = {2};
-        when(this.protocol.serialize(new LargeMessagePayload(false, fooBytes), isKey)).thenReturn(returnBytes);
-        assertThat(storer.storeBytes(null, fooBytes, isKey)).isEqualTo(returnBytes);
+        assertThat(storer.storeBytes(null, fooBytes, isKey))
+                .isEqualTo(LargeMessageRetrievingClientTest.serialize(fooBytes));
     }
 
     @ParameterizedTest
@@ -177,11 +177,8 @@ class LargeMessageStoringClientTest {
                 .basePath(BlobStorageURI.create(basePath))
                 .maxSize(0)
                 .build();
-        final byte[] uriBytes = getUriBytes("uri");
-        final byte[] returnBytes = {2};
-        when(this.protocol.serialize(new LargeMessagePayload(true, uriBytes), true)).thenReturn(returnBytes);
         assertThat(storer.storeBytes(TOPIC, serialize("foo"), true))
-                .isEqualTo(returnBytes);
+                .isEqualTo(serializeUri("uri"));
     }
 
     @ParameterizedTest
@@ -236,11 +233,8 @@ class LargeMessageStoringClientTest {
                 .basePath(BlobStorageURI.create(basePath))
                 .maxSize(0)
                 .build();
-        final byte[] uriBytes = getUriBytes("uri");
-        final byte[] returnBytes = {2};
-        when(this.protocol.serialize(new LargeMessagePayload(true, uriBytes), false)).thenReturn(returnBytes);
         assertThat(storer.storeBytes(TOPIC, serialize("foo"), false))
-                .isEqualTo(returnBytes);
+                .isEqualTo(serializeUri("uri"));
     }
 
     @Test

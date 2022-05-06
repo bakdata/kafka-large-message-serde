@@ -80,7 +80,7 @@ class LargeMessageRetrievingClientTest {
         assertThat(headers.headers(getHeaderName(isKey))).hasSize(1);
     }
 
-    private static byte[] serialize(final byte[] bytes) {
+    static byte[] serialize(final byte[] bytes) {
         return BYTE_FLAG_PROTOCOL.serialize(ofBytes(bytes), new RecordHeaders(), false);
     }
 
