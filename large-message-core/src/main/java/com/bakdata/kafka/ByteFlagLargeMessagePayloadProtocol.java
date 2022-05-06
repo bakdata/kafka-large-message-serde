@@ -27,8 +27,6 @@ package com.bakdata.kafka;
 import static com.bakdata.kafka.FlagHelper.asFlag;
 import static com.bakdata.kafka.FlagHelper.isBacked;
 
-import org.apache.kafka.common.header.Headers;
-
 final class ByteFlagLargeMessagePayloadProtocol implements LargeMessagePayloadProtocol {
 
     static byte[] stripFlag(final byte[] data) {
@@ -39,7 +37,7 @@ final class ByteFlagLargeMessagePayloadProtocol implements LargeMessagePayloadPr
     }
 
     @Override
-    public byte[] serialize(final LargeMessagePayload payload, final Headers headers, final boolean isKey) {
+    public byte[] serialize(final LargeMessagePayload payload, final boolean isKey) {
         final byte[] bytes = payload.getData();
         final byte[] fullBytes = new byte[bytes.length + 1];
         fullBytes[0] = asFlag(payload.isBacked());
@@ -48,7 +46,7 @@ final class ByteFlagLargeMessagePayloadProtocol implements LargeMessagePayloadPr
     }
 
     @Override
-    public LargeMessagePayload deserialize(final byte[] data, final Headers headers, final boolean isKey) {
+    public LargeMessagePayload deserialize(final byte[] data, final boolean isKey) {
         return new LargeMessagePayload(isBacked(data[0]), stripFlag(data));
     }
 }
