@@ -76,12 +76,12 @@ class LargeMessageRetrievingClientTest {
         return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders(), false);
     }
 
-    private static void assertHasHeader(final Headers headers, final boolean isKey) {
-        assertThat(headers.headers(getHeaderName(isKey))).hasSize(1);
-    }
-
     static byte[] serialize(final byte[] bytes) {
         return BYTE_FLAG_PROTOCOL.serialize(ofBytes(bytes), new RecordHeaders(), false);
+    }
+
+    private static void assertHasHeader(final Headers headers, final boolean isKey) {
+        assertThat(headers.headers(getHeaderName(isKey))).hasSize(1);
     }
 
     private static byte[] createNonBackedText(final String text) {
