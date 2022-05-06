@@ -46,18 +46,8 @@ public class LargeMessageStoringClient {
     private final IdGenerator idGenerator;
     private final @NonNull LargeMessagePayloadProtocol protocol;
 
-    private static byte[] serialize(final LargeMessagePayloadProtocol protocol, final String uri,
-            final Headers headers, final boolean isKey) {
-        return protocol.serialize(LargeMessagePayload.ofUri(uri), headers, isKey);
-    }
-
     private static byte[] serialize(final String uri, final boolean isKey) {
         return BYTE_FLAG_PROTOCOL.serialize(LargeMessagePayload.ofUri(uri), isKey);
-    }
-
-    private static byte[] serialize(final LargeMessagePayloadProtocol protocol, final byte[] bytes,
-            final Headers headers, final boolean isKey) {
-        return protocol.serialize(LargeMessagePayload.ofBytes(bytes), headers, isKey);
     }
 
     private static byte[] serialize(final byte[] bytes, final boolean isKey) {
@@ -83,9 +73,9 @@ public class LargeMessageStoringClient {
         }
         if (this.needsBacking(bytes)) {
             final String uri = this.uploadToBlobStorage(topic, bytes, isKey);
-            return serialize(this.protocol, uri, headers, isKey);
+            return this.serialize(uri, headers, isKey);
         } else {
-            return serialize(this.protocol, bytes, headers, isKey);
+            return this.serialize(bytes, headers, isKey);
         }
     }
 
@@ -121,6 +111,14 @@ public class LargeMessageStoringClient {
         log.info("Deleting blob storage backed files for topic '{}'", topic);
         this.client.deleteAllObjects(bucketName, prefix);
         log.info("Finished deleting blob storage backed files for topic '{}'", topic);
+    }
+
+    private byte[] serialize(final String uri, final Headers headers, final boolean isKey) {
+        return this.protocol.serialize(LargeMessagePayload.ofUri(uri), headers, isKey);
+    }
+
+    private byte[] serialize(final byte[] bytes, final Headers headers, final boolean isKey) {
+        return this.protocol.serialize(LargeMessagePayload.ofBytes(bytes), headers, isKey);
     }
 
     private String uploadToBlobStorage(final String topic, final byte[] bytes, final boolean isKey) {
