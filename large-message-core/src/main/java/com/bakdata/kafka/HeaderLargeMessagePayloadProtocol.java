@@ -28,6 +28,7 @@ import static com.bakdata.kafka.AbstractLargeMessageConfig.PREFIX;
 import static com.bakdata.kafka.FlagHelper.asFlag;
 import static com.bakdata.kafka.FlagHelper.isBacked;
 
+import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 
@@ -59,7 +60,7 @@ final class HeaderLargeMessagePayloadProtocol implements LargeMessagePayloadProt
 
     @Override
     public byte[] serialize(final LargeMessagePayload payload, final boolean isKey) {
-        throw new UnsupportedOperationException("Cannot serialize without headers");
+        throw new SerializationException("Cannot serialize without headers");
     }
 
     @Override
@@ -71,6 +72,6 @@ final class HeaderLargeMessagePayloadProtocol implements LargeMessagePayloadProt
 
     @Override
     public LargeMessagePayload deserialize(final byte[] bytes, final boolean isKey) {
-        throw new UnsupportedOperationException("Cannot deserialize without headers");
+        throw new SerializationException("Cannot deserialize without headers");
     }
 }

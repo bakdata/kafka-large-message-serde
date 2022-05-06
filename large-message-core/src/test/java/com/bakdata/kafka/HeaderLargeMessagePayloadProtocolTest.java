@@ -148,6 +148,20 @@ class HeaderLargeMessagePayloadProtocolTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
+    void shouldThrowExceptionWhenCalledWithoutHeaders(final boolean isKey) {
+        final byte[] payload = {2};
+        this.softly.assertThatThrownBy(() -> new HeaderLargeMessagePayloadProtocol().deserialize(payload, isKey))
+                .isInstanceOf(SerializationException.class)
+                .hasMessage("Cannot deserialize without headers");
+        this.softly.assertThatThrownBy(
+                        () -> new HeaderLargeMessagePayloadProtocol().serialize(new LargeMessagePayload(true,
+                                payload), isKey))
+                .isInstanceOf(SerializationException.class)
+                .hasMessage("Cannot serialize without headers");
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
     void shouldDetectHeaders(final boolean isKey) {
         this.softly.assertThat(usesHeaders(new RecordHeaders()
                         .add(getHeaderName(isKey), new byte[]{1}), isKey))
