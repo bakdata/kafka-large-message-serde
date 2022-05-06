@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.3.2](https://github.com/bakdata/kafka-large-message-serde/tree/2.3.2) (2022-05-06)
+[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.3.1...2.3.2)
+
+**Merged pull requests:**
+
+- Use no headers when not passed explicitly [\#38](https://github.com/bakdata/kafka-large-message-serde/pull/38) ([@philipp94831](https://github.com/philipp94831))
+
 ## [2.3.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.3.1) (2022-04-28)
 [Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.3.0...2.3.1)
 
