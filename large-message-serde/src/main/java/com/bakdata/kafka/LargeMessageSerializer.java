@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2019 bakdata
+ * Copyright (c) 2022 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@ import java.util.Objects;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.header.Headers;
-import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
 
@@ -71,7 +70,10 @@ public class LargeMessageSerializer<T> implements Serializer<T> {
     @Deprecated
     @Override
     public byte[] serialize(final String topic, final T data) {
-        return this.serialize(topic, new RecordHeaders(), data);
+        Objects.requireNonNull(this.serializer);
+        Objects.requireNonNull(this.client);
+        final byte[] bytes = this.serializer.serialize(topic, data);
+        return this.client.storeBytes(topic, bytes, this.isKey);
     }
 
     @Override

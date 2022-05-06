@@ -71,6 +71,25 @@ public class LargeMessageRetrievingClient {
         }
         final LargeMessagePayloadProtocol protocol = getProtocol(headers, isKey);
         final LargeMessagePayload payload = protocol.deserialize(data, headers, isKey);
+        return this.getBytes(payload);
+    }
+
+    /**
+     * Retrieve a payload that may have been stored on blob storage
+     *
+     * @param data payload
+     * @param isKey whether the payload represents the key of a message
+     * @return actual payload retrieved from blob storage
+     */
+    public byte[] retrieveBytes(final byte[] data, final boolean isKey) {
+        if (data == null) {
+            return null;
+        }
+        final LargeMessagePayload payload = BYTE_FLAG_PROTOCOL.deserialize(data, isKey);
+        return this.getBytes(payload);
+    }
+
+    private byte[] getBytes(final LargeMessagePayload payload) {
         final byte[] deserializedData = payload.getData();
         if (payload.isBacked()) {
             return this.retrieveBackedBytes(deserializedData);

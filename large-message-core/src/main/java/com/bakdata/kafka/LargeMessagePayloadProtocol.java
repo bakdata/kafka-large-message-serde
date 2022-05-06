@@ -39,7 +39,18 @@ public interface LargeMessagePayloadProtocol {
      * @param isKey whether payload represents a key or value
      * @return bytes representing serialized payload
      */
-    byte[] serialize(LargeMessagePayload payload, Headers headers, boolean isKey);
+    default byte[] serialize(final LargeMessagePayload payload, final Headers headers, final boolean isKey) {
+        return this.serialize(payload, isKey);
+    }
+
+    /**
+     * Serialize a large message payload to bytes.
+     *
+     * @param payload large message payload
+     * @param isKey whether payload represents a key or value
+     * @return bytes representing serialized payload
+     */
+    byte[] serialize(LargeMessagePayload payload, boolean isKey);
 
     /**
      * Deserialize a large message payload from bytes and headers. Headers might be modified to remove deserialization
@@ -50,5 +61,16 @@ public interface LargeMessagePayloadProtocol {
      * @param isKey whether payload represents a key or value
      * @return deserialized payload
      */
-    LargeMessagePayload deserialize(byte[] bytes, Headers headers, boolean isKey);
+    default LargeMessagePayload deserialize(final byte[] bytes, final Headers headers, final boolean isKey) {
+        return this.deserialize(bytes, isKey);
+    }
+
+    /**
+     * Deserialize a large message payload from bytes and headers.
+     *
+     * @param bytes serialized large message payload
+     * @param isKey whether payload represents a key or value
+     * @return deserialized payload
+     */
+    LargeMessagePayload deserialize(byte[] bytes, boolean isKey);
 }

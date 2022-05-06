@@ -58,9 +58,19 @@ final class HeaderLargeMessagePayloadProtocol implements LargeMessagePayloadProt
     }
 
     @Override
+    public byte[] serialize(final LargeMessagePayload payload, final boolean isKey) {
+        throw new UnsupportedOperationException("Cannot serialize without headers");
+    }
+
+    @Override
     public LargeMessagePayload deserialize(final byte[] bytes, final Headers headers, final boolean isKey) {
         final Header header = headers.lastHeader(getHeaderName(isKey));
         final byte flag = header.value()[0];
         return new LargeMessagePayload(isBacked(flag), bytes);
+    }
+
+    @Override
+    public LargeMessagePayload deserialize(final byte[] bytes, final boolean isKey) {
+        throw new UnsupportedOperationException("Cannot deserialize without headers");
     }
 }

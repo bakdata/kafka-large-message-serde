@@ -26,7 +26,6 @@ package com.bakdata.kafka;
 
 import java.util.Map;
 import org.apache.kafka.common.header.Headers;
-import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.storage.Converter;
@@ -59,12 +58,13 @@ public class LargeMessageConverter implements Converter {
     @Deprecated
     @Override
     public byte[] fromConnectData(final String topic, final Schema schema, final Object value) {
-        return this.fromConnectData(topic, new RecordHeaders(), schema, value);
+        final byte[] inner = this.converter.fromConnectData(topic, schema, value);
+        return this.storingClient.storeBytes(topic, inner, this.isKey);
     }
 
     @Override
     public byte[] fromConnectData(final String topic, final Headers headers, final Schema schema, final Object value) {
-        final byte[] inner = this.converter.fromConnectData(topic, schema, value);
+        final byte[] inner = this.converter.fromConnectData(topic, headers, schema, value);
         return this.storingClient.storeBytes(topic, inner, this.isKey, headers);
     }
 
@@ -75,7 +75,8 @@ public class LargeMessageConverter implements Converter {
     @Deprecated
     @Override
     public SchemaAndValue toConnectData(final String topic, final byte[] value) {
-        return this.toConnectData(topic, new RecordHeaders(), value);
+        final byte[] inner = this.retrievingClient.retrieveBytes(value, this.isKey);
+        return this.converter.toConnectData(topic, inner);
     }
 
     @Override

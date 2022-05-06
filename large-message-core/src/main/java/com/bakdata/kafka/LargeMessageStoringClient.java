@@ -39,6 +39,7 @@ public class LargeMessageStoringClient {
 
     private static final String VALUE_PREFIX = "values";
     private static final String KEY_PREFIX = "keys";
+    private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
     private final @NonNull BlobStorageClient client;
     private final BlobStorageURI basePath;
     private final int maxSize;
@@ -50,9 +51,17 @@ public class LargeMessageStoringClient {
         return protocol.serialize(LargeMessagePayload.ofUri(uri), headers, isKey);
     }
 
+    private static byte[] serialize(final String uri, final boolean isKey) {
+        return BYTE_FLAG_PROTOCOL.serialize(LargeMessagePayload.ofUri(uri), isKey);
+    }
+
     private static byte[] serialize(final LargeMessagePayloadProtocol protocol, final byte[] bytes,
             final Headers headers, final boolean isKey) {
         return protocol.serialize(LargeMessagePayload.ofBytes(bytes), headers, isKey);
+    }
+
+    private static byte[] serialize(final byte[] bytes, final boolean isKey) {
+        return BYTE_FLAG_PROTOCOL.serialize(LargeMessagePayload.ofBytes(bytes), isKey);
     }
 
     private static String toString(final String s) {
@@ -73,11 +82,30 @@ public class LargeMessageStoringClient {
             return null;
         }
         if (this.needsBacking(bytes)) {
-            final String key = this.createBlobStorageKey(topic, isKey, bytes);
-            final String uri = this.uploadToBlobStorage(key, bytes);
+            final String uri = this.uploadToBlobStorage(topic, bytes, isKey);
             return serialize(this.protocol, uri, headers, isKey);
         } else {
             return serialize(this.protocol, bytes, headers, isKey);
+        }
+    }
+
+    /**
+     * Store bytes on blob storage if they exceed the configured maximum size.
+     *
+     * @param topic name of the topic the bytes are associated with
+     * @param bytes payload
+     * @param isKey whether the bytes represent the key of a message
+     * @return bytes representing the payload. Can be read using {@link LargeMessageRetrievingClient}
+     */
+    public byte[] storeBytes(final String topic, final byte[] bytes, final boolean isKey) {
+        if (bytes == null) {
+            return null;
+        }
+        if (this.needsBacking(bytes)) {
+            final String uri = this.uploadToBlobStorage(topic, bytes, isKey);
+            return serialize(uri, isKey);
+        } else {
+            return serialize(bytes, isKey);
         }
     }
 
@@ -93,6 +121,11 @@ public class LargeMessageStoringClient {
         log.info("Deleting blob storage backed files for topic '{}'", topic);
         this.client.deleteAllObjects(bucketName, prefix);
         log.info("Finished deleting blob storage backed files for topic '{}'", topic);
+    }
+
+    private String uploadToBlobStorage(final String topic, final byte[] bytes, final boolean isKey) {
+        final String key = this.createBlobStorageKey(topic, isKey, bytes);
+        return this.uploadToBlobStorage(key, bytes);
     }
 
     private String createBlobStorageKey(final String topic, final boolean isKey, final byte[] bytes) {
