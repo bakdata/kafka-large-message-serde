@@ -63,11 +63,6 @@ public class LargeMessageSerializer<T> implements Serializer<T> {
         this.isKey = isKey;
     }
 
-    /**
-     * @since 2.2.0
-     * @deprecated Use {@link #serialize(String, Headers, Object)}
-     */
-    @Deprecated
     @Override
     public byte[] serialize(final String topic, final T data) {
         Objects.requireNonNull(this.serializer);

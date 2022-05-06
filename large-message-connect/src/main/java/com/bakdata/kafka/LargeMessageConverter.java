@@ -51,11 +51,6 @@ public class LargeMessageConverter implements Converter {
         this.converter.configure(configs, isKey);
     }
 
-    /**
-     * @since 2.2.0
-     * @deprecated Use {@link #fromConnectData(String, Headers, Schema, Object)}
-     */
-    @Deprecated
     @Override
     public byte[] fromConnectData(final String topic, final Schema schema, final Object value) {
         final byte[] inner = this.converter.fromConnectData(topic, schema, value);
@@ -68,11 +63,6 @@ public class LargeMessageConverter implements Converter {
         return this.storingClient.storeBytes(topic, inner, this.isKey, headers);
     }
 
-    /**
-     * @since 2.2.0
-     * @deprecated Use {@link #toConnectData(String, Headers, byte[])}
-     */
-    @Deprecated
     @Override
     public SchemaAndValue toConnectData(final String topic, final byte[] value) {
         final byte[] inner = this.retrievingClient.retrieveBytes(value, this.isKey);

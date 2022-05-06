@@ -62,11 +62,7 @@ public class LargeMessageDeserializer<T> implements Deserializer<T> {
         this.isKey = isKey;
     }
 
-    /**
-     * @since 2.2.0
-     * @deprecated Use {@link #deserialize(String, Headers, byte[])}
-     */
-    @Deprecated
+
     @Override
     public T deserialize(final String topic, final byte[] data) {
         Objects.requireNonNull(this.deserializer);
