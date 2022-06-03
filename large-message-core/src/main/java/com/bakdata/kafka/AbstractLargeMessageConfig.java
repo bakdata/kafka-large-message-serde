@@ -79,7 +79,6 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
  *     <li> S3 secret key
  *     <li> AWS security token service
  *     <li> AWS OIDC token path
- *     <li> S3 enable path-style access
  * </ul>
  * <p></p>
  * Azure Blob Storage specific
