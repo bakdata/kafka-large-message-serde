@@ -126,7 +126,7 @@ class AmazonS3Client implements BlobStorageClient {
             // might not return all of the objects in the first listing. Check to
             // see whether the listing was truncated. If so, retrieve the next page of objects
             // and delete them.
-            if (objectListing.isTruncated()) {
+            if (Boolean.TRUE.equals(objectListing.isTruncated())) {
                 final ListObjectsRequest request = requestBuilder
                         .marker(objectListing.nextMarker())
                         .build();
@@ -149,7 +149,7 @@ class AmazonS3Client implements BlobStorageClient {
                     .collect(Collectors.toList());
             this.delete(bucketName, keys);
 
-            if (versionListing.isTruncated()) {
+            if (Boolean.TRUE.equals(versionListing.isTruncated())) {
                 final ListObjectVersionsRequest request = requestBuilder
                         .versionIdMarker(versionListing.nextVersionIdMarker())
                         .keyMarker(versionListing.nextKeyMarker())

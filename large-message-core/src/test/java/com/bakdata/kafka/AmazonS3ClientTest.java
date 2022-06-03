@@ -34,6 +34,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
@@ -148,6 +149,25 @@ class AmazonS3ClientTest {
         assertThat(s3.listObjects(request).contents()).hasSize(3);
         client.deleteAllObjects(bucket, "base/foo/");
         assertThat(s3.listObjects(request).contents()).hasSize(1);
+        deleteBucket(bucket, s3);
+    }
+
+    @Test
+    void shouldDeleteManyFiles() {
+        final String bucket = "bucket";
+        final S3Client s3 = S3_MOCK.createS3ClientV2();
+        s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+        final BlobStorageClient client = new AmazonS3Client(s3);
+        IntStream.range(0, 1001)
+                .forEach(i -> client.putObject(serialize("foo"), bucket, "base/foo/" + i));
+        final Builder requestBuilder = ListObjectsRequest.builder().bucket(bucket).prefix("base/");
+        final ListObjectsRequest request = requestBuilder.build();
+        final ListObjectsResponse response = s3.listObjects(request);
+        assertThat(response.contents()).hasSize(1000);
+        assertThat(response.isTruncated()).isTrue();
+        assertThat(s3.listObjects(requestBuilder.marker(response.nextMarker()).build()).contents()).hasSize(1);
+        client.deleteAllObjects(bucket, "base/foo/");
+        assertThat(s3.listObjects(request).contents()).isEmpty();
         deleteBucket(bucket, s3);
     }
 
