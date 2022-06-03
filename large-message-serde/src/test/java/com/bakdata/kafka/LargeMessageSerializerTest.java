@@ -60,7 +60,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.http.apache.ApacheSdkHttpService;
 
 class LargeMessageSerializerTest {
 
@@ -74,7 +73,12 @@ class LargeMessageSerializerTest {
 
     @BeforeAll
     static void setUp() {
-        System.setProperty(SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(), ApacheSdkHttpService.class.getName());
+        configureS3HTTPService();
+    }
+
+    static String configureS3HTTPService() {
+        return System.setProperty(SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(),
+                "software.amazon.awssdk.http.apache.ApacheSdkHttpService");
     }
 
     private static BlobStorageURI deserializeUriWithFlag(final byte[] data) {

@@ -26,6 +26,7 @@ package com.bakdata.kafka;
 
 import static com.bakdata.kafka.AmazonS3ClientTest.deleteBucket;
 import static com.bakdata.kafka.LargeMessageRetrievingClientTest.serializeUri;
+import static com.bakdata.kafka.LargeMessageStoringClientS3IntegrationTest.configureS3HTTPService;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
@@ -40,8 +41,6 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.http.apache.ApacheSdkHttpService;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
@@ -54,7 +53,7 @@ class LargeMessageRetrievingClientS3IntegrationTest {
 
     @BeforeAll
     static void setUp() {
-        System.setProperty(SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(), ApacheSdkHttpService.class.getName());
+        configureS3HTTPService();
     }
 
     private static Map<String, Object> createProperties() {

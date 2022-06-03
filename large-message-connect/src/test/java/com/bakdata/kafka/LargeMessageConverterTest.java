@@ -27,6 +27,7 @@ package com.bakdata.kafka;
 
 import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
 import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.getHeaderName;
+import static com.bakdata.kafka.LargeMessageConverterIntegrationTest.configureS3HTTPService;
 import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
 import static com.bakdata.kafka.LargeMessagePayload.ofUri;
 import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
@@ -56,8 +57,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.http.apache.ApacheSdkHttpService;
 
 class LargeMessageConverterTest {
     @RegisterExtension
@@ -74,7 +73,7 @@ class LargeMessageConverterTest {
 
     @BeforeAll
     static void setUp() {
-        System.setProperty(SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(), ApacheSdkHttpService.class.getName());
+        configureS3HTTPService();
     }
 
     private static byte[] serialize(final String uri) {

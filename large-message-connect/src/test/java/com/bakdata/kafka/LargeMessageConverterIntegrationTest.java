@@ -52,7 +52,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.http.apache.ApacheSdkHttpService;
 
 class LargeMessageConverterIntegrationTest {
     @RegisterExtension
@@ -65,6 +64,11 @@ class LargeMessageConverterIntegrationTest {
     private static final String DOWNLOAD_RECORD_KEY = "key2";
     private EmbeddedKafkaCluster kafkaCluster;
     private Path outputFile;
+
+    static String configureS3HTTPService() {
+        return System.setProperty(SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(),
+                "software.amazon.awssdk.http.apache.ApacheSdkHttpService");
+    }
 
     private static Properties createS3BackedProperties() {
         final Properties properties = new Properties();
@@ -84,7 +88,7 @@ class LargeMessageConverterIntegrationTest {
     void setUp() throws IOException {
         this.outputFile = Files.createTempFile("test", "temp");
         S3_MOCK.createS3Client().createBucket(BUCKET_NAME);
-        System.setProperty(SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(), ApacheSdkHttpService.class.getName());
+        configureS3HTTPService();
         this.kafkaCluster = this.createCluster();
         this.kafkaCluster.start();
     }

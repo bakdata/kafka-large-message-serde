@@ -52,7 +52,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.http.apache.ApacheSdkHttpService;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
@@ -71,7 +70,12 @@ class LargeMessageStoringClientS3IntegrationTest {
 
     @BeforeAll
     static void setUp() {
-        System.setProperty(SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(), ApacheSdkHttpService.class.getName());
+        configureS3HTTPService();
+    }
+
+    static void configureS3HTTPService() {
+        System.setProperty(SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(),
+                "software.amazon.awssdk.http.apache.ApacheSdkHttpService");
     }
 
     static BlobStorageURI deserializeUriWithFlag(final byte[] data) {
