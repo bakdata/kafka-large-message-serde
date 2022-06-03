@@ -24,13 +24,13 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.AmazonS3ClientTest.deleteBucket;
 import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
 import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
-import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.util.IOUtils;
@@ -41,6 +41,7 @@ import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -50,6 +51,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.http.apache.ApacheSdkHttpService;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.STRICT_STUBS)
@@ -64,6 +69,11 @@ class LargeMessageStoringClientS3IntegrationTest {
     @Mock
     private static IdGenerator idGenerator;
 
+    @BeforeAll
+    static void setUp() {
+        System.setProperty(SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(), ApacheSdkHttpService.class.getName());
+    }
+
     static BlobStorageURI deserializeUriWithFlag(final byte[] data) {
         final byte[] uriBytes = stripFlag(data);
         return deserializeUri(uriBytes);
@@ -76,7 +86,6 @@ class LargeMessageStoringClientS3IntegrationTest {
                 .put(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1")
                 .put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo")
                 .put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar")
-                .put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true)
                 .build();
     }
 
@@ -138,12 +147,12 @@ class LargeMessageStoringClientS3IntegrationTest {
                 .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
                 .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
                 .build();
-        final AmazonS3 s3 = S3_MOCK.createS3Client();
-        s3.createBucket(bucket);
+        final S3Client s3 = S3_MOCK.createS3ClientV2();
+        s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final LargeMessageStoringClient storer = createStorer(properties);
         assertThat(storer.storeBytes(TOPIC, serialize("foo"), true, new RecordHeaders()))
                 .satisfies(backedText -> expectBackedText(basePath, "foo", backedText, "keys"));
-        s3.deleteBucket(bucket);
+        deleteBucket(bucket, s3);
     }
 
     @Test
@@ -155,8 +164,8 @@ class LargeMessageStoringClientS3IntegrationTest {
                 .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
                 .put(AbstractLargeMessageConfig.ID_GENERATOR_CONFIG, MockIdGenerator.class)
                 .build();
-        final AmazonS3 s3 = S3_MOCK.createS3Client();
-        s3.createBucket(bucket);
+        final S3Client s3 = S3_MOCK.createS3ClientV2();
+        s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final LargeMessageStoringClient storer = createStorer(properties);
         when(idGenerator.generateId("foo".getBytes())).thenReturn("bar");
         assertThat(storer.storeBytes(TOPIC, serialize("foo"), true, new RecordHeaders()))
@@ -165,7 +174,7 @@ class LargeMessageStoringClientS3IntegrationTest {
                     expectBackedText(basePath, "foo", uri, "keys");
                     assertThat(uri).asString().endsWith("bar");
                 });
-        s3.deleteBucket(bucket);
+        deleteBucket(bucket, s3);
     }
 
     public static class MockIdGenerator implements IdGenerator {

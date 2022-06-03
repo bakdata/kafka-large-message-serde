@@ -51,10 +51,13 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.storage.Converter;
 import org.apache.kafka.connect.storage.StringConverter;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.http.apache.ApacheSdkHttpService;
 
 class LargeMessageConverterTest {
     @RegisterExtension
@@ -68,6 +71,11 @@ class LargeMessageConverterTest {
     private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
     private final AmazonS3 s3Client = S3_MOCK.createS3Client();
     private LargeMessageConverter converter = null;
+
+    @BeforeAll
+    static void setUp() {
+        System.setProperty(SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(), ApacheSdkHttpService.class.getName());
+    }
 
     private static byte[] serialize(final String uri) {
         return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders(), false);
@@ -112,7 +120,6 @@ class LargeMessageConverterTest {
                 .put(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1")
                 .put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo")
                 .put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar")
-                .put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, "true")
                 .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(maxSize))
                 .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
                 .put(LargeMessageConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName())

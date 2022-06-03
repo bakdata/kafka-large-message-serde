@@ -143,13 +143,6 @@ for backwards compatibility but leads to increased memory usage. It is recommend
   * Default: ""
   * Importance: low
 
-``large.message.s3.path.style.access``
-  Enable path-style access for S3 client.
-
-  * Type: boolean
-  * Default: false
-  * Importance: low
-
 ``large.message.abs.connection.string``
   Azure connection string for connection to blob storage. Leave empty if Azure credential provider chain should be used.
 

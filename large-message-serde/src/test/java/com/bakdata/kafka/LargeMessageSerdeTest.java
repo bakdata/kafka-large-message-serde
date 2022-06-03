@@ -79,7 +79,6 @@ class LargeMessageSerdeTest {
         largeMessageConfig.put(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1");
         largeMessageConfig.put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo");
         largeMessageConfig.put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar");
-        largeMessageConfig.put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
         return largeMessageConfig;
     }
 

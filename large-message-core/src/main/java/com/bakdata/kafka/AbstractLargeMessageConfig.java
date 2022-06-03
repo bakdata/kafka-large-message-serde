@@ -24,17 +24,8 @@
 
 package com.bakdata.kafka;
 
-import static org.apache.http.util.TextUtils.isEmpty;
+import static software.amazon.awssdk.utils.StringUtils.isEmpty;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
-import com.amazonaws.auth.WebIdentityTokenCredentialsProvider;
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -45,15 +36,28 @@ import io.confluent.common.config.AbstractConfig;
 import io.confluent.common.config.ConfigDef;
 import io.confluent.common.config.ConfigDef.Importance;
 import io.confluent.common.config.ConfigDef.Type;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.SerializationException;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 
 /**
  * This class provides default configuration options for blob storage backed data. It offers configuration of the
@@ -124,7 +128,6 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final String S3_ROLE_ARN_CONFIG = S3_PREFIX + "sts.role.arn";
     public static final String S3_ROLE_SESSION_NAME_CONFIG = S3_PREFIX + "sts.role.session.name";
     public static final String S3_JWT_PATH_CONFIG = S3_PREFIX + "jwt.path";
-    public static final String S3_ENABLE_PATH_STYLE_ACCESS_CONFIG = S3_PREFIX + "path.style.access";
     public static final String S3_ENDPOINT_DEFAULT = "";
     public static final String S3_REGION_DEFAULT = "";
     public static final String S3_ACCESS_KEY_DOC = "AWS access key to use for connecting to S3. Leave empty if AWS"
@@ -147,8 +150,6 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                     + "e.g. for EKS `/var/run/secrets/eks.amazonaws.com/serviceaccount/token`.";
     public static final String S3_JWT_PATH_CONFIG_DEFAULT = "";
     public static final String S3_SECRET_KEY_DEFAULT = "";
-    public static final String S3_ENABLE_PATH_STYLE_ACCESS_DOC = "Enable path-style access for S3 client.";
-    public static final boolean S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT = false;
 
     public static final String AZURE_PREFIX = PREFIX + AzureBlobStorageClient.SCHEME + ".";
     public static final String AZURE_CONNECTION_STRING_CONFIG = AZURE_PREFIX + "connection.string";
@@ -193,8 +194,6 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .define(S3_REGION_CONFIG, Type.STRING, S3_REGION_DEFAULT, Importance.LOW, S3_REGION_DOC)
                 .define(S3_ACCESS_KEY_CONFIG, Type.PASSWORD, S3_ACCESS_KEY_DEFAULT, Importance.LOW, S3_ACCESS_KEY_DOC)
                 .define(S3_SECRET_KEY_CONFIG, Type.PASSWORD, S3_SECRET_KEY_DEFAULT, Importance.LOW, S3_SECRET_KEY_DOC)
-                .define(S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, Type.BOOLEAN, S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT,
-                        Importance.LOW, S3_ENABLE_PATH_STYLE_ACCESS_DOC)
                 .define(S3_ROLE_EXTERNAL_ID_CONFIG, Type.STRING, S3_ROLE_EXTERNAL_ID_CONFIG_DEFAULT, Importance.LOW,
                         S3_ROLE_EXTERNAL_ID_CONFIG_DOC)
                 .define(S3_ROLE_ARN_CONFIG, Type.STRING, S3_ROLE_ARN_CONFIG_DEFAULT, Importance.LOW,
@@ -272,33 +271,30 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     }
 
     private BlobStorageClient createAmazonS3Client() {
-        final AmazonS3ClientBuilder clientBuilder = AmazonS3ClientBuilder.standard();
-        this.getAmazonEndpointConfiguration().ifPresent(clientBuilder::setEndpointConfiguration);
-        this.getAmazonCredentialsProvider().ifPresent(clientBuilder::setCredentials);
-        if (this.enableAmazonS3PathStyleAccess()) {
-            clientBuilder.enablePathStyleAccess();
-        }
+        final S3ClientBuilder clientBuilder = S3Client.builder();
+        this.getAmazonEndpointConfiguration().ifPresent(clientBuilder::endpointOverride);
+        this.getAmazonRegionConfiguration().ifPresent(clientBuilder::region);
+        this.getAmazonCredentialsProvider().ifPresent(clientBuilder::credentialsProvider);
         return new AmazonS3Client(clientBuilder.build());
     }
 
-    private boolean enableAmazonS3PathStyleAccess() {
-        return this.getBoolean(S3_ENABLE_PATH_STYLE_ACCESS_CONFIG);
-    }
-
-    private Optional<EndpointConfiguration> getAmazonEndpointConfiguration() {
+    private Optional<URI> getAmazonEndpointConfiguration() {
         final String endpoint = this.getString(S3_ENDPOINT_CONFIG);
-        final String region = this.getString(S3_REGION_CONFIG);
-        return isEmpty(endpoint) || isEmpty(region) ? Optional.empty()
-                : Optional.of(new EndpointConfiguration(endpoint, region));
+        return isEmpty(endpoint) ? Optional.empty() : Optional.of(URI.create(endpoint));
     }
 
-    private Optional<AWSCredentialsProvider> getAmazonCredentialsProvider() {
+    private Optional<Region> getAmazonRegionConfiguration() {
+        final String region = this.getString(S3_REGION_CONFIG);
+        return isEmpty(region) ? Optional.empty() : Optional.of(Region.of(region));
+    }
+
+    private Optional<AwsCredentialsProvider> getAmazonCredentialsProvider() {
         final String accessKey = this.getPassword(S3_ACCESS_KEY_CONFIG).value();
         final String secretKey = this.getPassword(S3_SECRET_KEY_CONFIG).value();
 
         if (!isEmpty(accessKey) && !isEmpty(secretKey)) {
-            final AWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
-            return Optional.of(new AWSStaticCredentialsProvider(credentials));
+            final AwsCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
+            return Optional.of(StaticCredentialsProvider.create(credentials));
         }
 
         final String roleExternalId = this.getString(S3_ROLE_EXTERNAL_ID_CONFIG);
@@ -309,18 +305,20 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         if (!isEmpty(roleArn) && !isEmpty(roleSessionName)) {
 
             if (!isEmpty(roleExternalId)) {
-                final AWSCredentialsProvider roleProvider =
-                        new STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, roleSessionName)
-                                .withStsClient(AWSSecurityTokenServiceClientBuilder.defaultClient())
-                                .withExternalId(roleExternalId)
-                                .build();
+                final AwsCredentialsProvider roleProvider = StsAssumeRoleCredentialsProvider.builder()
+                        .refreshRequest(AssumeRoleRequest.builder()
+                                .roleArn(roleArn)
+                                .roleSessionName(roleSessionName)
+                                .build())
+                        .stsClient(StsClient.create())
+                        .build();
 
                 return Optional.of(roleProvider);
             }
 
             if (!isEmpty(jwtPath)) {
-                final AWSCredentialsProvider oidcProvider = WebIdentityTokenCredentialsProvider.builder()
-                        .webIdentityTokenFile(jwtPath)
+                final AwsCredentialsProvider oidcProvider = WebIdentityTokenFileCredentialsProvider.builder()
+                        .webIdentityTokenFile(new File(jwtPath).toPath())
                         .roleArn(roleArn)
                         .roleSessionName(roleSessionName)
                         .build();

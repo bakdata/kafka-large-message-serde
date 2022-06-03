@@ -55,10 +55,13 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.http.apache.ApacheSdkHttpService;
 
 class LargeMessageDeserializerTest {
 
@@ -70,6 +73,11 @@ class LargeMessageDeserializerTest {
     private static final LargeMessagePayloadProtocol HEADER_PROTOCOL = new HeaderLargeMessagePayloadProtocol();
     private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
     private TestTopology<Integer, String> topology = null;
+
+    @BeforeAll
+    static void setUp() {
+        System.setProperty(SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(), ApacheSdkHttpService.class.getName());
+    }
 
     private static byte[] serializeUri(final String uri) {
         return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders(), false);
@@ -107,7 +115,6 @@ class LargeMessageDeserializerTest {
         largeMessageConfig.put(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1");
         largeMessageConfig.put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo");
         largeMessageConfig.put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar");
-        largeMessageConfig.put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
         return largeMessageConfig;
     }
 
