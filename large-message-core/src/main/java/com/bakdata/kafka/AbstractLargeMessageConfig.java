@@ -309,6 +309,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                         .refreshRequest(AssumeRoleRequest.builder()
                                 .roleArn(roleArn)
                                 .roleSessionName(roleSessionName)
+                                .externalId(roleExternalId)
                                 .build())
                         .stsClient(StsClient.create())
                         .build();
