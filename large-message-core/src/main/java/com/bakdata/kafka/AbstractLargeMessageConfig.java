@@ -271,18 +271,18 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
 
     private BlobStorageClient createAmazonS3Client() {
         final S3ClientBuilder clientBuilder = S3Client.builder();
-        this.getAmazonEndpointConfiguration().ifPresent(clientBuilder::endpointOverride);
-        this.getAmazonRegionConfiguration().ifPresent(clientBuilder::region);
+        this.getAmazonEndpointOverride().ifPresent(clientBuilder::endpointOverride);
+        this.getAmazonRegion().ifPresent(clientBuilder::region);
         this.getAmazonCredentialsProvider().ifPresent(clientBuilder::credentialsProvider);
         return new AmazonS3Client(clientBuilder.build());
     }
 
-    private Optional<URI> getAmazonEndpointConfiguration() {
+    private Optional<URI> getAmazonEndpointOverride() {
         final String endpoint = this.getString(S3_ENDPOINT_CONFIG);
         return isEmpty(endpoint) ? Optional.empty() : Optional.of(URI.create(endpoint));
     }
 
-    private Optional<Region> getAmazonRegionConfiguration() {
+    private Optional<Region> getAmazonRegion() {
         final String region = this.getString(S3_REGION_CONFIG);
         return isEmpty(region) ? Optional.empty() : Optional.of(Region.of(region));
     }
