@@ -116,17 +116,16 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
 
     public static final String S3_PREFIX = PREFIX + AmazonS3Client.SCHEME + ".";
     public static final String S3_ENDPOINT_CONFIG = S3_PREFIX + "endpoint";
-    public static final String S3_REGION_DOC = "S3 region to use. Must be configured in conjunction"
-            + " with " + S3_ENDPOINT_CONFIG + ". Leave empty if default S3 region should be used.";
     public static final String S3_REGION_CONFIG = S3_PREFIX + "region";
-    public static final String S3_ENDPOINT_DOC = "Endpoint to use for connection to Amazon S3. Must be configured in"
-            + " conjunction with " + S3_REGION_CONFIG + ". Leave empty if default S3 endpoint should be used.";
     public static final String S3_ACCESS_KEY_CONFIG = S3_PREFIX + "access.key";
     public static final String S3_SECRET_KEY_CONFIG = S3_PREFIX + "secret.key";
     public static final String S3_ROLE_EXTERNAL_ID_CONFIG = S3_PREFIX + "sts.role.external.id";
     public static final String S3_ROLE_ARN_CONFIG = S3_PREFIX + "sts.role.arn";
     public static final String S3_ROLE_SESSION_NAME_CONFIG = S3_PREFIX + "sts.role.session.name";
     public static final String S3_JWT_PATH_CONFIG = S3_PREFIX + "jwt.path";
+    public static final String S3_REGION_DOC = "S3 region to use. Leave empty if default S3 region should be used.";
+    public static final String S3_ENDPOINT_DOC =
+            "Endpoint to use for connection to Amazon S3. Leave empty if default S3 endpoint should be used.";
     public static final String S3_ENDPOINT_DEFAULT = "";
     public static final String S3_REGION_DEFAULT = "";
     public static final String S3_ACCESS_KEY_DOC = "AWS access key to use for connecting to S3. Leave empty if AWS"

@@ -130,14 +130,14 @@ for backwards compatibility but leads to increased memory usage. It is recommend
    * Importance: low
 
 ``large.message.s3.region``
-  S3 region to use. Must be configured in conjunction with s3backed.endpoint. Leave empty if default S3 region should be used.
+S3 region to use. Leave empty if default S3 region should be used.
 
   * Type: string
   * Default: ""
   * Importance: low
 
 ``large.message.s3.endpoint``
-  Endpoint to use for connection to Amazon S3. Must be configured in conjunction with s3backed.region. Leave empty if default S3 endpoint should be used.
+Endpoint to use for connection to Amazon S3. Leave empty if default S3 endpoint should be used.
 
   * Type: string
   * Default: ""
