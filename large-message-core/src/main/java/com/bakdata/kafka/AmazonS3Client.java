@@ -62,8 +62,7 @@ class AmazonS3Client implements BlobStorageClient {
     private final @NonNull S3Client s3;
 
     static ObjectIdentifier asIdentifier(final S3Object s3Object) {
-        return ObjectIdentifier
-                .builder()
+        return ObjectIdentifier.builder()
                 .key(s3Object.key())
                 .build();
     }
