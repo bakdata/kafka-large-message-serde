@@ -27,6 +27,7 @@ package com.bakdata.kafka;
 
 import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
 import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.getHeaderName;
+import static com.bakdata.kafka.LargeMessageConverterIntegrationTest.configureS3HTTPService;
 import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
 import static com.bakdata.kafka.LargeMessagePayload.ofUri;
 import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
@@ -51,6 +52,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.storage.Converter;
 import org.apache.kafka.connect.storage.StringConverter;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -68,6 +70,11 @@ class LargeMessageConverterTest {
     private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
     private final AmazonS3 s3Client = S3_MOCK.createS3Client();
     private LargeMessageConverter converter = null;
+
+    @BeforeAll
+    static void setUp() {
+        configureS3HTTPService();
+    }
 
     private static byte[] serialize(final String uri) {
         return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders(), false);
@@ -112,7 +119,6 @@ class LargeMessageConverterTest {
                 .put(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1")
                 .put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo")
                 .put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar")
-                .put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, "true")
                 .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(maxSize))
                 .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
                 .put(LargeMessageConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName())

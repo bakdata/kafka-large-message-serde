@@ -31,8 +31,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.adobe.testing.s3mock.junit5.S3MockExtension;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.util.IOUtils;
 import com.bakdata.fluent_kafka_streams_tests.TestTopology;
 import java.io.IOException;
@@ -53,8 +56,10 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import software.amazon.awssdk.core.SdkSystemSetting;
 
 class LargeMessageSerializerTest {
 
@@ -65,6 +70,16 @@ class LargeMessageSerializerTest {
     private static final String OUTPUT_TOPIC = "output";
     private static final Deserializer<String> STRING_DESERIALIZER = Serdes.String().deserializer();
     private TestTopology<Integer, String> topology = null;
+
+    @BeforeAll
+    static void setUp() {
+        configureS3HTTPService();
+    }
+
+    static String configureS3HTTPService() {
+        return System.setProperty(SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(),
+                "software.amazon.awssdk.http.apache.ApacheSdkHttpService");
+    }
 
     private static BlobStorageURI deserializeUriWithFlag(final byte[] data) {
         final byte[] uriBytes = stripFlag(data);
@@ -81,7 +96,6 @@ class LargeMessageSerializerTest {
         properties.setProperty(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1");
         properties.setProperty(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo");
         properties.setProperty(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar");
-        properties.put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, true);
         properties.put(LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         properties.put(LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         return properties;
@@ -151,6 +165,30 @@ class LargeMessageSerializerTest {
                 .isInstanceOf(String.class)
                 .isEqualTo(expected);
         assertThat(headers.headers(getHeaderName(isKey))).hasSize(1);
+    }
+
+    private static void deleteBucket(final String bucket, final AmazonS3 s3Client) {
+        ObjectListing objectListing = s3Client.listObjects(bucket);
+        while (true) {
+            final String[] keys = objectListing.getObjectSummaries().stream()
+                    .map(S3ObjectSummary::getKey)
+                    .toArray(String[]::new);
+            if (keys.length > 0) {
+                s3Client.deleteObjects(new DeleteObjectsRequest(bucket)
+                        .withKeys(keys));
+            }
+
+            // If the bucket contains many objects, the listObjects() call
+            // might not return all of the objects in the first listing. Check to
+            // see whether the listing was truncated. If so, retrieve the next page of objects
+            // and delete them.
+            if (objectListing.isTruncated()) {
+                objectListing = s3Client.listNextBatchOfObjects(objectListing);
+            } else {
+                break;
+            }
+        }
+        s3Client.deleteBucket(bucket);
     }
 
     @AfterEach
@@ -296,7 +334,7 @@ class LargeMessageSerializerTest {
                 .hasSize(1)
                 .extracting(ProducerRecord::key)
                 .anySatisfy(s3BackedText -> expectBackedText(basePath, "foo", s3BackedText, "keys"));
-        s3Client.deleteBucket(bucket);
+        deleteBucket(bucket, s3Client);
     }
 
     @Test
@@ -321,7 +359,7 @@ class LargeMessageSerializerTest {
         assertThat(records)
                 .hasSize(1)
                 .anySatisfy(record -> expectBackedText(basePath, "foo", record.key(), "keys", record.headers(), true));
-        s3Client.deleteBucket(bucket);
+        deleteBucket(bucket, s3Client);
     }
 
     @Test
@@ -365,7 +403,7 @@ class LargeMessageSerializerTest {
                 .hasSize(1)
                 .extracting(ProducerRecord::value)
                 .anySatisfy(s3BackedText -> expectBackedText(basePath, "foo", s3BackedText, "values"));
-        s3Client.deleteBucket(bucket);
+        deleteBucket(bucket, s3Client);
     }
 
     @Test
@@ -391,7 +429,7 @@ class LargeMessageSerializerTest {
                 .hasSize(1)
                 .anySatisfy(
                         record -> expectBackedText(basePath, "foo", record.value(), "values", record.headers(), false));
-        s3Client.deleteBucket(bucket);
+        deleteBucket(bucket, s3Client);
     }
 
     @Test
