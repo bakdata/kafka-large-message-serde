@@ -1,5 +1,16 @@
 # Change Log
 
+## [2.4.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.4.0) (2022-06-07)
+[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.3.2...2.4.0)
+
+**Closed issues:**
+
+- Upstep AWS SDK to version 2 [\#39](https://github.com/bakdata/kafka-large-message-serde/issues/39)
+
+**Merged pull requests:**
+
+- Migrate to AWS V2 client [\#40](https://github.com/bakdata/kafka-large-message-serde/pull/40) ([@philipp94831](https://github.com/philipp94831))
+
 ## [2.3.2](https://github.com/bakdata/kafka-large-message-serde/tree/2.3.2) (2022-05-06)
 [Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.3.1...2.3.2)
 
