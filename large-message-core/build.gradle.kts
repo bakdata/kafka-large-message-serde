@@ -50,12 +50,12 @@ dependencies {
     testImplementation(group = "org.mockito", name = "mockito-core", version = mockitoVersion)
     testImplementation(group = "org.mockito", name = "mockito-junit-jupiter", version = mockitoVersion)
 
-    testImplementation(group = "com.adobe.testing", name = "s3mock-junit5", version = "2.4.10") {
-        exclude(group = "ch.qos.logback")
-        exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
-    }
     val log4jVersion: String by project
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j-impl", version = log4jVersion)
-    testImplementation(group = "org.testcontainers", name = "junit-jupiter", version = "1.16.0")
+    val testContainersVersion = "1.17.2"
+    testImplementation(group = "org.testcontainers", name = "junit-jupiter", version = testContainersVersion)
+    testImplementation(group = "org.testcontainers", name = "localstack", version = testContainersVersion)
+    // for localstack
+    testRuntimeOnly(group = "com.amazonaws", name = "aws-java-sdk-core", version = "1.12.66")
     testImplementation(group = "com.google.cloud", name = "google-cloud-nio", version = "0.123.16")
 }

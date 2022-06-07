@@ -29,18 +29,12 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.adobe.testing.s3mock.junit5.S3MockExtension;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import java.io.ByteArrayInputStream;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentMatchers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -50,55 +44,24 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.BucketVersioningStatus;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.Delete;
-import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
-import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest.Builder;
-import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
-import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
+import software.amazon.awssdk.services.s3.model.PutBucketVersioningRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
+import software.amazon.awssdk.services.s3.model.VersioningConfiguration;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.STRICT_STUBS)
-class AmazonS3ClientTest {
+class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
 
-    @RegisterExtension
-    static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
-            .withSecureConnection(false).build();
     private static final Serializer<String> STRING_SERIALIZER = Serdes.String().serializer();
-
-    static void deleteBucket(final String bucket, final S3Client s3) {
-        final ListObjectsV2Request.Builder requestBuilder = ListObjectsV2Request.builder().bucket(bucket);
-        final ListObjectsV2Iterable objectListing = s3.listObjectsV2Paginator(requestBuilder.build());
-        objectListing.stream()
-                .forEach(response -> {
-                    final List<ObjectIdentifier> keys = response.contents().stream()
-                            .map(AmazonS3Client::asIdentifier)
-                            .collect(Collectors.toList());
-                    if (!keys.isEmpty()) {
-                        s3.deleteObjects(DeleteObjectsRequest.builder()
-                                .bucket(bucket)
-                                .delete(Delete.builder()
-                                        .objects(keys)
-                                        .build())
-                                .build());
-                    }
-                });
-        s3.deleteBucket(DeleteBucketRequest.builder().bucket(bucket).build());
-    }
-
-    private static void store(final String bucket, final String key, final String s) {
-        S3_MOCK.createS3Client().putObject(bucket, key, new ByteArrayInputStream(s.getBytes()), new ObjectMetadata());
-    }
 
     private static byte[] serialize(final String s) {
         return STRING_SERIALIZER.serialize(null, s);
@@ -107,32 +70,30 @@ class AmazonS3ClientTest {
     @Test
     void shouldReadBackedText() {
         final String bucket = "bucket";
-        final S3Client s3 = S3_MOCK.createS3ClientV2();
+        final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final String key = "key";
-        store(bucket, key, "foo");
+        this.store(bucket, key, "foo");
         final BlobStorageClient client = new AmazonS3Client(s3);
         assertThat(client.getObject(bucket, key))
                 .isEqualTo(serialize("foo"));
-        deleteBucket(bucket, s3);
     }
 
     @Test
     void shouldWriteBackedText() {
         final String bucket = "bucket";
         final String key = "key";
-        final S3Client s3 = S3_MOCK.createS3ClientV2();
+        final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final BlobStorageClient client = new AmazonS3Client(s3);
         assertThat(client.putObject(serialize("foo"), bucket, key))
                 .isEqualTo("s3://bucket/key");
-        deleteBucket(bucket, s3);
     }
 
     @Test
     void shouldDeleteFiles() {
         final String bucket = "bucket";
-        final S3Client s3 = S3_MOCK.createS3ClientV2();
+        final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final BlobStorageClient client = new AmazonS3Client(s3);
         client.putObject(serialize("foo"), bucket, "base/foo/1");
@@ -142,46 +103,83 @@ class AmazonS3ClientTest {
         assertThat(s3.listObjects(request).contents()).hasSize(3);
         client.deleteAllObjects(bucket, "base/foo/");
         assertThat(s3.listObjects(request).contents()).hasSize(1);
-        deleteBucket(bucket, s3);
     }
 
     @Test
     void shouldDeleteManyFiles() {
         final String bucket = "bucket";
-        final S3Client s3 = S3_MOCK.createS3ClientV2();
+        final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final BlobStorageClient client = new AmazonS3Client(s3);
         IntStream.range(0, 1001)
                 .forEach(i -> client.putObject(serialize("foo"), bucket, "base/foo/" + i));
-        final Builder requestBuilder = ListObjectsRequest.builder().bucket(bucket).prefix("base/");
-        final ListObjectsRequest request = requestBuilder.build();
-        final ListObjectsResponse response = s3.listObjects(request);
-        assertThat(response.contents()).hasSize(1000);
-        assertThat(response.isTruncated()).isTrue();
-        assertThat(s3.listObjects(requestBuilder.marker(response.nextMarker()).build()).contents()).hasSize(1);
+        final ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(bucket).prefix("base/").build();
+        assertThat(s3.listObjectsV2Paginator(request).contents()).hasSize(1001);
         client.deleteAllObjects(bucket, "base/foo/");
-        assertThat(s3.listObjects(request).contents()).isEmpty();
-        deleteBucket(bucket, s3);
+        assertThat(s3.listObjectsV2Paginator(request).contents()).isEmpty();
     }
 
     @Test
     void shouldDeleteFilesIfEmpty() {
         final String bucket = "bucket";
-        final S3Client s3 = S3_MOCK.createS3ClientV2();
+        final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final BlobStorageClient client = new AmazonS3Client(s3);
         client.putObject(serialize("foo"), bucket, "base/bar/1");
-        final ListObjectsRequest request = ListObjectsRequest.builder().bucket(bucket).prefix("base/").build();
-        assertThat(s3.listObjects(request).contents()).hasSize(1);
+        final ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(bucket).prefix("base/").build();
+        assertThat(s3.listObjectsV2Paginator(request).contents()).hasSize(1);
         client.deleteAllObjects(bucket, "base/foo/");
-        assertThat(s3.listObjects(request).contents()).hasSize(1);
-        deleteBucket(bucket, s3);
+        assertThat(s3.listObjectsV2Paginator(request).contents()).hasSize(1);
+    }
+
+    @Test
+    void shouldDeleteVersions() {
+        final String bucket = "bucket";
+        final S3Client s3 = this.getS3Client();
+        s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+        s3.putBucketVersioning(PutBucketVersioningRequest.builder()
+                .bucket(bucket)
+                .versioningConfiguration(VersioningConfiguration.builder()
+                        .status(BucketVersioningStatus.ENABLED)
+                        .build())
+                .build());
+        final BlobStorageClient client = new AmazonS3Client(s3);
+        client.putObject(serialize("foo"), bucket, "base/foo/1");
+        client.putObject(serialize("foo"), bucket, "base/foo/1");
+        client.putObject(serialize("foo"), bucket, "base/bar/1");
+        client.putObject(serialize("foo"), bucket, "base/bar/1");
+        final ListObjectVersionsRequest request =
+                ListObjectVersionsRequest.builder().bucket(bucket).prefix("base/").build();
+        assertThat(s3.listObjectVersionsPaginator(request).versions()).hasSize(4);
+        client.deleteAllObjects(bucket, "base/foo/");
+        assertThat(s3.listObjectVersionsPaginator(request).versions()).hasSize(2);
+    }
+
+    @Test
+    void shouldDeleteManyVersions() {
+        final String bucket = "bucket";
+        final S3Client s3 = this.getS3Client();
+        s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+        s3.putBucketVersioning(PutBucketVersioningRequest.builder()
+                .bucket(bucket)
+                .versioningConfiguration(VersioningConfiguration.builder()
+                        .status(BucketVersioningStatus.ENABLED)
+                        .build())
+                .build());
+        final BlobStorageClient client = new AmazonS3Client(s3);
+        IntStream.range(0, 1001)
+                .forEach(i -> client.putObject(serialize("foo"), bucket, "base/foo/1"));
+        final ListObjectVersionsRequest request =
+                ListObjectVersionsRequest.builder().bucket(bucket).prefix("base/").build();
+        assertThat(s3.listObjectVersionsPaginator(request).versions()).hasSize(1001);
+        client.deleteAllObjects(bucket, "base/foo/");
+        assertThat(s3.listObjectVersionsPaginator(request).versions()).isEmpty();
     }
 
     @Test
     void shouldThrowExceptionOnMissingObject() {
         final String bucket = "bucket";
-        final S3Client s3 = S3_MOCK.createS3ClientV2();
+        final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final String key = "key";
         final BlobStorageClient client = new AmazonS3Client(s3);
@@ -193,7 +191,6 @@ class AmazonS3ClientTest {
                         .isInstanceOf(NoSuchKeyException.class)
                         .hasMessageContaining("The specified key does not exist.")
                 );
-        deleteBucket(bucket, s3);
     }
 
     @Test
@@ -234,7 +231,7 @@ class AmazonS3ClientTest {
     void shouldThrowExceptionOnMissingBucketForGet() {
         final String bucket = "bucket";
         final String key = "key";
-        final S3Client s3 = S3_MOCK.createS3ClientV2();
+        final S3Client s3 = this.getS3Client();
         final BlobStorageClient client = new AmazonS3Client(s3);
         assertThatExceptionOfType(SerializationException.class)
                 .isThrownBy(() -> client.getObject(bucket, key))
@@ -242,7 +239,7 @@ class AmazonS3ClientTest {
                 .withMessageContainingAll(bucket, key)
                 .satisfies(e -> assertThat(e.getCause())
                         .isInstanceOf(NoSuchBucketException.class)
-                        .hasMessageContaining("The specified bucket does not exist.")
+                        .hasMessageContaining("The specified bucket does not exist")
                 );
     }
 
@@ -250,17 +247,24 @@ class AmazonS3ClientTest {
     void shouldThrowExceptionOnMissingBucketForPut() {
         final String bucket = "bucket";
         final String key = "key";
-        final S3Client s3 = S3_MOCK.createS3ClientV2();
+        final S3Client s3 = this.getS3Client();
         final BlobStorageClient client = new AmazonS3Client(s3);
         final byte[] foo = serialize("foo");
         assertThatExceptionOfType(SerializationException.class)
                 .isThrownBy(() -> client.putObject(foo, bucket, key))
                 .withMessageStartingWith("Error backing message on S3")
                 .satisfies(e -> assertThat(e.getCause())
-                        //somehow S3 mock does not throw a NoSuchBucketException
-                        .isInstanceOf(S3Exception.class)
-                        .hasMessageContaining("Status Code: 404")
+                        .isInstanceOf(NoSuchBucketException.class)
+                        .hasMessageContaining("The specified bucket does not exist")
                 );
+    }
+
+    private void store(final String bucket, final String key, final String s) {
+        final S3Client s3 = this.getS3Client();
+        s3.putObject(PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build(), RequestBody.fromString(s));
     }
 
     private static final class FakeSdkException extends SdkException {
