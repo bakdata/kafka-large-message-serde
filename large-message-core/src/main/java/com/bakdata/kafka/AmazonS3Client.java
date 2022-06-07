@@ -24,6 +24,7 @@
 
 package com.bakdata.kafka;
 
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -41,14 +42,13 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest.Builder;
-import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.ObjectVersion;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.paginators.ListObjectVersionsIterable;
+import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -59,6 +59,7 @@ import software.amazon.awssdk.utils.IoUtils;
 class AmazonS3Client implements BlobStorageClient {
 
     static final String SCHEME = "s3";
+    private static final int MAX_DELETE_BATCH_SIZE = 1000;
     private final @NonNull S3Client s3;
 
     static ObjectIdentifier asIdentifier(final S3Object s3Object) {
@@ -111,63 +112,43 @@ class AmazonS3Client implements BlobStorageClient {
     }
 
     private void deleteObjects(final String bucketName, final String prefix) {
-        final Builder requestBuilder = ListObjectsRequest.builder()
+        final ListObjectsV2Request request = ListObjectsV2Request.builder()
                 .bucket(bucketName)
-                .prefix(prefix);
-        ListObjectsResponse objectListing = this.s3.listObjects(requestBuilder.build());
-        while (true) {
-            final List<ObjectIdentifier> keys = objectListing.contents().stream()
-                    .map(AmazonS3Client::asIdentifier)
-                    .collect(Collectors.toList());
-            this.delete(bucketName, keys);
-
-            // If the bucket contains many objects, the listObjects() call
-            // might not return all of the objects in the first listing. Check to
-            // see whether the listing was truncated. If so, retrieve the next page of objects
-            // and delete them.
-            if (Boolean.TRUE.equals(objectListing.isTruncated())) {
-                final ListObjectsRequest request = requestBuilder
-                        .marker(objectListing.nextMarker())
-                        .build();
-                objectListing = this.s3.listObjects(request);
-            } else {
-                break;
-            }
-        }
+                .prefix(prefix)
+                .build();
+        final ListObjectsV2Iterable objectListing = this.s3.listObjectsV2Paginator(request);
+        final List<ObjectIdentifier> keys = objectListing.contents().stream()
+                .map(AmazonS3Client::asIdentifier)
+                .collect(Collectors.toList());
+        this.delete(bucketName, keys);
     }
 
     private void deleteVersions(final String bucketName, final String prefix) {
         // Delete all object versions (required for versioned buckets).
-        final ListObjectVersionsRequest.Builder requestBuilder = ListObjectVersionsRequest.builder()
+        final ListObjectVersionsRequest request = ListObjectVersionsRequest.builder()
                 .bucket(bucketName)
-                .prefix(prefix);
-        ListObjectVersionsResponse versionListing = this.s3.listObjectVersions(requestBuilder.build());
-        while (true) {
-            final List<ObjectIdentifier> keys = versionListing.versions().stream()
-                    .map(AmazonS3Client::asIdentifier)
-                    .collect(Collectors.toList());
-            this.delete(bucketName, keys);
+                .prefix(prefix)
+                .build();
+        final ListObjectVersionsIterable versionListing = this.s3.listObjectVersionsPaginator(request);
+        final List<ObjectIdentifier> keys = versionListing.versions().stream()
+                .map(AmazonS3Client::asIdentifier)
+                .collect(Collectors.toList());
+        this.delete(bucketName, keys);
+    }
 
-            if (Boolean.TRUE.equals(versionListing.isTruncated())) {
-                final ListObjectVersionsRequest request = requestBuilder
-                        .versionIdMarker(versionListing.nextVersionIdMarker())
-                        .keyMarker(versionListing.nextKeyMarker())
-                        .build();
-                versionListing = this.s3.listObjectVersions(request);
-            } else {
-                break;
-            }
+    private void delete(final String bucketName, final List<ObjectIdentifier> keys) {
+        if (!keys.isEmpty()) {
+            final List<List<ObjectIdentifier>> partitions = Lists.partition(keys, MAX_DELETE_BATCH_SIZE);
+            partitions.forEach(partition -> this.deleteBatch(bucketName, partition));
         }
     }
 
-    private void delete(final String bucketName, final Collection<ObjectIdentifier> keys) {
-        if (!keys.isEmpty()) {
-            this.s3.deleteObjects(DeleteObjectsRequest.builder()
-                    .bucket(bucketName)
-                    .delete(Delete.builder()
-                            .objects(keys)
-                            .build())
-                    .build());
-        }
+    private void deleteBatch(final String bucketName, final Collection<ObjectIdentifier> partition) {
+        this.s3.deleteObjects(DeleteObjectsRequest.builder()
+                .bucket(bucketName)
+                .delete(Delete.builder()
+                        .objects(partition)
+                        .build())
+                .build());
     }
 }
