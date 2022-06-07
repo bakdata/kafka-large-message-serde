@@ -24,7 +24,6 @@
 
 package com.bakdata.kafka;
 
-import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -42,7 +41,9 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.ObjectVersion;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -59,7 +60,6 @@ import software.amazon.awssdk.utils.IoUtils;
 class AmazonS3Client implements BlobStorageClient {
 
     static final String SCHEME = "s3";
-    private static final int MAX_DELETE_BATCH_SIZE = 1000;
     private final @NonNull S3Client s3;
 
     static ObjectIdentifier asIdentifier(final S3Object s3Object) {
@@ -77,6 +77,18 @@ class AmazonS3Client implements BlobStorageClient {
 
     private static String asURI(final String bucket, final String key) {
         return SCHEME + "://" + bucket + "/" + key;
+    }
+
+    private static List<ObjectIdentifier> asIdentifiers(final ListObjectsV2Response response) {
+        return response.contents().stream()
+                .map(AmazonS3Client::asIdentifier)
+                .collect(Collectors.toList());
+    }
+
+    private static List<ObjectIdentifier> asIdentifiers(final ListObjectVersionsResponse response) {
+        return response.versions().stream()
+                .map(AmazonS3Client::asIdentifier)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -117,10 +129,9 @@ class AmazonS3Client implements BlobStorageClient {
                 .prefix(prefix)
                 .build();
         final ListObjectsV2Iterable objectListing = this.s3.listObjectsV2Paginator(request);
-        final List<ObjectIdentifier> keys = objectListing.contents().stream()
-                .map(AmazonS3Client::asIdentifier)
-                .collect(Collectors.toList());
-        this.delete(bucketName, keys);
+        objectListing.stream()
+                .map(AmazonS3Client::asIdentifiers)
+                .forEach(keys -> this.delete(bucketName, keys));
     }
 
     private void deleteVersions(final String bucketName, final String prefix) {
@@ -130,25 +141,19 @@ class AmazonS3Client implements BlobStorageClient {
                 .prefix(prefix)
                 .build();
         final ListObjectVersionsIterable versionListing = this.s3.listObjectVersionsPaginator(request);
-        final List<ObjectIdentifier> keys = versionListing.versions().stream()
-                .map(AmazonS3Client::asIdentifier)
-                .collect(Collectors.toList());
-        this.delete(bucketName, keys);
+        versionListing.stream()
+                .map(AmazonS3Client::asIdentifiers)
+                .forEach(keys -> this.delete(bucketName, keys));
     }
 
-    private void delete(final String bucketName, final List<ObjectIdentifier> keys) {
+    private void delete(final String bucketName, final Collection<ObjectIdentifier> keys) {
         if (!keys.isEmpty()) {
-            final List<List<ObjectIdentifier>> partitions = Lists.partition(keys, MAX_DELETE_BATCH_SIZE);
-            partitions.forEach(partition -> this.deleteBatch(bucketName, partition));
+            this.s3.deleteObjects(DeleteObjectsRequest.builder()
+                    .bucket(bucketName)
+                    .delete(Delete.builder()
+                            .objects(keys)
+                            .build())
+                    .build());
         }
-    }
-
-    private void deleteBatch(final String bucketName, final Collection<ObjectIdentifier> partition) {
-        this.s3.deleteObjects(DeleteObjectsRequest.builder()
-                .bucket(bucketName)
-                .delete(Delete.builder()
-                        .objects(partition)
-                        .build())
-                .build());
     }
 }

@@ -59,11 +59,13 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest.Builder;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.STRICT_STUBS)
@@ -75,31 +77,22 @@ class AmazonS3ClientTest {
     private static final Serializer<String> STRING_SERIALIZER = Serdes.String().serializer();
 
     static void deleteBucket(final String bucket, final S3Client s3) {
-        final Builder requestBuilder = ListObjectsRequest.builder().bucket(bucket);
-        ListObjectsResponse objectListing = s3.listObjects(requestBuilder.build());
-        while (true) {
-            final List<ObjectIdentifier> keys = objectListing.contents().stream()
-                    .map(AmazonS3Client::asIdentifier)
-                    .collect(Collectors.toList());
-            if (!keys.isEmpty()) {
-                s3.deleteObjects(DeleteObjectsRequest.builder()
-                        .bucket(bucket)
-                        .delete(Delete.builder()
-                                .objects(keys)
-                                .build())
-                        .build());
-            }
-
-            // If the bucket contains many objects, the listObjects() call
-            // might not return all of the objects in the first listing. Check to
-            // see whether the listing was truncated. If so, retrieve the next page of objects
-            // and delete them.
-            if (objectListing.isTruncated()) {
-                objectListing = s3.listObjects(requestBuilder.marker(objectListing.nextMarker()).build());
-            } else {
-                break;
-            }
-        }
+        final ListObjectsV2Request.Builder requestBuilder = ListObjectsV2Request.builder().bucket(bucket);
+        final ListObjectsV2Iterable objectListing = s3.listObjectsV2Paginator(requestBuilder.build());
+        objectListing.stream()
+                .forEach(response -> {
+                    final List<ObjectIdentifier> keys = response.contents().stream()
+                            .map(AmazonS3Client::asIdentifier)
+                            .collect(Collectors.toList());
+                    if (!keys.isEmpty()) {
+                        s3.deleteObjects(DeleteObjectsRequest.builder()
+                                .bucket(bucket)
+                                .delete(Delete.builder()
+                                        .objects(keys)
+                                        .build())
+                                .build());
+                    }
+                });
         s3.deleteBucket(DeleteBucketRequest.builder().bucket(bucket).build());
     }
 
