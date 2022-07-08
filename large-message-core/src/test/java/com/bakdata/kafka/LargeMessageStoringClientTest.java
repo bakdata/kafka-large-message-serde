@@ -461,6 +461,7 @@ class LargeMessageStoringClientTest {
         return LargeMessageStoringClient.builder()
                 .idGenerator(this.idGenerator)
                 .client(this.client)
-                .protocol(this.protocol);
+                .protocol(this.protocol)
+                .compressionType(CompressionType.NONE);
     }
 }

@@ -45,6 +45,7 @@ public class LargeMessageStoringClient {
     private final int maxSize;
     private final IdGenerator idGenerator;
     private final @NonNull LargeMessagePayloadProtocol protocol;
+    private final @NonNull CompressionType compressionType;
 
     private static byte[] serialize(final String uri, final boolean isKey) {
         return BYTE_FLAG_PROTOCOL.serialize(LargeMessagePayload.ofUri(uri), isKey);
@@ -72,7 +73,10 @@ public class LargeMessageStoringClient {
             return null;
         }
         if (this.needsBacking(bytes)) {
-            final String uri = this.uploadToBlobStorage(topic, bytes, isKey);
+            final String uri = this.uploadToBlobStorage(topic, compressionType.compress(bytes), isKey);
+            if (compressionType != CompressionType.NONE) {
+                headers.add(CompressionType.headerName, new byte[]{compressionType.id});
+            }
             return this.serialize(uri, headers, isKey);
         } else {
             return this.serialize(bytes, headers, isKey);
