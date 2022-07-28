@@ -79,6 +79,7 @@ public class LargeMessageDeserializer<T> implements Deserializer<T> {
         final T deserialized = this.deserializer.deserialize(topic, headers, bytes);
         // remove all headers associated with large message because the record might be serialized with different flags
         headers.remove(getHeaderName(this.isKey));
+        headers.remove(CompressionType.HEADER_NAME);
         return deserialized;
     }
 

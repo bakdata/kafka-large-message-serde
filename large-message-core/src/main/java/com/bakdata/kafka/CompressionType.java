@@ -75,32 +75,23 @@ public enum CompressionType {
 
     private static byte[] compress(org.apache.kafka.common.record.CompressionType compressionType, byte[] bytes) {
         ByteBufferOutputStream outStream = new ByteBufferOutputStream(bytes.length);
-        OutputStream stream = compressionType.wrapForOutput(outStream, RecordBatch.MAGIC_VALUE_V2);
-        try {
+        try (OutputStream stream = compressionType.wrapForOutput(outStream, RecordBatch.MAGIC_VALUE_V2)) {
             stream.write(bytes);
             stream.flush();
-            stream.close();
         } catch (IOException e) {
-            throw new SerializationException(e);
+            throw new SerializationException("Failed to compress with type " + compressionType, e);
         }
 
-        ByteBuffer buf = outStream.buffer().flip();
-        byte[] result = new byte[buf.remaining()];
-        buf.get(result);
-
-        return result;
+        return outStream.buffer().array();
     }
 
-    private static BufferSupplier bufferSupplier = BufferSupplier.create();
+    private static final BufferSupplier bufferSupplier = BufferSupplier.create();
 
     private static byte[] decompress(org.apache.kafka.common.record.CompressionType compressionType, byte[] bytes) {
-        InputStream stream = compressionType.wrapForInput(ByteBuffer.wrap(bytes), RecordBatch.MAGIC_VALUE_V2, bufferSupplier);
-        try {
-            byte[] result = IoUtils.toByteArray(stream);
-            stream.close();
-            return result;
+        try (InputStream stream = compressionType.wrapForInput(ByteBuffer.wrap(bytes), RecordBatch.MAGIC_VALUE_V2, bufferSupplier)) {
+            return IoUtils.toByteArray(stream);
         } catch (IOException e) {
-            throw new SerializationException(e);
+            throw new SerializationException("Failed to compress with type " + compressionType, e);
         }
     }
 
@@ -112,7 +103,7 @@ public enum CompressionType {
         this.name = name;
     }
 
-    public static String headerName = HeaderLargeMessagePayloadProtocol.HEADER_PREFIX + ".compression";
+    public static final String HEADER_NAME = HeaderLargeMessagePayloadProtocol.HEADER_PREFIX + ".compression";
 
     public static CompressionType forId(int id) {
         switch (id) {

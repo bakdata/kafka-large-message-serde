@@ -50,7 +50,7 @@ public class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3ClientInteg
         byte[] obj = serialize("big value");
         byte[] data = storer.storeBytes(TOPIC, obj, isKey, headers);
 
-        Iterable<Header> compressionHeaders = headers.headers(CompressionType.headerName);
+        Iterable<Header> compressionHeaders = headers.headers(CompressionType.HEADER_NAME);
         if (compressionType == "none") {
             assertThat(compressionHeaders).isEmpty();
         } else {

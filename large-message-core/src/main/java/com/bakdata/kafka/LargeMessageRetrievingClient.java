@@ -74,10 +74,9 @@ public class LargeMessageRetrievingClient {
         final LargeMessagePayloadProtocol protocol = getProtocol(headers, isKey);
         final LargeMessagePayload payload = protocol.deserialize(data, headers, isKey);
         CompressionType compressionType = CompressionType.NONE;
-        Header compressionHeader = headers.lastHeader(CompressionType.headerName);
+        Header compressionHeader = headers.lastHeader(CompressionType.HEADER_NAME);
         if (compressionHeader != null) {
             compressionType = CompressionType.forId(compressionHeader.value()[0]);
-            headers.remove(CompressionType.headerName);
         }
 
         return this.getBytes(payload, compressionType);
