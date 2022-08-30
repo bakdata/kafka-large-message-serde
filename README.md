@@ -75,29 +75,27 @@ The following configuration options are available:
 Enable if Kafka message headers should be used to distinguish blob storage backed messages. This is disabled by default
 for backwards compatibility but leads to increased memory usage. It is recommended to enable this option.
 
-* Type: boolean
-* Default: false
-* Importance: medium
+  * Type: boolean
+  * Default: false
+  * Importance: medium
 
 ``large.message.accept.no.headers``
-Enable if messages read with no headers should be treated as non-backed messages. This allows enabling of large message
-behavior for data that has been serialized using the wrapped serializer.
+  Enable if messages read with no headers should be treated as non-backed messages. This allows enabling of large message
+  behavior for data that has been serialized using the wrapped serializer.
 
-* Type: boolean
-* Default: false
-* Importance: medium
+  * Type: boolean
+  * Default: false
+  * Importance: medium
 
 ``large.message.id.generator``
-Class to use for generating unique object IDs. Available generators are: `com.bakdata.kafka.RandomUUIDGenerator`
-, `com.bakdata.kafka.Sha256HashIdGenerator`, `com.bakdata.kafka.MurmurHashIdGenerator`.
+  Class to use for generating unique object IDs. Available generators are: `com.bakdata.kafka.RandomUUIDGenerator`, `com.bakdata.kafka.Sha256HashIdGenerator`, `com.bakdata.kafka.MurmurHashIdGenerator`.
 
-* Type: class
-* Default: `com.bakdata.kafka.RandomUUIDGenerator`
-* Importance: medium
+  * Type: class
+  * Default: `com.bakdata.kafka.RandomUUIDGenerator`
+  * Importance: medium
 
 ``large.message.s3.access.key``
-AWS access key to use for connecting to S3. Leave empty if AWS credential provider chain or STS Assume Role provider
-should be used.
+  AWS access key to use for connecting to S3. Leave empty if AWS credential provider chain or STS Assume Role provider should be used.
 
   * Type: password
   * Default: ""
