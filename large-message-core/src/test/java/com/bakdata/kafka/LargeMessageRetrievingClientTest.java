@@ -203,6 +203,19 @@ class LargeMessageRetrievingClientTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
+    void shouldReadBackedTextWithHeadersAndAcceptFlag(final boolean isKey) {
+        final String bucket = "bucket";
+        final String key = "key";
+        when(this.client.getObject(bucket, key)).thenReturn(serialize("foo"));
+        final LargeMessageRetrievingClient retriever = this.createRetriever(true);
+        final Headers headers = backedHeaders(isKey);
+        assertThat(retriever.retrieveBytes(createBackedText_(bucket, key), headers, isKey))
+                .isEqualTo(serialize("foo"));
+        assertHasHeader(headers, isKey);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
     void shouldThrowExceptionOnErroneousFlag(final boolean isKey) {
         final LargeMessageRetrievingClient retriever = this.createRetriever();
         final Headers headers = new RecordHeaders();
