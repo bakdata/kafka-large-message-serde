@@ -142,6 +142,15 @@ class LargeMessageRetrievingClientTest {
     }
 
     @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void shouldReadNonBackedTextWithNoHeaders(final boolean isKey) {
+        final LargeMessageRetrievingClient retriever = this.createRetriever(true);
+        final Headers headers = new RecordHeaders();
+        assertThat(retriever.retrieveBytes(serialize("foo"), headers, isKey))
+                .isEqualTo(serialize("foo"));
+    }
+
+    @ParameterizedTest
     @MethodSource("generateHeaders")
     void shouldReadNull(final Headers headers, final boolean isKey) {
         final LargeMessageRetrievingClient retriever = this.createRetriever();
@@ -292,7 +301,11 @@ class LargeMessageRetrievingClientTest {
     }
 
     private LargeMessageRetrievingClient createRetriever() {
-        return new LargeMessageRetrievingClient(Collections.singletonMap("foo", () -> this.client));
+        return this.createRetriever(false);
+    }
+
+    private LargeMessageRetrievingClient createRetriever(final boolean acceptNoHeaders) {
+        return new LargeMessageRetrievingClient(Collections.singletonMap("foo", () -> this.client), acceptNoHeaders);
     }
 
 }
