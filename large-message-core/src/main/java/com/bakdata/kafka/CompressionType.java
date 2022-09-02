@@ -5,6 +5,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
+import lombok.Getter;
+
+import lombok.NonNull;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.record.RecordBatch;
 import org.apache.kafka.common.utils.BufferSupplier;
@@ -74,7 +77,7 @@ public enum CompressionType {
     };
 
     private static byte[] compress(org.apache.kafka.common.record.CompressionType compressionType, byte[] bytes) {
-        ByteBufferOutputStream outStream = new ByteBufferOutputStream(bytes.length);
+        final ByteBufferOutputStream outStream = new ByteBufferOutputStream(bytes.length);
         try (OutputStream stream = compressionType.wrapForOutput(outStream, RecordBatch.MAGIC_VALUE_V2)) {
             stream.write(bytes);
             stream.flush();
@@ -95,7 +98,9 @@ public enum CompressionType {
         }
     }
 
-    public final byte id;
+    @Getter
+    private final byte id;
+    @NonNull
     public final String name;
 
     CompressionType(int id, String name) {

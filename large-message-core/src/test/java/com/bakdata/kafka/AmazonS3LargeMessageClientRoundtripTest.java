@@ -1,6 +1,5 @@
 package com.bakdata.kafka;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
@@ -21,7 +20,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
-public class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3ClientIntegrationTest {
+public class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
 
     private static final String TOPIC = "output";
     private static final Serializer<String> STRING_SERIALIZER = Serdes.String().serializer();
@@ -51,14 +50,14 @@ public class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3ClientInteg
         byte[] data = storer.storeBytes(TOPIC, obj, isKey, headers);
 
         Iterable<Header> compressionHeaders = headers.headers(CompressionType.HEADER_NAME);
-        if (compressionType == "none") {
+        if (compressionType.equals("none")) {
             assertThat(compressionHeaders).isEmpty();
         } else {
             assertThat(compressionHeaders).isNotEmpty();
         }
 
         byte[] result = retriever.retrieveBytes(data, headers, isKey);
-        assertArrayEquals(obj, result);
+        assertThat(result).isEqualTo(obj);
     }
 
     private static Stream<Arguments> provideParameters() {
