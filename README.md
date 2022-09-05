@@ -70,7 +70,7 @@ The following configuration options are available:
   * Type: int
   * Default: 1000000
   * Importance: medium
-  
+
 ``large.message.use.headers``
 Enable if Kafka message headers should be used to distinguish blob storage backed messages. This is disabled by default
 for backwards compatibility but leads to increased memory usage. It is recommended to enable this option.
@@ -78,7 +78,15 @@ for backwards compatibility but leads to increased memory usage. It is recommend
   * Type: boolean
   * Default: false
   * Importance: medium
-  
+
+``large.message.accept.no.headers``
+  Enable if messages read with no headers should be treated as non-backed messages. This allows enabling of large message
+  behavior for data that has been serialized using the wrapped serializer.
+
+  * Type: boolean
+  * Default: false
+  * Importance: medium
+
 ``large.message.id.generator``
   Class to use for generating unique object IDs. Available generators are: `com.bakdata.kafka.RandomUUIDGenerator`, `com.bakdata.kafka.Sha256HashIdGenerator`, `com.bakdata.kafka.MurmurHashIdGenerator`.
 
