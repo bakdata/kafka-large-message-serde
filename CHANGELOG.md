@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.4.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.4.1) (2022-09-05)
+[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.4.0...2.4.1)
+
+**Merged pull requests:**
+
+- Add option to accept messages without headers as non\-backed [\#42](https://github.com/bakdata/kafka-large-message-serde/pull/42) ([@philipp94831](https://github.com/philipp94831))
+
 ## [2.4.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.4.0) (2022-06-07)
 [Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.3.2...2.4.0)
 
