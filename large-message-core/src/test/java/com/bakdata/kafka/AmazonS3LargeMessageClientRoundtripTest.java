@@ -20,7 +20,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
-public class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
+class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
 
     private static final String TOPIC = "output";
     private static final Serializer<String> STRING_SERIALIZER = Serdes.String().serializer();

@@ -115,8 +115,10 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final boolean USE_HEADERS_DEFAULT = false;
 
     public static final String COMPRESSION_TYPE_CONFIG = PREFIX + "compression.type";
-    public static final String COMPRESSION_TYPE_DOC = "The compression type for data stored in blob storage. The default is none (i.e. no compression). Valid "
-                                                           + " values are <code>none</code>, <code>gzip</code>, <code>snappy</code>, <code>lz4</code>, or <code>zstd</code>.";
+    public static final String COMPRESSION_TYPE_DOC =
+            "The compression type for data stored in blob storage. The default is none (i.e. no compression). Valid "
+                    + " values are <code>none</code>, <code>gzip</code>, <code>snappy</code>, <code>lz4</code>, or "
+                    + "<code>zstd</code>.";
     public static final String COMPRESSION_TYPE_DEFAULT = "none";
     
     public static final String S3_PREFIX = PREFIX + AmazonS3Client.SCHEME + ".";
@@ -192,7 +194,8 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .define(BASE_PATH_CONFIG, Type.STRING, BASE_PATH_DEFAULT, Importance.HIGH, BASE_PATH_DOC)
                 .define(USE_HEADERS_CONFIG, Type.BOOLEAN, USE_HEADERS_DEFAULT, Importance.MEDIUM, USE_HEADERS_DOC)
                 .define(ID_GENERATOR_CONFIG, Type.CLASS, ID_GENERATOR_DEFAULT, Importance.MEDIUM, ID_GENERATOR_DOC)
-                .define(COMPRESSION_TYPE_CONFIG, Type.STRING, COMPRESSION_TYPE_DEFAULT, Importance.MEDIUM, COMPRESSION_TYPE_DOC)
+                .define(COMPRESSION_TYPE_CONFIG, Type.STRING, COMPRESSION_TYPE_DEFAULT, Importance.MEDIUM,
+                        COMPRESSION_TYPE_DOC)
                 // Amazon S3
                 .define(S3_ENDPOINT_CONFIG, Type.STRING, S3_ENDPOINT_DEFAULT, Importance.LOW, S3_ENDPOINT_DOC)
                 .define(S3_REGION_CONFIG, Type.STRING, S3_REGION_DEFAULT, Importance.LOW, S3_REGION_DOC)

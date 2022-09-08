@@ -90,14 +90,6 @@ public enum CompressionType {
 
     private static final BufferSupplier bufferSupplier = BufferSupplier.create();
 
-    private static byte[] decompress(org.apache.kafka.common.record.CompressionType compressionType, byte[] bytes) {
-        try (InputStream stream = compressionType.wrapForInput(ByteBuffer.wrap(bytes), RecordBatch.MAGIC_VALUE_V2, bufferSupplier)) {
-            return IoUtils.toByteArray(stream);
-        } catch (IOException e) {
-            throw new SerializationException("Failed to compress with type " + compressionType, e);
-        }
-    }
-
     @Getter
     private final byte id;
     @NonNull
@@ -109,6 +101,14 @@ public enum CompressionType {
     }
 
     public static final String HEADER_NAME = HeaderLargeMessagePayloadProtocol.HEADER_PREFIX + ".compression";
+
+    private static byte[] decompress(org.apache.kafka.common.record.CompressionType compressionType, byte[] bytes) {
+        try (InputStream stream = compressionType.wrapForInput(ByteBuffer.wrap(bytes), RecordBatch.MAGIC_VALUE_V2, bufferSupplier)) {
+            return IoUtils.toByteArray(stream);
+        } catch (IOException e) {
+            throw new SerializationException("Failed to compress with type " + compressionType, e);
+        }
+    }
 
     public static CompressionType forId(int id) {
         switch (id) {

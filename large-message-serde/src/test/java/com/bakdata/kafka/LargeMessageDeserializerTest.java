@@ -333,10 +333,13 @@ class LargeMessageDeserializerTest {
         store(bucket, key, "foo");
         this.createTopology(LargeMessageDeserializerTest::createValueTopology);
         final Headers headers = new RecordHeaders();
+        final byte[] value = createBackedText(bucket, key, headers, false);
+        // add compression header for 'none' type, so we can assert it is also properly removed
+        headers.add(CompressionType.HEADER_NAME, new byte[] { CompressionType.NONE.getId()});
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.ByteArray())
-                .add(1, createBackedText(bucket, key, headers, false), headers);
+                .add(1, value, headers);
         final List<ProducerRecord<Integer, String>> records = Seq.seq(this.topology.streamOutput()
                         .withKeySerde(Serdes.Integer())
                         .withValueSerde(Serdes.String()))
