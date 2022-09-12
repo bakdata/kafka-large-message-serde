@@ -103,6 +103,12 @@ public enum CompressionType {
         }
     };
 
+    @Getter
+    private final byte id;
+    @NonNull
+    @Getter
+    private final String name;
+
     private static byte[] compress(org.apache.kafka.common.record.CompressionType compressionType, byte[] bytes) {
         final ByteBufferOutputStream outStream = new ByteBufferOutputStream(bytes.length);
         try (OutputStream stream = compressionType.wrapForOutput(outStream, RecordBatch.MAGIC_VALUE_V2)) {
@@ -116,12 +122,6 @@ public enum CompressionType {
     }
 
     private static final BufferSupplier bufferSupplier = BufferSupplier.create();
-
-    @Getter
-    private final byte id;
-    @NonNull
-    @Getter
-    private final String name;
 
     CompressionType(int id, String name) {
         this.id = (byte)id;
