@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
- package com.bakdata.kafka;
+package com.bakdata.kafka;
 
 import java.io.IOException;
 import java.io.InputStream;
