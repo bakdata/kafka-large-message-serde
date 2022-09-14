@@ -69,6 +69,7 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
  *     <li> base path
  *     <li> id generator
  *     <li> usage of headers to store large message flag
+ *     <li> acceptance of no headers as signal that message is not backed
  *     <li> compression type
  * </ul>
  * <p></p>
@@ -114,6 +115,11 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                     + "disabled by default for backwards compatibility but leads to increased memory usage. It is "
                     + "recommended to enable this option.";
     public static final boolean USE_HEADERS_DEFAULT = false;
+    public static final String ACCEPT_NO_HEADERS_CONFIG = PREFIX + "accept.no.headers";
+    public static final String ACCEPT_NO_HEADERS_DOC =
+            "Enable if messages read with no headers should be treated as non-backed messages. This allows enabling "
+                    + "of large message behavior for data that has been serialized using the wrapped serializer.";
+    public static final boolean ACCEPT_NO_HEADERS_DEFAULT = false;
 
     public static final String COMPRESSION_TYPE_CONFIG = PREFIX + "compression.type";
     public static final String COMPRESSION_TYPE_DOC =
@@ -121,7 +127,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                     + " values are <code>none</code>, <code>gzip</code>, <code>snappy</code>, <code>lz4</code>, or "
                     + "<code>zstd</code>. Note: this option is only available when kafka message headers are used.";
     public static final String COMPRESSION_TYPE_DEFAULT = "none";
-    
+
     public static final String S3_PREFIX = PREFIX + AmazonS3Client.SCHEME + ".";
     public static final String S3_ENDPOINT_CONFIG = S3_PREFIX + "endpoint";
     public static final String S3_REGION_CONFIG = S3_PREFIX + "region";
@@ -194,6 +200,8 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .define(MAX_BYTE_SIZE_CONFIG, Type.INT, MAX_BYTE_SIZE_DEFAULT, Importance.MEDIUM, MAX_BYTE_SIZE_DOC)
                 .define(BASE_PATH_CONFIG, Type.STRING, BASE_PATH_DEFAULT, Importance.HIGH, BASE_PATH_DOC)
                 .define(USE_HEADERS_CONFIG, Type.BOOLEAN, USE_HEADERS_DEFAULT, Importance.MEDIUM, USE_HEADERS_DOC)
+                .define(ACCEPT_NO_HEADERS_CONFIG, Type.BOOLEAN, ACCEPT_NO_HEADERS_DEFAULT, Importance.MEDIUM,
+                        ACCEPT_NO_HEADERS_DOC)
                 .define(ID_GENERATOR_CONFIG, Type.CLASS, ID_GENERATOR_DEFAULT, Importance.MEDIUM, ID_GENERATOR_DOC)
                 .define(COMPRESSION_TYPE_CONFIG, Type.STRING, COMPRESSION_TYPE_DEFAULT, Importance.MEDIUM,
                         COMPRESSION_TYPE_DOC)
@@ -229,7 +237,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     }
 
     public LargeMessageRetrievingClient getRetriever() {
-        return new LargeMessageRetrievingClient(this.clientFactories);
+        return new LargeMessageRetrievingClient(this.clientFactories, this.getBoolean(ACCEPT_NO_HEADERS_CONFIG));
     }
 
     public LargeMessageStoringClient getStorer() {

@@ -121,6 +121,18 @@ class HeaderLargeMessagePayloadProtocolTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {false, true})
+    void shouldDeserializeNonBackedWithoutHeaders(final boolean isKey) {
+        final byte[] payload = {2};
+        final Headers headers = new RecordHeaders();
+        this.softly.assertThat(new HeaderLargeMessagePayloadProtocol().deserialize(payload, headers, isKey))
+                .satisfies(largeMessagePayload -> {
+                    this.softly.assertThat(largeMessagePayload.getData()).isEqualTo(payload);
+                    this.softly.assertThat(largeMessagePayload.isBacked()).isFalse();
+                });
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
     void shouldIgnoreOtherHeadersWhenDeserializing(final boolean isKey) {
         final byte[] payload = {2};
         final Headers headers = new RecordHeaders()

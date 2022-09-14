@@ -48,14 +48,11 @@ public class LargeMessageRetrievingClient {
     private static final LargeMessagePayloadProtocol HEADER_PROTOCOL = new HeaderLargeMessagePayloadProtocol();
     private final @NonNull Map<String, Supplier<BlobStorageClient>> clientFactories;
     private final @NonNull Map<String, BlobStorageClient> clientCache = new HashMap<>();
+    private final boolean acceptNoHeaders;
 
     static BlobStorageURI deserializeUri(final byte[] uriBytes) {
         final String rawUri = LargeMessagePayload.asUri(uriBytes);
         return BlobStorageURI.create(rawUri);
-    }
-
-    private static LargeMessagePayloadProtocol getProtocol(final Headers headers, final boolean isKey) {
-        return usesHeaders(headers, isKey) ? HEADER_PROTOCOL : BYTE_FLAG_PROTOCOL;
     }
 
     /**
@@ -70,7 +67,7 @@ public class LargeMessageRetrievingClient {
         if (data == null) {
             return null;
         }
-        final LargeMessagePayloadProtocol protocol = getProtocol(headers, isKey);
+        final LargeMessagePayloadProtocol protocol = this.getProtocol(headers, isKey);
         final LargeMessagePayload payload = protocol.deserialize(data, headers, isKey);
         CompressionType compressionType = CompressionType.NONE;
         final Header compressionHeader = headers.lastHeader(CompressionType.HEADER_NAME);
@@ -79,6 +76,10 @@ public class LargeMessageRetrievingClient {
         }
 
         return this.getBytes(payload, compressionType);
+    }
+
+    private LargeMessagePayloadProtocol getProtocol(final Headers headers, final boolean isKey) {
+        return this.acceptNoHeaders || usesHeaders(headers, isKey) ? HEADER_PROTOCOL : BYTE_FLAG_PROTOCOL;
     }
 
     /**
