@@ -34,6 +34,7 @@ import java.util.function.Supplier;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 
 /**
@@ -68,7 +69,13 @@ public class LargeMessageRetrievingClient {
         }
         final LargeMessagePayloadProtocol protocol = this.getProtocol(headers, isKey);
         final LargeMessagePayload payload = protocol.deserialize(data, headers, isKey);
-        return this.getBytes(payload);
+        CompressionType compressionType = CompressionType.NONE;
+        final Header compressionHeader = headers.lastHeader(CompressionType.HEADER_NAME);
+        if (compressionHeader != null) {
+            compressionType = CompressionType.forId(compressionHeader.value()[0]);
+        }
+
+        return this.getBytes(payload, compressionType);
     }
 
     private LargeMessagePayloadProtocol getProtocol(final Headers headers, final boolean isKey) {
@@ -87,25 +94,25 @@ public class LargeMessageRetrievingClient {
             return null;
         }
         final LargeMessagePayload payload = BYTE_FLAG_PROTOCOL.deserialize(data, isKey);
-        return this.getBytes(payload);
+        return this.getBytes(payload, CompressionType.NONE);
     }
 
-    private byte[] getBytes(final LargeMessagePayload payload) {
+    private byte[] getBytes(final LargeMessagePayload payload, final CompressionType compressionType) {
         final byte[] deserializedData = payload.getData();
         if (payload.isBacked()) {
-            return this.retrieveBackedBytes(deserializedData);
+            return this.retrieveBackedBytes(deserializedData, compressionType);
         } else {
             return deserializedData;
         }
     }
 
-    private byte[] retrieveBackedBytes(final byte[] data) {
+    private byte[] retrieveBackedBytes(final byte[] data, final CompressionType compressionType) {
         final BlobStorageURI uri = deserializeUri(data);
         final BlobStorageClient client = this.getClient(uri);
         Objects.requireNonNull(client);
-        final byte[] bytes = client.getObject(uri.getBucket(), uri.getKey());
+        final byte[] compressedBytes = client.getObject(uri.getBucket(), uri.getKey());
         log.debug("Extracted large message from blob storage: {}", uri);
-        return bytes;
+        return compressionType.decompress(compressedBytes);
     }
 
     private BlobStorageClient getClient(final BlobStorageURI uri) {

@@ -168,6 +168,16 @@ Endpoint to use for connection to Amazon S3. Leave empty if default S3 endpoint 
   * Default: ""
   * Importance: low
 
+``large.message.compression.type``
+  The compression type for data stored in blob storage. The default is `none` (i.e. no compression). Valid values are `none`,
+  `gzip`, `snappy`, `lz4` and `zstd`.
+  Note: this option is only available when `large.message.use.headers` is enabled.
+
+  * Type: string
+  * Default: "none"
+  * Importance: low
+
+
 ### Kafka Connect
 
 This serde also comes with support for Kafka Connect.

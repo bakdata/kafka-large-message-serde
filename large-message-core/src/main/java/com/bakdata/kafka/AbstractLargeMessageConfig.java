@@ -70,6 +70,7 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
  *     <li> id generator
  *     <li> usage of headers to store large message flag
  *     <li> acceptance of no headers as signal that message is not backed
+ *     <li> compression type
  * </ul>
  * <p></p>
  * Amazon S3 specific
@@ -119,6 +120,13 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
             "Enable if messages read with no headers should be treated as non-backed messages. This allows enabling "
                     + "of large message behavior for data that has been serialized using the wrapped serializer.";
     public static final boolean ACCEPT_NO_HEADERS_DEFAULT = false;
+
+    public static final String COMPRESSION_TYPE_CONFIG = PREFIX + "compression.type";
+    public static final String COMPRESSION_TYPE_DOC =
+            "The compression type for data stored in blob storage. The default is none (i.e. no compression). Valid "
+                    + " values are <code>none</code>, <code>gzip</code>, <code>snappy</code>, <code>lz4</code>, or "
+                    + "<code>zstd</code>. Note: this option is only available when kafka message headers are used.";
+    public static final String COMPRESSION_TYPE_DEFAULT = "none";
 
     public static final String S3_PREFIX = PREFIX + AmazonS3Client.SCHEME + ".";
     public static final String S3_ENDPOINT_CONFIG = S3_PREFIX + "endpoint";
@@ -195,6 +203,8 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .define(ACCEPT_NO_HEADERS_CONFIG, Type.BOOLEAN, ACCEPT_NO_HEADERS_DEFAULT, Importance.MEDIUM,
                         ACCEPT_NO_HEADERS_DOC)
                 .define(ID_GENERATOR_CONFIG, Type.CLASS, ID_GENERATOR_DEFAULT, Importance.MEDIUM, ID_GENERATOR_DOC)
+                .define(COMPRESSION_TYPE_CONFIG, Type.STRING, COMPRESSION_TYPE_DEFAULT, Importance.MEDIUM,
+                        COMPRESSION_TYPE_DOC)
                 // Amazon S3
                 .define(S3_ENDPOINT_CONFIG, Type.STRING, S3_ENDPOINT_DEFAULT, Importance.LOW, S3_ENDPOINT_DOC)
                 .define(S3_REGION_CONFIG, Type.STRING, S3_REGION_DEFAULT, Importance.LOW, S3_REGION_DOC)
@@ -239,6 +249,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .idGenerator(this.getConfiguredInstance(ID_GENERATOR_CONFIG, IdGenerator.class))
                 .protocol(this.getBoolean(USE_HEADERS_CONFIG) ? new HeaderLargeMessagePayloadProtocol()
                         : new ByteFlagLargeMessagePayloadProtocol())
+                .compressionType(this.getCompressionType())
                 .build();
     }
 
@@ -258,6 +269,10 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     private Optional<BlobStorageURI> getBasePath() {
         final String basePath = this.getString(BASE_PATH_CONFIG);
         return isEmpty(basePath) ? Optional.empty() : Optional.of(BlobStorageURI.create(basePath));
+    }
+
+    private CompressionType getCompressionType() {
+        return CompressionType.forName(this.getString(COMPRESSION_TYPE_CONFIG));
     }
 
     private int getMaxSize() {
