@@ -119,7 +119,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final String COMPRESSION_TYPE_DOC =
             "The compression type for data stored in blob storage. The default is none (i.e. no compression). Valid "
                     + " values are <code>none</code>, <code>gzip</code>, <code>snappy</code>, <code>lz4</code>, or "
-                    + "<code>zstd</code>.";
+                    + "<code>zstd</code>. Note: this option is only available when kafka message headers are used.";
     public static final String COMPRESSION_TYPE_DEFAULT = "none";
     
     public static final String S3_PREFIX = PREFIX + AmazonS3Client.SCHEME + ".";

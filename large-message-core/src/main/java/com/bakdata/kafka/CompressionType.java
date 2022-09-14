@@ -169,7 +169,19 @@ public enum CompressionType {
         }
     }
 
+    /**
+     * Compress bytes using this type of compression
+     *
+     * @param bytes to be compressed
+     * @return the compressed bytes
+     */
     public abstract byte[] compress(byte[] bytes);
 
+    /**
+     * Decompress bytes using this type of compression
+     *
+     * @param bytes to be decompressed
+     * @return the decompressed bytes
+     */
     public abstract byte[] decompress(byte[] bytes);
 }
