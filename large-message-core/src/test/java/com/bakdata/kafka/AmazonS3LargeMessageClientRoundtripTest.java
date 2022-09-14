@@ -1,21 +1,43 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022 bakdata
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.bakdata.kafka;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.common.collect.ImmutableMap;
+import io.confluent.common.config.ConfigDef;
 import java.util.Map;
 import java.util.stream.Stream;
-
 import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-
-import com.google.common.collect.ImmutableMap;
-
-import io.confluent.common.config.ConfigDef;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -27,6 +49,11 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
 
     private static byte[] serialize(final String s) {
         return STRING_SERIALIZER.serialize(null, s);
+    }
+
+    private static Stream<Arguments> provideParameters() {
+        return Stream.of(true, false)
+                .flatMap(isKey -> Stream.of("none", "gzip", "snappy", "lz4", "zstd").map(c -> Arguments.of(isKey, c)));
     }
 
     @ParameterizedTest
@@ -45,23 +72,19 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
 
         final LargeMessageRetrievingClient retriever = this.createRetriever();
 
-        RecordHeaders headers = new RecordHeaders();
-        byte[] obj = serialize("big value");
-        byte[] data = storer.storeBytes(TOPIC, obj, isKey, headers);
+        final Headers headers = new RecordHeaders();
+        final byte[] obj = serialize("big value");
+        final byte[] data = storer.storeBytes(TOPIC, obj, isKey, headers);
 
-        Iterable<Header> compressionHeaders = headers.headers(CompressionType.HEADER_NAME);
-        if (compressionType.equals("none")) {
+        final Iterable<Header> compressionHeaders = headers.headers(CompressionType.HEADER_NAME);
+        if ("none".equals(compressionType)) {
             assertThat(compressionHeaders).isEmpty();
         } else {
             assertThat(compressionHeaders).isNotEmpty();
         }
 
-        byte[] result = retriever.retrieveBytes(data, headers, isKey);
+        final byte[] result = retriever.retrieveBytes(data, headers, isKey);
         assertThat(result).isEqualTo(obj);
-    }
-
-    private static Stream<Arguments> provideParameters() {
-        return Stream.of(true, false).flatMap(isKey -> Stream.of("none", "gzip", "snappy", "lz4", "zstd").map(c -> Arguments.of(isKey, c)));
     }
 
     private Map<String, Object> createStorerProperties(final Map<String, Object> properties) {

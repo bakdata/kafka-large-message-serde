@@ -73,10 +73,10 @@ public class LargeMessageStoringClient {
             return null;
         }
         if (this.needsBacking(bytes)) {
-            byte[] compressedBytes = compressionType.compress(bytes);
+            final byte[] compressedBytes = this.compressionType.compress(bytes);
             final String uri = this.uploadToBlobStorage(topic, compressedBytes, isKey);
-            if (compressionType != CompressionType.NONE) {
-                headers.add(CompressionType.HEADER_NAME, new byte[]{compressionType.getId()});
+            if (this.compressionType != CompressionType.NONE) {
+                headers.add(CompressionType.HEADER_NAME, new byte[]{this.compressionType.getId()});
             }
             return this.serialize(uri, headers, isKey);
         } else {

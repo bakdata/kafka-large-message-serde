@@ -34,7 +34,6 @@ import java.util.function.Supplier;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 
@@ -74,7 +73,7 @@ public class LargeMessageRetrievingClient {
         final LargeMessagePayloadProtocol protocol = getProtocol(headers, isKey);
         final LargeMessagePayload payload = protocol.deserialize(data, headers, isKey);
         CompressionType compressionType = CompressionType.NONE;
-        Header compressionHeader = headers.lastHeader(CompressionType.HEADER_NAME);
+        final Header compressionHeader = headers.lastHeader(CompressionType.HEADER_NAME);
         if (compressionHeader != null) {
             compressionType = CompressionType.forId(compressionHeader.value()[0]);
         }

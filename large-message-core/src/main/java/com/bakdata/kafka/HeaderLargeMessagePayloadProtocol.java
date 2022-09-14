@@ -33,7 +33,7 @@ import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 
 final class HeaderLargeMessagePayloadProtocol implements LargeMessagePayloadProtocol {
-    public static final String HEADER_PREFIX = "__" + PREFIX + "backed.";
+    static final String HEADER_PREFIX = "__" + PREFIX + "backed.";
     private static final String KEY_HEADER = HEADER_PREFIX + "key";
     private static final String VALUE_HEADER = HEADER_PREFIX + "value";
 
