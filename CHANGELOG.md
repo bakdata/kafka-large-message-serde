@@ -1,5 +1,12 @@
 # Change Log
 
+## [2.5.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.5.0) (2022-09-14)
+[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.4.1...2.5.0)
+
+**Merged pull requests:**
+
+- Add support for blob compression [\#41](https://github.com/bakdata/kafka-large-message-serde/pull/41) ([@domsj](https://github.com/domsj))
+
 ## [2.4.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.4.1) (2022-09-05)
 [Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.4.0...2.4.1)
 
