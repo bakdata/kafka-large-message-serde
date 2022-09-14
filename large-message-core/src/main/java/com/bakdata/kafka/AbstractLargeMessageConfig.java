@@ -69,6 +69,7 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
  *     <li> base path
  *     <li> id generator
  *     <li> usage of headers to store large message flag
+ *     <li> compression type
  * </ul>
  * <p></p>
  * Amazon S3 specific
