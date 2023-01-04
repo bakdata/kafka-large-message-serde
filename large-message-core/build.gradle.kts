@@ -33,29 +33,30 @@ dependencies {
     val confluentVersion: String by project
     api(group = "io.confluent", name = "common-config", version = confluentVersion)
 
-    implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.32")
-    val awsVersion = "2.17.203"
+    implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.36")
+    val awsVersion = "2.19.8"
     api(group = "software.amazon.awssdk", name = "s3", version = awsVersion)
     api(group = "software.amazon.awssdk", name = "sts", version = awsVersion)
-    api(group = "com.azure", name = "azure-storage-blob", version = "12.13.0")
-    api(group = "com.google.cloud", name = "google-cloud-storage", version = "1.118.0")
-    implementation(group = "com.google.guava", name = "guava", version = "30.1.1-jre")
+    api(group = "com.azure", name = "azure-storage-blob", version = "12.20.1")
+    api(group = "com.google.cloud", name = "google-cloud-storage", version = "2.16.0")
+    implementation(group = "com.google.guava", name = "guava", version = "31.1-jre")
 
     val junitVersion: String by project
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", version = junitVersion)
     testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
-    testImplementation(group = "org.assertj", name = "assertj-core", version = "3.20.2")
-    val mockitoVersion = "3.12.4"
+    val assertJVersion: String by project
+    testImplementation(group = "org.assertj", name = "assertj-core", version = assertJVersion)
+    val mockitoVersion = "4.11.0"
     testImplementation(group = "org.mockito", name = "mockito-core", version = mockitoVersion)
     testImplementation(group = "org.mockito", name = "mockito-junit-jupiter", version = mockitoVersion)
 
     val log4jVersion: String by project
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j-impl", version = log4jVersion)
-    val testContainersVersion = "1.17.2"
+    val testContainersVersion = "1.17.6"
     testImplementation(group = "org.testcontainers", name = "junit-jupiter", version = testContainersVersion)
     testImplementation(group = "org.testcontainers", name = "localstack", version = testContainersVersion)
     // for localstack
-    testRuntimeOnly(group = "com.amazonaws", name = "aws-java-sdk-core", version = "1.12.66")
-    testImplementation(group = "com.google.cloud", name = "google-cloud-nio", version = "0.123.16")
+    testRuntimeOnly(group = "com.amazonaws", name = "aws-java-sdk-core", version = "1.12.376")
+    testImplementation(group = "com.google.cloud", name = "google-cloud-nio", version = "0.126.0")
 }
