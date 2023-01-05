@@ -1,21 +1,28 @@
 # Change Log
 
+## [2.5.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.5.1) (2023-01-05)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.5.0...2.5.1)
+
+**Merged pull requests:**
+
+- Update dependencies [\#43](https://github.com/bakdata/kafka-large-message-serde/pull/43) ([@philipp94831](https://github.com/philipp94831))
+
 ## [2.5.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.5.0) (2022-09-14)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.4.1...2.5.0)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.4.1...2.5.0)
 
 **Merged pull requests:**
 
 - Add support for blob compression [\#41](https://github.com/bakdata/kafka-large-message-serde/pull/41) ([@domsj](https://github.com/domsj))
 
 ## [2.4.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.4.1) (2022-09-05)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.4.0...2.4.1)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.4.0...2.4.1)
 
 **Merged pull requests:**
 
 - Add option to accept messages without headers as non\-backed [\#42](https://github.com/bakdata/kafka-large-message-serde/pull/42) ([@philipp94831](https://github.com/philipp94831))
 
 ## [2.4.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.4.0) (2022-06-07)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.3.2...2.4.0)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.3.2...2.4.0)
 
 **Closed issues:**
 
@@ -26,35 +33,35 @@
 - Migrate to AWS V2 client [\#40](https://github.com/bakdata/kafka-large-message-serde/pull/40) ([@philipp94831](https://github.com/philipp94831))
 
 ## [2.3.2](https://github.com/bakdata/kafka-large-message-serde/tree/2.3.2) (2022-05-06)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.3.1...2.3.2)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.3.1...2.3.2)
 
 **Merged pull requests:**
 
 - Use no headers when not passed explicitly [\#38](https://github.com/bakdata/kafka-large-message-serde/pull/38) ([@philipp94831](https://github.com/philipp94831))
 
 ## [2.3.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.3.1) (2022-04-28)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.3.0...2.3.1)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.3.0...2.3.1)
 
 **Merged pull requests:**
 
 - don't recompute header name each time [\#37](https://github.com/bakdata/kafka-large-message-serde/pull/37) ([@domsj](https://github.com/domsj))
 
 ## [2.3.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.3.0) (2022-03-28)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.2.1...2.3.0)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.2.1...2.3.0)
 
 **Merged pull requests:**
 
 - Use separate headers to store key and value flags [\#36](https://github.com/bakdata/kafka-large-message-serde/pull/36) ([@philipp94831](https://github.com/philipp94831))
 
 ## [2.2.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.2.1) (2022-03-23)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.2.0...2.2.1)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.2.0...2.2.1)
 
 **Merged pull requests:**
 
 - Remove large message headers after deserialization [\#35](https://github.com/bakdata/kafka-large-message-serde/pull/35) ([@philipp94831](https://github.com/philipp94831))
 
 ## [2.2.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.2.0) (2022-03-22)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.5...2.2.0)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.5...2.2.0)
 
 **Closed issues:**
 
@@ -66,14 +73,14 @@
 - Reformat code [\#33](https://github.com/bakdata/kafka-large-message-serde/pull/33) ([@philipp94831](https://github.com/philipp94831))
 
 ## [2.1.5](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.5) (2022-02-08)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.4...2.1.5)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.4...2.1.5)
 
 **Merged pull requests:**
 
 - Throw serialization exception on invalid URI [\#31](https://github.com/bakdata/kafka-large-message-serde/pull/31) ([@disrupted](https://github.com/disrupted))
 
 ## [2.1.4](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.4) (2022-02-07)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.3...2.1.4)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.3...2.1.4)
 
 **Implemented enhancements:**
 
@@ -87,7 +94,7 @@
 - Add support for Google Cloud Storage [\#26](https://github.com/bakdata/kafka-large-message-serde/pull/26) ([@raminqaf](https://github.com/raminqaf))
 
 ## [2.1.3](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.3) (2021-12-15)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.2...2.1.3)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.2...2.1.3)
 
 **Merged pull requests:**
 
@@ -95,21 +102,21 @@
 - Add support for Google Cloud Storage [\#22](https://github.com/bakdata/kafka-large-message-serde/pull/22) ([@raminqaf](https://github.com/raminqaf))
 
 ## [2.1.2](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.2) (2021-12-13)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.1...2.1.2)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.1...2.1.2)
 
 **Merged pull requests:**
 
 - Batch delete S3 files [\#25](https://github.com/bakdata/kafka-large-message-serde/pull/25) ([@philipp94831](https://github.com/philipp94831))
 
 ## [2.1.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.1) (2021-12-10)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.0...2.1.1)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.0...2.1.1)
 
 **Merged pull requests:**
 
 - Update log4j to 2.15.0 [\#24](https://github.com/bakdata/kafka-large-message-serde/pull/24) ([@philipp94831](https://github.com/philipp94831))
 
 ## [2.1.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.0) (2021-12-01)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.0.1...2.1.0)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.0.1...2.1.0)
 
 **Closed issues:**
 
@@ -120,7 +127,7 @@
 - Add support for OIDC token auth with AWS STS role [\#21](https://github.com/bakdata/kafka-large-message-serde/pull/21) ([@jclarysse](https://github.com/jclarysse))
 
 ## [2.0.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.0.1) (2021-09-14)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/2.0.0...2.0.1)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.0.0...2.0.1)
 
 **Merged pull requests:**
 
@@ -128,14 +135,14 @@
 - Test Azure using azurite [\#18](https://github.com/bakdata/kafka-large-message-serde/pull/18) ([@philipp94831](https://github.com/philipp94831))
 
 ## [2.0.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.0.0) (2021-06-18)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/1.1.5...2.0.0)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/1.1.5...2.0.0)
 
 **Merged pull requests:**
 
 -  Support Azure blob storage [\#17](https://github.com/bakdata/kafka-large-message-serde/pull/17) ([@philipp94831](https://github.com/philipp94831))
 
 ## [1.1.5](https://github.com/bakdata/kafka-large-message-serde/tree/1.1.5) (2021-05-31)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/1.1.4...1.1.5)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/1.1.4...1.1.5)
 
 **Closed issues:**
 
@@ -148,7 +155,7 @@
 - Clarify connect configuration in README [\#14](https://github.com/bakdata/kafka-large-message-serde/pull/14) ([@philipp94831](https://github.com/philipp94831))
 
 ## [1.1.4](https://github.com/bakdata/kafka-large-message-serde/tree/1.1.4) (2021-04-21)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/1.1.3...1.1.4)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/1.1.3...1.1.4)
 
 **Merged pull requests:**
 
@@ -156,7 +163,7 @@
 - Update gradle plugins [\#11](https://github.com/bakdata/kafka-large-message-serde/pull/11) ([@philipp94831](https://github.com/philipp94831))
 
 ## [1.1.3](https://github.com/bakdata/kafka-large-message-serde/tree/1.1.3) (2021-04-21)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/1.1.2...1.1.3)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/1.1.2...1.1.3)
 
 **Closed issues:**
 
@@ -167,21 +174,21 @@
 - Adding STSAssumeRoleSessionCredentialsProvider [\#10](https://github.com/bakdata/kafka-large-message-serde/pull/10) ([@Tomczik76](https://github.com/Tomczik76))
 
 ## [1.1.2](https://github.com/bakdata/kafka-large-message-serde/tree/1.1.2) (2020-03-10)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/1.1.1...1.1.2)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/1.1.1...1.1.2)
 
 **Merged pull requests:**
 
 - Make ID generator configurable [\#8](https://github.com/bakdata/kafka-large-message-serde/pull/8) ([@philipp94831](https://github.com/philipp94831))
 
 ## [1.1.1](https://github.com/bakdata/kafka-large-message-serde/tree/1.1.1) (2020-03-02)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/1.1.0...1.1.1)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/1.1.0...1.1.1)
 
 **Merged pull requests:**
 
 - Fix handling of null [\#7](https://github.com/bakdata/kafka-large-message-serde/pull/7) ([@philipp94831](https://github.com/philipp94831))
 
 ## [1.1.0](https://github.com/bakdata/kafka-large-message-serde/tree/1.1.0) (2020-02-19)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/1.0.2...1.1.0)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/1.0.2...1.1.0)
 
 **Merged pull requests:**
 
@@ -189,20 +196,21 @@
 - Add support for Kafka Connect [\#5](https://github.com/bakdata/kafka-large-message-serde/pull/5) ([@philipp94831](https://github.com/philipp94831))
 
 ## [1.0.2](https://github.com/bakdata/kafka-large-message-serde/tree/1.0.2) (2020-01-03)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/1.0.1...1.0.2)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/1.0.1...1.0.2)
 
 **Merged pull requests:**
 
 - Downgrade to Java 8 [\#4](https://github.com/bakdata/kafka-large-message-serde/pull/4) ([@torbsto](https://github.com/torbsto))
 
 ## [1.0.1](https://github.com/bakdata/kafka-large-message-serde/tree/1.0.1) (2019-11-18)
-[Full Changelog](https://github.com/bakdata/kafka-large-message-serde/compare/1.0.0...1.0.1)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/1.0.0...1.0.1)
 
 **Merged pull requests:**
 
 - Extract S3BackingClient [\#3](https://github.com/bakdata/kafka-large-message-serde/pull/3) ([@philipp94831](https://github.com/philipp94831))
 
 ## [1.0.0](https://github.com/bakdata/kafka-large-message-serde/tree/1.0.0) (2019-11-15)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/469018677b249adae1c0c4f02a38827d4f19d063...1.0.0)
 
 **Merged pull requests:**
 
