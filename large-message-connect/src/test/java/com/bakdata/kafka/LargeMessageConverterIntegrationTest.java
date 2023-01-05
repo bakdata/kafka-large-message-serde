@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2023 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,8 +65,8 @@ class LargeMessageConverterIntegrationTest {
     private EmbeddedKafkaCluster kafkaCluster;
     private Path outputFile;
 
-    static String configureS3HTTPService() {
-        return System.setProperty(SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(),
+    static void configureS3HTTPService() {
+        System.setProperty(SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(),
                 "software.amazon.awssdk.http.apache.ApacheSdkHttpService");
     }
 
