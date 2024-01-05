@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.bakdata.fluent_kafka_streams_tests.TestInput;
 import com.bakdata.fluent_kafka_streams_tests.TestOutput;
-import com.bakdata.fluent_kafka_streams_tests.junit5.TestTopologyExtension;
+import com.bakdata.fluent_kafka_streams_tests.TestTopology;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,8 +42,9 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Produced;
 import org.jooq.lambda.Seq;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 
 class LargeMessageSerdeTest extends AmazonS3IntegrationTest {
@@ -51,9 +52,7 @@ class LargeMessageSerdeTest extends AmazonS3IntegrationTest {
     private static final String INPUT_TOPIC_1 = "input1";
     private static final String INPUT_TOPIC_2 = "input2";
     private static final String OUTPUT_TOPIC = "output";
-    @RegisterExtension
-    TestTopologyExtension<Integer, String> topology =
-            new TestTopologyExtension<>(LargeMessageSerdeTest::createTopology, this.createProperties());
+    private TestTopology<Integer, String> topology;
 
     private static Topology createTopology() {
         final StreamsBuilder builder = new StreamsBuilder();
@@ -69,6 +68,19 @@ class LargeMessageSerdeTest extends AmazonS3IntegrationTest {
         joined.toStream()
                 .to(OUTPUT_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
         return builder.build();
+    }
+
+    @BeforeEach
+    void setup() {
+        this.topology = new TestTopology<>(LargeMessageSerdeTest::createTopology, this.createProperties());
+        this.topology.start();
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (this.topology != null) {
+            this.topology.stop();
+        }
     }
 
     @Test
