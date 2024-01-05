@@ -1,5 +1,16 @@
 # Change Log
 
+## [2.6.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.6.0) (2024-01-05)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.5.1...2.6.0)
+
+**Closed issues:**
+
+- Invalid value null for configuration key serializer exception [\#44](https://github.com/bakdata/kafka-large-message-serde/issues/44)
+
+**Merged pull requests:**
+
+- Update dependencies and switch to Java 11 [\#46](https://github.com/bakdata/kafka-large-message-serde/pull/46) ([@philipp94831](https://github.com/philipp94831))
+
 ## [2.5.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.5.1) (2023-01-05)
 [View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.5.0...2.5.1)
 
