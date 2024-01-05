@@ -62,21 +62,6 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
     private EmbeddedKafkaCluster kafkaCluster;
     private Path outputFile;
 
-    private Properties createS3BackedProperties() {
-        final AwsBasicCredentials credentials = this.getCredentials();
-        final Properties properties = new Properties();
-        properties.put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString());
-        properties.put(AbstractLargeMessageConfig.S3_REGION_CONFIG, this.getRegion().id());
-        properties.put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId());
-        properties.put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey());
-        properties.put(LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG, StringSerde.class.getName());
-        properties.put(LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, StringSerde.class.getName());
-        properties.put(
-                AbstractLargeMessageConfig.BASE_PATH_CONFIG, String.format("s3://%s/%s", BUCKET_NAME, S3_KEY_NAME));
-        properties.setProperty(LargeMessageConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName());
-        return properties;
-    }
-
     @BeforeEach
     void setUp() throws IOException {
         this.outputFile = Files.createTempFile("test", "temp");
@@ -117,6 +102,21 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
                                 .deployConnector(this.config())
                                 .build())
                 .build());
+    }
+
+    private Properties createS3BackedProperties() {
+        final AwsBasicCredentials credentials = this.getCredentials();
+        final Properties properties = new Properties();
+        properties.put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString());
+        properties.put(AbstractLargeMessageConfig.S3_REGION_CONFIG, this.getRegion().id());
+        properties.put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId());
+        properties.put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey());
+        properties.put(LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG, StringSerde.class.getName());
+        properties.put(LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, StringSerde.class.getName());
+        properties.put(
+                AbstractLargeMessageConfig.BASE_PATH_CONFIG, String.format("s3://%s/%s", BUCKET_NAME, S3_KEY_NAME));
+        properties.setProperty(LargeMessageConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName());
+        return properties;
     }
 
     private Properties config() {

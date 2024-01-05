@@ -275,6 +275,25 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
     }
 
     @Test
+    void shouldWriteBackedNullKey() {
+        final Properties properties = new Properties();
+        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0);
+        this.createTopology(LargeMessageSerializerTest::createKeyTopology, properties);
+        this.topology.input()
+                .withKeySerde(Serdes.String())
+                .withValueSerde(Serdes.Integer())
+                .add(null, 1);
+        final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
+                        .withKeySerde(Serdes.ByteArray())
+                        .withValueSerde(Serdes.Integer()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .extracting(ProducerRecord::key)
+                .anySatisfy(s3BackedText -> assertThat(s3BackedText).isNull());
+    }
+
+    @Test
     void shouldWriteBackedTextValue() {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
@@ -322,25 +341,6 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
                 .anySatisfy(
                         record -> this.expectBackedText(basePath, "foo", record.value(), "values", record.headers(),
                                 false));
-    }
-
-    @Test
-    void shouldWriteBackedNullKey() {
-        final Properties properties = new Properties();
-        properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0);
-        this.createTopology(LargeMessageSerializerTest::createKeyTopology, properties);
-        this.topology.input()
-                .withKeySerde(Serdes.String())
-                .withValueSerde(Serdes.Integer())
-                .add(null, 1);
-        final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.ByteArray())
-                        .withValueSerde(Serdes.Integer()))
-                .toList();
-        assertThat(records)
-                .hasSize(1)
-                .extracting(ProducerRecord::key)
-                .anySatisfy(s3BackedText -> assertThat(s3BackedText).isNull());
     }
 
     @Test
