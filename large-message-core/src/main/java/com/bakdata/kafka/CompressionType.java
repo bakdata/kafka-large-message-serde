@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2024 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,6 @@ import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.record.RecordBatch;
 import org.apache.kafka.common.utils.BufferSupplier;
 import org.apache.kafka.common.utils.ByteBufferOutputStream;
-import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * This enum specifies the various allowed compression types and their implementation.
@@ -163,7 +162,7 @@ public enum CompressionType {
             final byte[] bytes) {
         try (final InputStream stream = compressionType.wrapForInput(ByteBuffer.wrap(bytes), RecordBatch.MAGIC_VALUE_V2,
                 BUFFER_SUPPLIER)) {
-            return IoUtils.toByteArray(stream);
+            return stream.readAllBytes();
         } catch (final IOException e) {
             throw new SerializationException("Failed to compress with type " + compressionType, e);
         }

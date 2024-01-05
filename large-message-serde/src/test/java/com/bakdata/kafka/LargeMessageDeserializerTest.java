@@ -55,7 +55,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -413,7 +412,7 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
     }
 
     private Properties createProperties() {
-        final Map<String, Object> endpointConfig = this.getEndpointConfig();
+        final Map<String, String> endpointConfig = this.getLargeMessageConfig();
         final Properties properties = new Properties();
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "broker");
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
@@ -423,16 +422,6 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
         properties.put(LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         properties.put(LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         return properties;
-    }
-
-    private Map<String, Object> getEndpointConfig() {
-        final AwsBasicCredentials credentials = this.getCredentials();
-        final Map<String, Object> largeMessageConfig = new HashMap<>();
-        largeMessageConfig.put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString());
-        largeMessageConfig.put(AbstractLargeMessageConfig.S3_REGION_CONFIG, this.getRegion().id());
-        largeMessageConfig.put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId());
-        largeMessageConfig.put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey());
-        return largeMessageConfig;
     }
 
     private void store(final String bucket, final String key, final String s) {
@@ -447,7 +436,7 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
             final MessageFactory messageFactory) {
         try (final Deserializer<String> deserializer = new LargeMessageDeserializer<>()) {
             final Headers headers = new RecordHeaders();
-            final Map<String, Object> config = new HashMap<>(this.getEndpointConfig());
+            final Map<String, Object> config = new HashMap<>(this.getLargeMessageConfig());
             config.put(isKey ? LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG
                     : LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, IntegerSerde.class);
             deserializer.configure(config, isKey);

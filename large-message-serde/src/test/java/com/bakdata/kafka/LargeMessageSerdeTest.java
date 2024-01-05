@@ -29,7 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.bakdata.fluent_kafka_streams_tests.TestInput;
 import com.bakdata.fluent_kafka_streams_tests.TestOutput;
 import com.bakdata.fluent_kafka_streams_tests.TestTopology;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -45,7 +44,6 @@ import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 
 class LargeMessageSerdeTest extends AmazonS3IntegrationTest {
 
@@ -72,7 +70,7 @@ class LargeMessageSerdeTest extends AmazonS3IntegrationTest {
 
     @BeforeEach
     void setup() {
-        this.topology = new TestTopology<>(LargeMessageSerdeTest::createTopology, this.createProperties());
+        this.topology = new TestTopology<>(LargeMessageSerdeTest::createTopology, this.createLargeMessageProperties());
         this.topology.start();
     }
 
@@ -99,8 +97,8 @@ class LargeMessageSerdeTest extends AmazonS3IntegrationTest {
                 });
     }
 
-    private Properties createProperties() {
-        final Map<String, Object> endpointConfig = this.getEndpointConfig();
+    private Properties createLargeMessageProperties() {
+        final Map<String, String> endpointConfig = this.getLargeMessageConfig();
         final Properties properties = new Properties();
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "broker");
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
@@ -111,16 +109,6 @@ class LargeMessageSerdeTest extends AmazonS3IntegrationTest {
         properties.put(LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         properties.put(AbstractLargeMessageConfig.USE_HEADERS_CONFIG, true);
         return properties;
-    }
-
-    private Map<String, Object> getEndpointConfig() {
-        final AwsBasicCredentials credentials = this.getCredentials();
-        final Map<String, Object> largeMessageConfig = new HashMap<>();
-        largeMessageConfig.put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString());
-        largeMessageConfig.put(AbstractLargeMessageConfig.S3_REGION_CONFIG, this.getRegion().id());
-        largeMessageConfig.put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId());
-        largeMessageConfig.put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey());
-        return largeMessageConfig;
     }
 
     private TestOutput<String, String> getOutput() {

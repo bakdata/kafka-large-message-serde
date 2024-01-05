@@ -49,7 +49,6 @@ import org.apache.kafka.connect.storage.StringConverter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
@@ -105,12 +104,8 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
     }
 
     private Properties createS3BackedProperties() {
-        final AwsBasicCredentials credentials = this.getCredentials();
         final Properties properties = new Properties();
-        properties.put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString());
-        properties.put(AbstractLargeMessageConfig.S3_REGION_CONFIG, this.getRegion().id());
-        properties.put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId());
-        properties.put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey());
+        properties.putAll(this.getLargeMessageConfig());
         properties.put(LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG, StringSerde.class.getName());
         properties.put(LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, StringSerde.class.getName());
         properties.put(

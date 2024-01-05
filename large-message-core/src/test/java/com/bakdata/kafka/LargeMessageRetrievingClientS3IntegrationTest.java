@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2024 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,14 +27,12 @@ package com.bakdata.kafka;
 import static com.bakdata.kafka.LargeMessageRetrievingClientTest.serializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.google.common.collect.ImmutableMap;
 import io.confluent.common.config.ConfigDef;
 import java.util.Map;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -62,20 +60,10 @@ class LargeMessageRetrievingClientS3IntegrationTest extends AmazonS3IntegrationT
     }
 
     private LargeMessageRetrievingClient createRetriever() {
-        final Map<String, Object> properties = this.createProperties();
+        final Map<String, String> properties = this.getLargeMessageConfig();
         final ConfigDef configDef = AbstractLargeMessageConfig.baseConfigDef();
         final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(configDef, properties);
         return config.getRetriever();
-    }
-
-    private Map<String, Object> createProperties() {
-        final AwsBasicCredentials credentials = this.getCredentials();
-        return ImmutableMap.<String, Object>builder()
-                .put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString())
-                .put(AbstractLargeMessageConfig.S3_REGION_CONFIG, this.getRegion().id())
-                .put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId())
-                .put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey())
-                .build();
     }
 
     private void store(final String bucket, final String key, final String s) {

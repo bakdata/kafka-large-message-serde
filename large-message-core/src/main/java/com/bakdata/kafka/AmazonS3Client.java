@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2024 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 package com.bakdata.kafka;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,14 +33,12 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.SerializationException;
-import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
@@ -50,7 +49,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.paginators.ListObjectVersionsIterable;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
-import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Implementation of {@link BlobStorageClient} for Amazon S3.
@@ -60,7 +58,8 @@ import software.amazon.awssdk.utils.IoUtils;
 class AmazonS3Client implements BlobStorageClient {
 
     static final String SCHEME = "s3";
-    private final @NonNull S3Client s3;
+    @NonNull
+    private final S3Client s3;
 
     static ObjectIdentifier asIdentifier(final S3Object s3Object) {
         return ObjectIdentifier.builder()
@@ -115,9 +114,12 @@ class AmazonS3Client implements BlobStorageClient {
     @Override
     public byte[] getObject(final String bucket, final String key) {
         final String s3URI = asURI(bucket, key);
-        try (final ResponseInputStream<GetObjectResponse> s3Object = this.s3.getObject(
-                GetObjectRequest.builder().bucket(bucket).key(key).build())) {
-            return IoUtils.toByteArray(s3Object);
+        final GetObjectRequest request = GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build();
+        try (final InputStream s3Object = this.s3.getObject(request)) {
+            return s3Object.readAllBytes();
         } catch (final SdkException | IOException e) {
             throw new SerializationException("Cannot handle S3 backed message: " + s3URI, e);
         }

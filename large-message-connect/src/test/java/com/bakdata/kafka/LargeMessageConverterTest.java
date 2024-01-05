@@ -48,12 +48,10 @@ import org.apache.kafka.connect.storage.StringConverter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.utils.IoUtils;
 
 class LargeMessageConverterTest extends AmazonS3IntegrationTest {
     private static final String TOPIC = "topic";
@@ -405,11 +403,12 @@ class LargeMessageConverterTest extends AmazonS3IntegrationTest {
     }
 
     private byte[] readBytes(final BlobStorageURI uri) {
-        try (final InputStream objectContent = this.getS3Client().getObject(GetObjectRequest.builder()
+        final GetObjectRequest request = GetObjectRequest.builder()
                 .bucket(uri.getBucket())
                 .key(uri.getKey())
-                .build())) {
-            return IoUtils.toByteArray(objectContent);
+                .build();
+        try (final InputStream objectContent = this.getS3Client().getObject(request)) {
+            return objectContent.readAllBytes();
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
@@ -417,12 +416,8 @@ class LargeMessageConverterTest extends AmazonS3IntegrationTest {
 
     private Map<String, String> createProperties(final int maxSize, final String basePath,
             final boolean useHeaders) {
-        final AwsBasicCredentials credentials = this.getCredentials();
         return ImmutableMap.<String, String>builder()
-                .put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString())
-                .put(AbstractLargeMessageConfig.S3_REGION_CONFIG, this.getRegion().id())
-                .put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId())
-                .put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey())
+                .putAll(this.getLargeMessageConfig())
                 .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(maxSize))
                 .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
                 .put(LargeMessageConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName())

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 bakdata
+ * Copyright (c) 2024 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,9 @@
 
 package com.bakdata.kafka;
 
+import com.google.common.collect.ImmutableMap;
 import java.net.URI;
+import java.util.Map;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.junit.jupiter.Container;
@@ -52,17 +54,27 @@ abstract class AmazonS3IntegrationTest {
                 .build();
     }
 
-    Region getRegion() {
+    Map<String, String> getLargeMessageConfig() {
+        final AwsBasicCredentials credentials = this.getCredentials();
+        return ImmutableMap.<String, String>builder()
+                .put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString())
+                .put(AbstractLargeMessageConfig.S3_REGION_CONFIG, this.getRegion().id())
+                .put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId())
+                .put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey())
+                .build();
+    }
+
+    private Region getRegion() {
         return Region.of(this.localStackContainer.getRegion());
     }
 
-    AwsBasicCredentials getCredentials() {
+    private AwsBasicCredentials getCredentials() {
         return AwsBasicCredentials.create(
                 this.localStackContainer.getAccessKey(), this.localStackContainer.getSecretKey()
         );
     }
 
-    URI getEndpointOverride() {
+    private URI getEndpointOverride() {
         return this.localStackContainer.getEndpointOverride(Service.S3);
     }
 }

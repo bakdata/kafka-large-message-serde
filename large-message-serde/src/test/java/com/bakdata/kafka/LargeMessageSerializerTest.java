@@ -50,11 +50,9 @@ import org.apache.kafka.streams.kstream.Produced;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.utils.IoUtils;
 
 class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
 
@@ -363,15 +361,11 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
     }
 
     private Properties createProperties(final Properties properties) {
-        final AwsBasicCredentials credentials = this.getCredentials();
         properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "broker");
         properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.ByteArraySerde.class);
         properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.ByteArraySerde.class);
-        properties.put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString());
-        properties.put(AbstractLargeMessageConfig.S3_REGION_CONFIG, this.getRegion().id());
-        properties.put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId());
-        properties.put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey());
+        properties.putAll(this.getLargeMessageConfig());
         properties.put(LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         properties.put(LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
         return properties;
@@ -399,11 +393,12 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
     }
 
     private byte[] readBytes(final BlobStorageURI uri) {
-        try (final InputStream objectContent = this.getS3Client().getObject(GetObjectRequest.builder()
+        final GetObjectRequest request = GetObjectRequest.builder()
                 .bucket(uri.getBucket())
                 .key(uri.getKey())
-                .build())) {
-            return IoUtils.toByteArray(objectContent);
+                .build();
+        try (final InputStream objectContent = this.getS3Client().getObject(request)) {
+            return objectContent.readAllBytes();
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
