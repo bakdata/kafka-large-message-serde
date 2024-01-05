@@ -39,15 +39,11 @@ dependencies {
     testImplementation(
         group = "com.bakdata.fluent-kafka-streams-tests",
         name = "fluent-kafka-streams-tests-junit5",
-        version = "2.8.1"
+        version = "2.11.1"
     )
-    val s3MockVersion: String by project
-    testImplementation(group = "com.adobe.testing", name = "s3mock-junit5", version = s3MockVersion) {
-        exclude(group = "ch.qos.logback")
-        exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
-    }
     val log4jVersion: String by project
-    testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j-impl", version = log4jVersion)
+    testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
     val joolVersion: String by project
-    testImplementation(group = "org.jooq", name = "jool-java-8", version = joolVersion)
+    testImplementation(group = "org.jooq", name = "jool", version = joolVersion)
+    testImplementation(testFixtures(project(":large-message-core")))
 }

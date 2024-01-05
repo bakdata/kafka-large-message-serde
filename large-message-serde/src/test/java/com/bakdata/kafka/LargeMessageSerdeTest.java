@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2024 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,11 +26,9 @@ package com.bakdata.kafka;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.adobe.testing.s3mock.junit5.S3MockExtension;
 import com.bakdata.fluent_kafka_streams_tests.TestInput;
 import com.bakdata.fluent_kafka_streams_tests.TestOutput;
-import com.bakdata.fluent_kafka_streams_tests.junit5.TestTopologyExtension;
-import java.util.HashMap;
+import com.bakdata.fluent_kafka_streams_tests.TestTopology;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -43,44 +41,16 @@ import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Produced;
 import org.jooq.lambda.Seq;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
-class LargeMessageSerdeTest {
+class LargeMessageSerdeTest extends AmazonS3IntegrationTest {
 
-    @RegisterExtension
-    static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
-            .withSecureConnection(false).build();
     private static final String INPUT_TOPIC_1 = "input1";
     private static final String INPUT_TOPIC_2 = "input2";
     private static final String OUTPUT_TOPIC = "output";
-    @RegisterExtension
-    TestTopologyExtension<Integer, String> topology =
-            new TestTopologyExtension<>(LargeMessageSerdeTest::createTopology, createProperties());
-
-    private static Properties createProperties() {
-        final Map<String, Object> endpointConfig = getEndpointConfig();
-        final Properties properties = new Properties();
-        properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "broker");
-        properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
-        properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, LargeMessageSerde.class);
-        properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, LargeMessageSerde.class);
-        properties.putAll(endpointConfig);
-        properties.put(LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
-        properties.put(LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
-        properties.put(AbstractLargeMessageConfig.USE_HEADERS_CONFIG, true);
-        return properties;
-    }
-
-    private static Map<String, Object> getEndpointConfig() {
-        final Map<String, Object> largeMessageConfig = new HashMap<>();
-        largeMessageConfig.put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG,
-                "http://localhost:" + S3_MOCK.getHttpPort());
-        largeMessageConfig.put(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1");
-        largeMessageConfig.put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo");
-        largeMessageConfig.put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar");
-        return largeMessageConfig;
-    }
+    private TestTopology<Integer, String> topology;
 
     private static Topology createTopology() {
         final StreamsBuilder builder = new StreamsBuilder();
@@ -98,6 +68,19 @@ class LargeMessageSerdeTest {
         return builder.build();
     }
 
+    @BeforeEach
+    void setup() {
+        this.topology = new TestTopology<>(LargeMessageSerdeTest::createTopology, this.createLargeMessageProperties());
+        this.topology.start();
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (this.topology != null) {
+            this.topology.stop();
+        }
+    }
+
     @Test
     void shouldJoin() {
         // this test creates a topology with a changelog store. The changelog store uses the Serde without headers
@@ -112,6 +95,20 @@ class LargeMessageSerdeTest {
                     assertThat(record.key()).isEqualTo("a");
                     assertThat(record.value()).isEqualTo("foobar");
                 });
+    }
+
+    private Properties createLargeMessageProperties() {
+        final Map<String, String> endpointConfig = this.getLargeMessageConfig();
+        final Properties properties = new Properties();
+        properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "broker");
+        properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
+        properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, LargeMessageSerde.class);
+        properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, LargeMessageSerde.class);
+        properties.putAll(endpointConfig);
+        properties.put(LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
+        properties.put(LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
+        properties.put(AbstractLargeMessageConfig.USE_HEADERS_CONFIG, true);
+        return properties;
     }
 
     private TestOutput<String, String> getOutput() {
