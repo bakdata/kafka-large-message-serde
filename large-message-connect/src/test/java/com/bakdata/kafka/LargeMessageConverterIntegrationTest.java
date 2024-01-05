@@ -62,15 +62,6 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
     private EmbeddedKafkaCluster kafkaCluster;
     private Path outputFile;
 
-    @BeforeEach
-    void setUp() throws IOException {
-        this.outputFile = Files.createTempFile("test", "temp");
-        final S3Client s3 = this.getS3Client();
-        s3.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
-        this.kafkaCluster = this.createCluster();
-        this.kafkaCluster.start();
-    }
-
     private Properties createS3BackedProperties() {
         final AwsBasicCredentials credentials = this.getCredentials();
         final Properties properties = new Properties();
@@ -84,6 +75,15 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
                 AbstractLargeMessageConfig.BASE_PATH_CONFIG, String.format("s3://%s/%s", BUCKET_NAME, S3_KEY_NAME));
         properties.setProperty(LargeMessageConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName());
         return properties;
+    }
+
+    @BeforeEach
+    void setUp() throws IOException {
+        this.outputFile = Files.createTempFile("test", "temp");
+        final S3Client s3 = this.getS3Client();
+        s3.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
+        this.kafkaCluster = this.createCluster();
+        this.kafkaCluster.start();
     }
 
     @AfterEach

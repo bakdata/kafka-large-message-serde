@@ -226,6 +226,24 @@ class LargeMessageConverterTest extends AmazonS3IntegrationTest {
         assertHasHeader(headers, isKey);
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldConvertBackedNullToConnectData(final boolean isKey) {
+        this.initSetup(isKey, 0, "s3://bucket/base", false);
+        final SchemaAndValue expected = STRING_CONVERTER.toConnectData(null, null);
+        final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, new RecordHeaders(), null);
+        assertThat(schemaAndValue).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldConvertBackedNullToConnectDataWithoutHeaders(final boolean isKey) {
+        this.initSetup(isKey, 0, "s3://bucket/base", false);
+        final SchemaAndValue expected = STRING_CONVERTER.toConnectData(null, null);
+        final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, null);
+        assertThat(schemaAndValue).isEqualTo(expected);
+    }
+
     @Test
     void shouldCreateBackedDataKey() {
         final String bucket = "bucket";
@@ -295,24 +313,6 @@ class LargeMessageConverterTest extends AmazonS3IntegrationTest {
 
         final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
         this.expectBackedText(basePath, text, bytes, "values");
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void shouldConvertBackedNullToConnectData(final boolean isKey) {
-        this.initSetup(isKey, 0, "s3://bucket/base", false);
-        final SchemaAndValue expected = STRING_CONVERTER.toConnectData(null, null);
-        final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, new RecordHeaders(), null);
-        assertThat(schemaAndValue).isEqualTo(expected);
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void shouldConvertBackedNullToConnectDataWithoutHeaders(final boolean isKey) {
-        this.initSetup(isKey, 0, "s3://bucket/base", false);
-        final SchemaAndValue expected = STRING_CONVERTER.toConnectData(null, null);
-        final SchemaAndValue schemaAndValue = this.converter.toConnectData(TOPIC, null);
-        assertThat(schemaAndValue).isEqualTo(expected);
     }
 
     @Test

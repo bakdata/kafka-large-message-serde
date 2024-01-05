@@ -356,6 +356,12 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
         });
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldRetainNonBackedHeadersOnSerializationException(final boolean isKey) {
+        this.assertCorrectSerializationExceptionBehavior(isKey, LargeMessageDeserializerTest::createNonBackedText);
+    }
+
     @Test
     void shouldReadNonBackedTextKeyAndBackedValueWithHeaders() {
         final String bucket = "bucket";
@@ -404,12 +410,6 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
                     assertThat(record.value()).isEqualTo("bar");
                     assertThat(record.headers()).isEmpty();
                 });
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void shouldRetainNonBackedHeadersOnSerializationException(final boolean isKey) {
-        this.assertCorrectSerializationExceptionBehavior(isKey, LargeMessageDeserializerTest::createNonBackedText);
     }
 
     private Properties createProperties() {
