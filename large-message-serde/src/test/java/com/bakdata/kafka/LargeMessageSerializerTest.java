@@ -339,19 +339,6 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
                 .anySatisfy(s3BackedText -> assertThat(s3BackedText).isNull());
     }
 
-    private void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
-            final String type) {
-        final BlobStorageURI uri = deserializeUriWithFlag(s3BackedText);
-        this.expectBackedText(uri, basePath, type, expected);
-    }
-
-    private void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
-            final String type, final Headers headers, final boolean isKey) {
-        final BlobStorageURI uri = deserializeUri(s3BackedText);
-        this.expectBackedText(uri, basePath, type, expected);
-        assertThat(headers.headers(getHeaderName(isKey))).hasSize(1);
-    }
-
     @Test
     void shouldWriteBackedNullKey() {
         final Properties properties = new Properties();
@@ -371,25 +358,6 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
                 .anySatisfy(s3BackedText -> assertThat(s3BackedText).isNull());
     }
 
-    private void expectBackedText(final BlobStorageURI uri, final String basePath, final String type,
-            final String expected) {
-        assertThat(uri).asString().startsWith(basePath + OUTPUT_TOPIC + "/" + type + "/");
-        final byte[] bytes = this.readBytes(uri);
-        final String deserialized = STRING_DESERIALIZER.deserialize(null, bytes);
-        assertThat(deserialized).isEqualTo(expected);
-    }
-
-    private byte[] readBytes(final BlobStorageURI uri) {
-        try (final InputStream objectContent = this.getS3Client().getObject(GetObjectRequest.builder()
-                .bucket(uri.getBucket())
-                .key(uri.getKey())
-                .build())) {
-            return IoUtils.toByteArray(objectContent);
-        } catch (final IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     @Test
     void shouldWriteBackedNullValue() {
         final Properties properties = new Properties();
@@ -407,6 +375,38 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
                 .hasSize(1)
                 .extracting(ProducerRecord::value)
                 .anySatisfy(s3BackedText -> assertThat(s3BackedText).isNull());
+    }
+
+    private void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
+            final String type) {
+        final BlobStorageURI uri = deserializeUriWithFlag(s3BackedText);
+        this.expectBackedText(uri, basePath, type, expected);
+    }
+
+    private void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
+            final String type, final Headers headers, final boolean isKey) {
+        final BlobStorageURI uri = deserializeUri(s3BackedText);
+        this.expectBackedText(uri, basePath, type, expected);
+        assertThat(headers.headers(getHeaderName(isKey))).hasSize(1);
+    }
+
+    private void expectBackedText(final BlobStorageURI uri, final String basePath, final String type,
+            final String expected) {
+        assertThat(uri).asString().startsWith(basePath + OUTPUT_TOPIC + "/" + type + "/");
+        final byte[] bytes = this.readBytes(uri);
+        final String deserialized = STRING_DESERIALIZER.deserialize(null, bytes);
+        assertThat(deserialized).isEqualTo(expected);
+    }
+
+    private byte[] readBytes(final BlobStorageURI uri) {
+        try (final InputStream objectContent = this.getS3Client().getObject(GetObjectRequest.builder()
+                .bucket(uri.getBucket())
+                .key(uri.getKey())
+                .build())) {
+            return IoUtils.toByteArray(objectContent);
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void createTopology(final Function<? super Properties, ? extends Topology> topologyFactory,

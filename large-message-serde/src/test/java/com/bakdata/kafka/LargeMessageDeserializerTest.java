@@ -136,99 +136,6 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
         return serializeUri(uri, headers, isKey);
     }
 
-    @Test
-    void shouldReadBackedTextValue() {
-        final String bucket = "bucket";
-        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-        final String key = "key";
-        this.store(bucket, key, "foo");
-        this.createTopology(LargeMessageDeserializerTest::createValueTopology);
-        this.topology.input()
-                .withKeySerde(Serdes.Integer())
-                .withValueSerde(Serdes.ByteArray())
-                .add(1, createBackedText(bucket, key));
-        final List<ProducerRecord<Integer, String>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.Integer())
-                        .withValueSerde(Serdes.String()))
-                .toList();
-        assertThat(records)
-                .hasSize(1)
-                .extracting(ProducerRecord::value)
-                .containsExactlyInAnyOrder("foo");
-    }
-
-    @Test
-    void shouldReadBackedTextValueWithHeaders() {
-        final String bucket = "bucket";
-        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-        final String key = "key";
-        this.store(bucket, key, "foo");
-        this.createTopology(LargeMessageDeserializerTest::createValueTopology);
-        final Headers headers = new RecordHeaders();
-        final byte[] value = createBackedText(bucket, key, headers, false);
-        // add compression header for 'none' type, so we can assert it is also properly removed
-        headers.add(CompressionType.HEADER_NAME, new byte[]{CompressionType.NONE.getId()});
-        this.topology.input()
-                .withKeySerde(Serdes.Integer())
-                .withValueSerde(Serdes.ByteArray())
-                .add(1, value, headers);
-        final List<ProducerRecord<Integer, String>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.Integer())
-                        .withValueSerde(Serdes.String()))
-                .toList();
-        assertThat(records)
-                .hasSize(1)
-                .anySatisfy(record -> {
-                    assertThat(record.value()).isEqualTo("foo");
-                    assertThat(record.headers()).isEmpty();
-                });
-    }
-
-    @Test
-    void shouldReadBackedTextKey() {
-        final String bucket = "bucket";
-        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-        final String key = "key";
-        this.store(bucket, key, "foo");
-        this.createTopology(LargeMessageDeserializerTest::createKeyTopology);
-        this.topology.input()
-                .withKeySerde(Serdes.ByteArray())
-                .withValueSerde(Serdes.Integer())
-                .add(createBackedText(bucket, key), 1);
-        final List<ProducerRecord<String, Integer>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.String())
-                        .withValueSerde(Serdes.Integer()))
-                .toList();
-        assertThat(records)
-                .hasSize(1)
-                .extracting(ProducerRecord::key)
-                .containsExactlyInAnyOrder("foo");
-    }
-
-    @Test
-    void shouldReadBackedTextKeyWithHeaders() {
-        final String bucket = "bucket";
-        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-        final String key = "key";
-        this.store(bucket, key, "foo");
-        this.createTopology(LargeMessageDeserializerTest::createKeyTopology);
-        final Headers headers = new RecordHeaders();
-        this.topology.input()
-                .withKeySerde(Serdes.ByteArray())
-                .withValueSerde(Serdes.Integer())
-                .add(createBackedText(bucket, key, headers, true), 1, headers);
-        final List<ProducerRecord<String, Integer>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.String())
-                        .withValueSerde(Serdes.Integer()))
-                .toList();
-        assertThat(records)
-                .hasSize(1)
-                .anySatisfy(record -> {
-                    assertThat(record.key()).isEqualTo("foo");
-                    assertThat(record.headers()).isEmpty();
-                });
-    }
-
     @AfterEach
     void tearDown() {
         if (this.topology != null) {
@@ -342,6 +249,99 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
                 .hasSize(1)
                 .extracting(ProducerRecord::key)
                 .containsExactlyInAnyOrder(new String[]{null});
+    }
+
+    @Test
+    void shouldReadBackedTextValue() {
+        final String bucket = "bucket";
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+        final String key = "key";
+        this.store(bucket, key, "foo");
+        this.createTopology(LargeMessageDeserializerTest::createValueTopology);
+        this.topology.input()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.ByteArray())
+                .add(1, createBackedText(bucket, key));
+        final List<ProducerRecord<Integer, String>> records = Seq.seq(this.topology.streamOutput()
+                        .withKeySerde(Serdes.Integer())
+                        .withValueSerde(Serdes.String()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .extracting(ProducerRecord::value)
+                .containsExactlyInAnyOrder("foo");
+    }
+
+    @Test
+    void shouldReadBackedTextValueWithHeaders() {
+        final String bucket = "bucket";
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+        final String key = "key";
+        this.store(bucket, key, "foo");
+        this.createTopology(LargeMessageDeserializerTest::createValueTopology);
+        final Headers headers = new RecordHeaders();
+        final byte[] value = createBackedText(bucket, key, headers, false);
+        // add compression header for 'none' type, so we can assert it is also properly removed
+        headers.add(CompressionType.HEADER_NAME, new byte[]{CompressionType.NONE.getId()});
+        this.topology.input()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.ByteArray())
+                .add(1, value, headers);
+        final List<ProducerRecord<Integer, String>> records = Seq.seq(this.topology.streamOutput()
+                        .withKeySerde(Serdes.Integer())
+                        .withValueSerde(Serdes.String()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .anySatisfy(record -> {
+                    assertThat(record.value()).isEqualTo("foo");
+                    assertThat(record.headers()).isEmpty();
+                });
+    }
+
+    @Test
+    void shouldReadBackedTextKey() {
+        final String bucket = "bucket";
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+        final String key = "key";
+        this.store(bucket, key, "foo");
+        this.createTopology(LargeMessageDeserializerTest::createKeyTopology);
+        this.topology.input()
+                .withKeySerde(Serdes.ByteArray())
+                .withValueSerde(Serdes.Integer())
+                .add(createBackedText(bucket, key), 1);
+        final List<ProducerRecord<String, Integer>> records = Seq.seq(this.topology.streamOutput()
+                        .withKeySerde(Serdes.String())
+                        .withValueSerde(Serdes.Integer()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .extracting(ProducerRecord::key)
+                .containsExactlyInAnyOrder("foo");
+    }
+
+    @Test
+    void shouldReadBackedTextKeyWithHeaders() {
+        final String bucket = "bucket";
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+        final String key = "key";
+        this.store(bucket, key, "foo");
+        this.createTopology(LargeMessageDeserializerTest::createKeyTopology);
+        final Headers headers = new RecordHeaders();
+        this.topology.input()
+                .withKeySerde(Serdes.ByteArray())
+                .withValueSerde(Serdes.Integer())
+                .add(createBackedText(bucket, key, headers, true), 1, headers);
+        final List<ProducerRecord<String, Integer>> records = Seq.seq(this.topology.streamOutput()
+                        .withKeySerde(Serdes.String())
+                        .withValueSerde(Serdes.Integer()))
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .anySatisfy(record -> {
+                    assertThat(record.key()).isEqualTo("foo");
+                    assertThat(record.headers()).isEmpty();
+                });
     }
 
     @ParameterizedTest
