@@ -57,6 +57,6 @@ dependencies {
     testImplementation(group = "org.testcontainers", name = "junit-jupiter", version = testContainersVersion)
     testImplementation(group = "org.testcontainers", name = "localstack", version = testContainersVersion)
     // for localstack
-    testRuntimeOnly(group = "com.amazonaws", name = "aws-java-sdk-core", version = "1.12.376")
+    testRuntimeOnly(group = "com.amazonaws", name = "aws-java-sdk-core", version = "1.12.630")
     testImplementation(group = "com.google.cloud", name = "google-cloud-nio", version = "0.127.8")
 }
