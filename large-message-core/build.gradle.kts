@@ -54,7 +54,7 @@ dependencies {
     val log4jVersion: String by project
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
     val testContainersVersion: String by project
-    testImplementation(group = "org.testcontainers", name = "junit-jupiter", version = testContainersVersion)
-    testImplementation(group = "org.testcontainers", name = "localstack", version = testContainersVersion)
+    testFixturesApi(group = "org.testcontainers", name = "junit-jupiter", version = testContainersVersion)
+    testFixturesImplementation(group = "org.testcontainers", name = "localstack", version = testContainersVersion)
     testImplementation(group = "com.google.cloud", name = "google-cloud-nio", version = "0.127.8")
 }

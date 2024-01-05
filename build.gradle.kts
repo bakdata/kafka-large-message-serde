@@ -46,6 +46,7 @@ configure<org.hildan.github.changelog.plugin.GitHubChangelogExtension> {
 
 subprojects {
     apply(plugin = "java-library")
+    apply(plugin = "java-test-fixtures")
     apply(plugin = "io.freefair.lombok")
 
     configure<JavaPluginExtension> {

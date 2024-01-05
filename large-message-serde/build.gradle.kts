@@ -45,7 +45,5 @@ dependencies {
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
     val joolVersion: String by project
     testImplementation(group = "org.jooq", name = "jool", version = joolVersion)
-    val testContainersVersion: String by project
-    testImplementation(group = "org.testcontainers", name = "junit-jupiter", version = testContainersVersion)
-    testImplementation(group = "org.testcontainers", name = "localstack", version = testContainersVersion)
+    testImplementation(testFixtures(project(":large-message-core")))
 }
