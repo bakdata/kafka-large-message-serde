@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 bakdata
+ * Copyright (c) 2024 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@ package com.bakdata.kafka;
 import static net.mguenther.kafka.junit.Wait.delay;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.adobe.testing.s3mock.junit5.S3MockExtension;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,13 +49,11 @@ import org.apache.kafka.connect.storage.StringConverter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
-import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
-class LargeMessageConverterIntegrationTest {
-    @RegisterExtension
-    static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
-            .withSecureConnection(false).build();
+class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
     private static final String BUCKET_NAME = "testbucket";
     private static final String S3_KEY_NAME = "contentkey";
     private static final String TOPIC = "input";
@@ -65,32 +62,28 @@ class LargeMessageConverterIntegrationTest {
     private EmbeddedKafkaCluster kafkaCluster;
     private Path outputFile;
 
-    static void configureS3HTTPService() {
-        System.setProperty(SdkSystemSetting.SYNC_HTTP_SERVICE_IMPL.property(),
-                "software.amazon.awssdk.http.apache.ApacheSdkHttpService");
+    @BeforeEach
+    void setUp() throws IOException {
+        this.outputFile = Files.createTempFile("test", "temp");
+        final S3Client s3 = this.getS3Client();
+        s3.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
+        this.kafkaCluster = this.createCluster();
+        this.kafkaCluster.start();
     }
 
-    private static Properties createS3BackedProperties() {
+    private Properties createS3BackedProperties() {
+        final AwsBasicCredentials credentials = this.getCredentials();
         final Properties properties = new Properties();
-        properties.put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort());
-        properties.put(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1");
-        properties.put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo");
-        properties.put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar");
+        properties.put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString());
+        properties.put(AbstractLargeMessageConfig.S3_REGION_CONFIG, this.getRegion().id());
+        properties.put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId());
+        properties.put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey());
         properties.put(LargeMessageSerdeConfig.KEY_SERDE_CLASS_CONFIG, StringSerde.class.getName());
         properties.put(LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, StringSerde.class.getName());
         properties.put(
                 AbstractLargeMessageConfig.BASE_PATH_CONFIG, String.format("s3://%s/%s", BUCKET_NAME, S3_KEY_NAME));
-        properties.put(LargeMessageConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName());
+        properties.setProperty(LargeMessageConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName());
         return properties;
-    }
-
-    @BeforeEach
-    void setUp() throws IOException {
-        this.outputFile = Files.createTempFile("test", "temp");
-        S3_MOCK.createS3Client().createBucket(BUCKET_NAME);
-        configureS3HTTPService();
-        this.kafkaCluster = this.createCluster();
-        this.kafkaCluster.start();
     }
 
     @AfterEach
@@ -134,7 +127,7 @@ class LargeMessageConverterIntegrationTest {
         properties.put(FileStreamSinkConnector.FILE_CONFIG, this.outputFile.toString());
         properties.put(ConnectorConfig.KEY_CONVERTER_CLASS_CONFIG, StringConverter.class.getName());
         properties.put(ConnectorConfig.VALUE_CONVERTER_CLASS_CONFIG, LargeMessageConverter.class.getName());
-        createS3BackedProperties().forEach(
+        this.createS3BackedProperties().forEach(
                 (key, value) -> properties.put(ConnectorConfig.VALUE_CONVERTER_CLASS_CONFIG + "." + key, value));
         return properties;
     }
@@ -146,7 +139,7 @@ class LargeMessageConverterIntegrationTest {
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, this.kafkaCluster.getBrokerList());
         properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG,
                 Integer.toString(shouldBack ? 0 : Integer.MAX_VALUE));
-        properties.putAll(createS3BackedProperties());
+        properties.putAll(this.createS3BackedProperties());
         return properties;
     }
 }

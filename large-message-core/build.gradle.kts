@@ -34,7 +34,7 @@ dependencies {
     api(group = "io.confluent", name = "common-config", version = confluentVersion)
 
     implementation(group = "org.slf4j", name = "slf4j-api", version = "2.0.10")
-    val awsVersion = "2.17.295"
+    val awsVersion = "2.22.10"
     api(group = "software.amazon.awssdk", name = "s3", version = awsVersion)
     api(group = "software.amazon.awssdk", name = "sts", version = awsVersion)
     api(group = "com.azure", name = "azure-storage-blob", version = "12.25.1")

@@ -40,11 +40,6 @@ dependencies {
     val assertJVersion: String by project
     testImplementation(group = "org.assertj", name = "assertj-core", version = assertJVersion)
 
-    val s3MockVersion: String by project
-    testImplementation(group = "com.adobe.testing", name = "s3mock-junit5", version = s3MockVersion) {
-        exclude(group = "ch.qos.logback")
-        exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
-    }
     val log4jVersion: String by project
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
     val joolVersion: String by project
@@ -53,4 +48,9 @@ dependencies {
         exclude(group = "org.slf4j", module = "slf4j-log4j12")
     }
     testImplementation(group = "org.apache.kafka", name = "connect-file", version = kafkaVersion)
+    val testContainersVersion = "1.19.3"
+    testImplementation(group = "org.testcontainers", name = "junit-jupiter", version = testContainersVersion)
+    testImplementation(group = "org.testcontainers", name = "localstack", version = testContainersVersion)
+    // for localstack
+    testRuntimeOnly(group = "com.amazonaws", name = "aws-java-sdk-core", version = "1.12.630")
 }
