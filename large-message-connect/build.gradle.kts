@@ -48,7 +48,7 @@ dependencies {
         exclude(group = "org.slf4j", module = "slf4j-log4j12")
     }
     testImplementation(group = "org.apache.kafka", name = "connect-file", version = kafkaVersion)
-    val testContainersVersion = "1.19.3"
+    val testContainersVersion: String by project
     testImplementation(group = "org.testcontainers", name = "junit-jupiter", version = testContainersVersion)
     testImplementation(group = "org.testcontainers", name = "localstack", version = testContainersVersion)
     // for localstack

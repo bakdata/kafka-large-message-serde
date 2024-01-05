@@ -53,7 +53,7 @@ dependencies {
 
     val log4jVersion: String by project
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
-    val testContainersVersion = "1.19.3"
+    val testContainersVersion: String by project
     testImplementation(group = "org.testcontainers", name = "junit-jupiter", version = testContainersVersion)
     testImplementation(group = "org.testcontainers", name = "localstack", version = testContainersVersion)
     // for localstack

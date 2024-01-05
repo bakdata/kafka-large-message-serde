@@ -91,36 +91,6 @@ class LargeMessageConverterTest extends AmazonS3IntegrationTest {
         return serialize(uri, headers, isKey);
     }
 
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void shouldConvertBackedToConnectData(final boolean isKey) {
-        this.initSetup(isKey, 0, "s3://bucket/base", false);
-        final String bucket = "bucket";
-        final String key = "key";
-        final String text = "test";
-        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket("bucket").build());
-        final SchemaAndValue expected = toConnectData(text);
-        this.store(bucket, key, text, TOPIC);
-        final SchemaAndValue schemaAndValue =
-                this.converter.toConnectData(TOPIC, new RecordHeaders(), createBackedText(bucket, key));
-        assertThat(schemaAndValue).isEqualTo(expected);
-    }
-
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void shouldConvertBackedToConnectDataWithoutHeaders(final boolean isKey) {
-        this.initSetup(isKey, 0, "s3://bucket/base", false);
-        final String bucket = "bucket";
-        final String key = "key";
-        final String text = "test";
-        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket("bucket").build());
-        final SchemaAndValue expected = toConnectData(text);
-        this.store(bucket, key, text, TOPIC);
-        final SchemaAndValue schemaAndValue =
-                this.converter.toConnectData(TOPIC, createBackedText(bucket, key));
-        assertThat(schemaAndValue).isEqualTo(expected);
-    }
-
     private static SchemaAndValue toConnectData(final String text) {
         return STRING_CONVERTER.toConnectData(null, text.getBytes());
     }
@@ -138,6 +108,54 @@ class LargeMessageConverterTest extends AmazonS3IntegrationTest {
         return deserializeUri(uriBytes);
     }
 
+    private static void expectNonBackedText(final String expected, final byte[] s3BackedText) {
+        assertThat(STRING_DESERIALIZER.deserialize(null, stripFlag(s3BackedText)))
+                .isInstanceOf(String.class)
+                .isEqualTo(expected);
+    }
+
+    private static void expectNonBackedText(final String expected, final byte[] s3BackedText, final Headers headers,
+            final boolean isKey) {
+        assertThat(STRING_DESERIALIZER.deserialize(null, s3BackedText))
+                .isInstanceOf(String.class)
+                .isEqualTo(expected);
+        assertHasHeader(headers, isKey);
+    }
+
+    private static void assertHasHeader(final Headers headers, final boolean isKey) {
+        assertThat(headers.headers(getHeaderName(isKey))).hasSize(1);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldConvertBackedToConnectData(final boolean isKey) {
+        this.initSetup(isKey, 0, "s3://bucket/base", false);
+        final String bucket = "bucket";
+        final String key = "key";
+        final String text = "test";
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+        final SchemaAndValue expected = toConnectData(text);
+        this.store(bucket, key, text, TOPIC);
+        final SchemaAndValue schemaAndValue =
+                this.converter.toConnectData(TOPIC, new RecordHeaders(), createBackedText(bucket, key));
+        assertThat(schemaAndValue).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldConvertBackedToConnectDataWithoutHeaders(final boolean isKey) {
+        this.initSetup(isKey, 0, "s3://bucket/base", false);
+        final String bucket = "bucket";
+        final String key = "key";
+        final String text = "test";
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+        final SchemaAndValue expected = toConnectData(text);
+        this.store(bucket, key, text, TOPIC);
+        final SchemaAndValue schemaAndValue =
+                this.converter.toConnectData(TOPIC, createBackedText(bucket, key));
+        assertThat(schemaAndValue).isEqualTo(expected);
+    }
+
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldConvertBackedToConnectDataWithHeaders(final boolean isKey) {
@@ -145,7 +163,7 @@ class LargeMessageConverterTest extends AmazonS3IntegrationTest {
         final String bucket = "bucket";
         final String key = "key";
         final String text = "test";
-        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket("bucket").build());
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final SchemaAndValue expected = toConnectData(text);
         this.store(bucket, key, text, TOPIC);
         final Headers headers = new RecordHeaders();
@@ -181,24 +199,6 @@ class LargeMessageConverterTest extends AmazonS3IntegrationTest {
 
         final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
         this.expectBackedText(basePath, text, bytes, "keys");
-    }
-
-    private static void expectNonBackedText(final String expected, final byte[] s3BackedText) {
-        assertThat(STRING_DESERIALIZER.deserialize(null, stripFlag(s3BackedText)))
-                .isInstanceOf(String.class)
-                .isEqualTo(expected);
-    }
-
-    private static void expectNonBackedText(final String expected, final byte[] s3BackedText, final Headers headers,
-            final boolean isKey) {
-        assertThat(STRING_DESERIALIZER.deserialize(null, s3BackedText))
-                .isInstanceOf(String.class)
-                .isEqualTo(expected);
-        assertHasHeader(headers, isKey);
-    }
-
-    private static void assertHasHeader(final Headers headers, final boolean isKey) {
-        assertThat(headers.headers(getHeaderName(isKey))).hasSize(1);
     }
 
     @ParameterizedTest
@@ -330,53 +330,6 @@ class LargeMessageConverterTest extends AmazonS3IntegrationTest {
         this.expectBackedText(basePath, text, bytes, "values", headers, false);
     }
 
-    private byte[] readBytes(final BlobStorageURI uri) {
-        try (final InputStream objectContent = this.getS3Client().getObject(GetObjectRequest.builder()
-                .bucket(uri.getBucket())
-                .key(uri.getKey())
-                .build())) {
-            return IoUtils.toByteArray(objectContent);
-        } catch (final IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Map<String, String> createProperties(final int maxSize, final String basePath,
-            final boolean useHeaders) {
-        final AwsBasicCredentials credentials = this.getCredentials();
-        return ImmutableMap.<String, String>builder()
-                .put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString())
-                .put(AbstractLargeMessageConfig.S3_REGION_CONFIG, this.getRegion().id())
-                .put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId())
-                .put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey())
-                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(maxSize))
-                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
-                .put(LargeMessageConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName())
-                .put(AbstractLargeMessageConfig.USE_HEADERS_CONFIG, Boolean.toString(useHeaders))
-                .build();
-    }
-
-    private void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
-            final String type) {
-        final BlobStorageURI uri = deserializeUriWithFlag(s3BackedText);
-        this.expectBackedText(uri, basePath, type, expected);
-    }
-
-    private void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
-            final String type, final Headers headers, final boolean isKey) {
-        final BlobStorageURI uri = deserializeUri(s3BackedText);
-        this.expectBackedText(uri, basePath, type, expected);
-        assertHasHeader(headers, isKey);
-    }
-
-    private void expectBackedText(final BlobStorageURI uri, final String basePath, final String type,
-            final String expected) {
-        assertThat(uri).asString().startsWith(basePath + TOPIC + "/" + type + "/");
-        final byte[] bytes = this.readBytes(uri);
-        final String deserialized = STRING_DESERIALIZER.deserialize(null, bytes);
-        assertThat(deserialized).isEqualTo(expected);
-    }
-
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldCreateBackedNullData(final boolean isKey) {
@@ -449,6 +402,53 @@ class LargeMessageConverterTest extends AmazonS3IntegrationTest {
         final SchemaAndValue data = STRING_CONVERTER.toConnectData(null, null);
         final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
         assertThat(bytes).isNull();
+    }
+
+    private byte[] readBytes(final BlobStorageURI uri) {
+        try (final InputStream objectContent = this.getS3Client().getObject(GetObjectRequest.builder()
+                .bucket(uri.getBucket())
+                .key(uri.getKey())
+                .build())) {
+            return IoUtils.toByteArray(objectContent);
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Map<String, String> createProperties(final int maxSize, final String basePath,
+            final boolean useHeaders) {
+        final AwsBasicCredentials credentials = this.getCredentials();
+        return ImmutableMap.<String, String>builder()
+                .put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString())
+                .put(AbstractLargeMessageConfig.S3_REGION_CONFIG, this.getRegion().id())
+                .put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId())
+                .put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey())
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(maxSize))
+                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
+                .put(LargeMessageConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName())
+                .put(AbstractLargeMessageConfig.USE_HEADERS_CONFIG, Boolean.toString(useHeaders))
+                .build();
+    }
+
+    private void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
+            final String type) {
+        final BlobStorageURI uri = deserializeUriWithFlag(s3BackedText);
+        this.expectBackedText(uri, basePath, type, expected);
+    }
+
+    private void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
+            final String type, final Headers headers, final boolean isKey) {
+        final BlobStorageURI uri = deserializeUri(s3BackedText);
+        this.expectBackedText(uri, basePath, type, expected);
+        assertHasHeader(headers, isKey);
+    }
+
+    private void expectBackedText(final BlobStorageURI uri, final String basePath, final String type,
+            final String expected) {
+        assertThat(uri).asString().startsWith(basePath + TOPIC + "/" + type + "/");
+        final byte[] bytes = this.readBytes(uri);
+        final String deserialized = STRING_DESERIALIZER.deserialize(null, bytes);
+        assertThat(deserialized).isEqualTo(expected);
     }
 
     private void store(final String bucket, final String key, final String s, final String topic) {
