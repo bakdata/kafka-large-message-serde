@@ -46,10 +46,10 @@ dependencies {
         exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
     }
     val log4jVersion: String by project
-    testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j-impl", version = log4jVersion)
+    testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
     val joolVersion: String by project
     testImplementation(group = "org.jooq", name = "jool-java-8", version = joolVersion)
-    testImplementation(group = "net.mguenther.kafka", name = "kafka-junit", version = "3.3.0") {
+    testImplementation(group = "net.mguenther.kafka", name = "kafka-junit", version = "3.5.0") {
         exclude(group = "org.slf4j", module = "slf4j-log4j12")
     }
     testImplementation(group = "org.apache.kafka", name = "connect-file", version = kafkaVersion)
