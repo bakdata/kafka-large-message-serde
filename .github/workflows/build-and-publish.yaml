@@ -9,6 +9,8 @@ jobs:
   build-and-publish:
     name: Java Gradle
     uses: bakdata/ci-templates/.github/workflows/java-gradle-library.yaml@1.40.5
+    with:
+      java-version: 17
     secrets:
       sonar-token: ${{ secrets.SONARCLOUD_TOKEN }}
       sonar-organization: ${{ secrets.SONARCLOUD_ORGANIZATION }}
