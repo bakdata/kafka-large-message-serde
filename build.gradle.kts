@@ -46,11 +46,12 @@ configure<org.hildan.github.changelog.plugin.GitHubChangelogExtension> {
 
 subprojects {
     apply(plugin = "java-library")
+    apply(plugin = "java-test-fixtures")
     apply(plugin = "io.freefair.lombok")
 
     configure<JavaPluginExtension> {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 }
 

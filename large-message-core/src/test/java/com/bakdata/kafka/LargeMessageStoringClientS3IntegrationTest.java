@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2024 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -44,13 +45,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.utils.IoUtils;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.STRICT_STUBS)
@@ -125,13 +122,9 @@ class LargeMessageStoringClientS3IntegrationTest extends AmazonS3IntegrationTest
     }
 
     private Map<String, Object> createProperties(final Map<String, Object> properties) {
-        final AwsBasicCredentials credentials = this.getCredentials();
         return ImmutableMap.<String, Object>builder()
                 .putAll(properties)
-                .put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString())
-                .put(AbstractLargeMessageConfig.S3_REGION_CONFIG, this.getRegion().id())
-                .put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId())
-                .put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey())
+                .putAll(this.getLargeMessageConfig())
                 .build();
     }
 
@@ -150,12 +143,12 @@ class LargeMessageStoringClientS3IntegrationTest extends AmazonS3IntegrationTest
     }
 
     private byte[] readBytes(final BlobStorageURI uri) {
-        try (final ResponseInputStream<GetObjectResponse> objectContent = this.getS3Client().getObject(
-                GetObjectRequest.builder()
-                        .bucket(uri.getBucket())
-                        .key(uri.getKey())
-                        .build())) {
-            return IoUtils.toByteArray(objectContent);
+        final GetObjectRequest request = GetObjectRequest.builder()
+                .bucket(uri.getBucket())
+                .key(uri.getKey())
+                .build();
+        try (final InputStream objectContent = this.getS3Client().getObject(request)) {
+            return objectContent.readAllBytes();
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2024 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,22 +27,15 @@ package com.bakdata.kafka;
 
 import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
 import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.getHeaderName;
-import static com.bakdata.kafka.LargeMessageConverterIntegrationTest.configureS3HTTPService;
 import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
 import static com.bakdata.kafka.LargeMessagePayload.ofUri;
 import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.adobe.testing.s3mock.junit5.S3MockExtension;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.google.common.collect.ImmutableMap;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
-import org.apache.commons.io.IOUtils;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -52,29 +45,22 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.storage.Converter;
 import org.apache.kafka.connect.storage.StringConverter;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-class LargeMessageConverterTest {
-    @RegisterExtension
-    static final S3MockExtension S3_MOCK = S3MockExtension.builder().silent()
-            .withSecureConnection(false).build();
+class LargeMessageConverterTest extends AmazonS3IntegrationTest {
     private static final String TOPIC = "topic";
     private static final Converter STRING_CONVERTER = new StringConverter();
     private static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
     private static final Deserializer<String> STRING_DESERIALIZER = new StringDeserializer();
     private static final LargeMessagePayloadProtocol HEADER_PROTOCOL = new HeaderLargeMessagePayloadProtocol();
     private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
-    private final AmazonS3 s3Client = S3_MOCK.createS3Client();
     private LargeMessageConverter converter = null;
-
-    @BeforeAll
-    static void setUp() {
-        configureS3HTTPService();
-    }
 
     private static byte[] serialize(final String uri) {
         return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders(), false);
@@ -103,29 +89,6 @@ class LargeMessageConverterTest {
         return serialize(uri, headers, isKey);
     }
 
-    private static byte[] readBytes(final BlobStorageURI uri) {
-        try (final S3Object object = S3_MOCK.createS3Client().getObject(uri.getBucket(), uri.getKey());
-                final S3ObjectInputStream objectContent = object.getObjectContent()) {
-            return IOUtils.toByteArray(objectContent);
-        } catch (final IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static Map<String, String> createProperties(final int maxSize, final String basePath,
-            final boolean useHeaders) {
-        return ImmutableMap.<String, String>builder()
-                .put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, "http://localhost:" + S3_MOCK.getHttpPort())
-                .put(AbstractLargeMessageConfig.S3_REGION_CONFIG, "us-east-1")
-                .put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, "foo")
-                .put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, "bar")
-                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(maxSize))
-                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
-                .put(LargeMessageConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName())
-                .put(AbstractLargeMessageConfig.USE_HEADERS_CONFIG, Boolean.toString(useHeaders))
-                .build();
-    }
-
     private static SchemaAndValue toConnectData(final String text) {
         return STRING_CONVERTER.toConnectData(null, text.getBytes());
     }
@@ -141,27 +104,6 @@ class LargeMessageConverterTest {
     private static BlobStorageURI deserializeUriWithFlag(final byte[] data) {
         final byte[] uriBytes = stripFlag(data);
         return deserializeUri(uriBytes);
-    }
-
-    private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
-            final String type) {
-        final BlobStorageURI uri = deserializeUriWithFlag(s3BackedText);
-        expectBackedText(uri, basePath, type, expected);
-    }
-
-    private static void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
-            final String type, final Headers headers, final boolean isKey) {
-        final BlobStorageURI uri = deserializeUri(s3BackedText);
-        expectBackedText(uri, basePath, type, expected);
-        assertHasHeader(headers, isKey);
-    }
-
-    private static void expectBackedText(final BlobStorageURI uri, final String basePath, final String type,
-            final String expected) {
-        assertThat(uri).asString().startsWith(basePath + TOPIC + "/" + type + "/");
-        final byte[] bytes = readBytes(uri);
-        final String deserialized = STRING_DESERIALIZER.deserialize(null, bytes);
-        assertThat(deserialized).isEqualTo(expected);
     }
 
     private static void expectNonBackedText(final String expected, final byte[] s3BackedText) {
@@ -242,7 +184,7 @@ class LargeMessageConverterTest {
         final String bucket = "bucket";
         final String key = "key";
         final String text = "test";
-        this.s3Client.createBucket("bucket");
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final SchemaAndValue expected = toConnectData(text);
         this.store(bucket, key, text, TOPIC);
         final SchemaAndValue schemaAndValue =
@@ -257,7 +199,7 @@ class LargeMessageConverterTest {
         final String bucket = "bucket";
         final String key = "key";
         final String text = "test";
-        this.s3Client.createBucket("bucket");
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final SchemaAndValue expected = toConnectData(text);
         this.store(bucket, key, text, TOPIC);
         final SchemaAndValue schemaAndValue =
@@ -272,7 +214,7 @@ class LargeMessageConverterTest {
         final String bucket = "bucket";
         final String key = "key";
         final String text = "test";
-        this.s3Client.createBucket("bucket");
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final SchemaAndValue expected = toConnectData(text);
         this.store(bucket, key, text, TOPIC);
         final Headers headers = new RecordHeaders();
@@ -308,10 +250,10 @@ class LargeMessageConverterTest {
 
         final String text = "test";
         final SchemaAndValue data = toConnectData(text);
-        this.s3Client.createBucket(bucket);
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
 
         final byte[] bytes = this.converter.fromConnectData(TOPIC, new RecordHeaders(), data.schema(), data.value());
-        expectBackedText(basePath, text, bytes, "keys");
+        this.expectBackedText(basePath, text, bytes, "keys");
     }
 
     @Test
@@ -322,10 +264,10 @@ class LargeMessageConverterTest {
 
         final String text = "test";
         final SchemaAndValue data = toConnectData(text);
-        this.s3Client.createBucket(bucket);
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
 
         final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
-        expectBackedText(basePath, text, bytes, "keys");
+        this.expectBackedText(basePath, text, bytes, "keys");
     }
 
     @Test
@@ -336,11 +278,11 @@ class LargeMessageConverterTest {
 
         final String text = "test";
         final SchemaAndValue data = toConnectData(text);
-        this.s3Client.createBucket(bucket);
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
 
         final Headers headers = new RecordHeaders();
         final byte[] bytes = this.converter.fromConnectData(TOPIC, headers, data.schema(), data.value());
-        expectBackedText(basePath, text, bytes, "keys", headers, true);
+        this.expectBackedText(basePath, text, bytes, "keys", headers, true);
     }
 
     @Test
@@ -351,10 +293,10 @@ class LargeMessageConverterTest {
 
         final String text = "test";
         final SchemaAndValue data = toConnectData(text);
-        this.s3Client.createBucket(bucket);
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
 
         final byte[] bytes = this.converter.fromConnectData(TOPIC, new RecordHeaders(), data.schema(), data.value());
-        expectBackedText(basePath, text, bytes, "values");
+        this.expectBackedText(basePath, text, bytes, "values");
     }
 
     @Test
@@ -365,10 +307,10 @@ class LargeMessageConverterTest {
 
         final String text = "test";
         final SchemaAndValue data = toConnectData(text);
-        this.s3Client.createBucket(bucket);
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
 
         final byte[] bytes = this.converter.fromConnectData(TOPIC, data.schema(), data.value());
-        expectBackedText(basePath, text, bytes, "values");
+        this.expectBackedText(basePath, text, bytes, "values");
     }
 
     @Test
@@ -379,11 +321,11 @@ class LargeMessageConverterTest {
 
         final String text = "test";
         final SchemaAndValue data = toConnectData(text);
-        this.s3Client.createBucket(bucket);
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
 
         final Headers headers = new RecordHeaders();
         final byte[] bytes = this.converter.fromConnectData(TOPIC, headers, data.schema(), data.value());
-        expectBackedText(basePath, text, bytes, "values", headers, false);
+        this.expectBackedText(basePath, text, bytes, "values", headers, false);
     }
 
     @ParameterizedTest
@@ -460,13 +402,60 @@ class LargeMessageConverterTest {
         assertThat(bytes).isNull();
     }
 
+    private byte[] readBytes(final BlobStorageURI uri) {
+        final GetObjectRequest request = GetObjectRequest.builder()
+                .bucket(uri.getBucket())
+                .key(uri.getKey())
+                .build();
+        try (final InputStream objectContent = this.getS3Client().getObject(request)) {
+            return objectContent.readAllBytes();
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Map<String, String> createProperties(final int maxSize, final String basePath,
+            final boolean useHeaders) {
+        return ImmutableMap.<String, String>builder()
+                .putAll(this.getLargeMessageConfig())
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.toString(maxSize))
+                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
+                .put(LargeMessageConverterConfig.CONVERTER_CLASS_CONFIG, StringConverter.class.getName())
+                .put(AbstractLargeMessageConfig.USE_HEADERS_CONFIG, Boolean.toString(useHeaders))
+                .build();
+    }
+
+    private void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
+            final String type) {
+        final BlobStorageURI uri = deserializeUriWithFlag(s3BackedText);
+        this.expectBackedText(uri, basePath, type, expected);
+    }
+
+    private void expectBackedText(final String basePath, final String expected, final byte[] s3BackedText,
+            final String type, final Headers headers, final boolean isKey) {
+        final BlobStorageURI uri = deserializeUri(s3BackedText);
+        this.expectBackedText(uri, basePath, type, expected);
+        assertHasHeader(headers, isKey);
+    }
+
+    private void expectBackedText(final BlobStorageURI uri, final String basePath, final String type,
+            final String expected) {
+        assertThat(uri).asString().startsWith(basePath + TOPIC + "/" + type + "/");
+        final byte[] bytes = this.readBytes(uri);
+        final String deserialized = STRING_DESERIALIZER.deserialize(null, bytes);
+        assertThat(deserialized).isEqualTo(expected);
+    }
+
     private void store(final String bucket, final String key, final String s, final String topic) {
-        this.s3Client.putObject(bucket, key, new ByteArrayInputStream(STRING_SERIALIZER.serialize(topic, s)),
-                new ObjectMetadata());
+        final PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build();
+        this.getS3Client().putObject(request, RequestBody.fromBytes(STRING_SERIALIZER.serialize(topic, s)));
     }
 
     private void initSetup(final boolean isKey, final int maxSize, final String basePath, final boolean useHeaders) {
-        final Map<String, String> properties = createProperties(maxSize, basePath, useHeaders);
+        final Map<String, String> properties = this.createProperties(maxSize, basePath, useHeaders);
         this.converter = new LargeMessageConverter();
         this.converter.configure(properties, isKey);
     }
