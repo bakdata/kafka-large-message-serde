@@ -1,5 +1,18 @@
 # Change Log
 
+## [2.7.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.7.0) (2024-05-22)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.7.0...2.7.0)
+
+
+## [2.7.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.7.0) (2024-05-22)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.6.0...2.7.0)
+
+**Merged pull requests:**
+
+- Support s3 path style access [\#48](https://github.com/bakdata/kafka-large-message-serde/pull/48) ([@torbsto](https://github.com/torbsto))
+- Upgrade to Gradle 8.4 [\#47](https://github.com/bakdata/kafka-large-message-serde/pull/47) ([@philipp94831](https://github.com/philipp94831))
+- Migrate azure pipeline to GH\-action [\#45](https://github.com/bakdata/kafka-large-message-serde/pull/45) ([@MichaelKora](https://github.com/MichaelKora))
+
 ## [2.6.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.6.0) (2024-01-05)
 [View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.5.1...2.6.0)
 
@@ -110,7 +123,6 @@
 **Merged pull requests:**
 
 - Fix deletion of empty S3 path [\#27](https://github.com/bakdata/kafka-large-message-serde/pull/27) ([@philipp94831](https://github.com/philipp94831))
-- Add support for Google Cloud Storage [\#22](https://github.com/bakdata/kafka-large-message-serde/pull/22) ([@raminqaf](https://github.com/raminqaf))
 
 ## [2.1.2](https://github.com/bakdata/kafka-large-message-serde/tree/2.1.2) (2021-12-13)
 [View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.1.1...2.1.2)
@@ -225,5 +237,4 @@
 
 **Merged pull requests:**
 
-- Set up CI with Azure Pipelines [\#1](https://github.com/bakdata/kafka-large-message-serde/pull/1) ([@SvenLehmann](https://github.com/SvenLehmann))
 - Initial commit [\#2](https://github.com/bakdata/kafka-large-message-serde/pull/2) ([@philipp94831](https://github.com/philipp94831))
