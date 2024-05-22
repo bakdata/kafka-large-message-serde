@@ -19,5 +19,4 @@ jobs:
       signing-password: ${{ secrets.SONATYPE_SIGNING_PASSWORD }}
       ossrh-username: ${{ secrets.SONATYPE_OSSRH_USERNAME }}
       ossrh-password: ${{ secrets.SONATYPE_OSSRH_PASSWORD }}
-      github-username: ${{ secrets.GH_USERNAME }}
       github-token: ${{ secrets.GH_TOKEN }}
