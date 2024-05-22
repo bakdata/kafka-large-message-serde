@@ -141,6 +141,9 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final String S3_ENDPOINT_DOC =
             "Endpoint to use for connection to Amazon S3. Leave empty if default S3 endpoint should be used.";
     public static final String S3_ENDPOINT_DEFAULT = "";
+    public static final String S3_ENABLE_PATH_STYLE_ACCESS_CONFIG = S3_PREFIX + "path.style.access";
+    public static final String S3_ENABLE_PATH_STYLE_ACCESS_DOC = "Enable path-style access for S3 client.";
+    public static final boolean S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT = false;
     public static final String S3_REGION_DEFAULT = "";
     public static final String S3_ACCESS_KEY_DOC = "AWS access key to use for connecting to S3. Leave empty if AWS"
             + " credential provider chain or STS Assume Role provider should be used.";
@@ -207,6 +210,8 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                         COMPRESSION_TYPE_DOC)
                 // Amazon S3
                 .define(S3_ENDPOINT_CONFIG, Type.STRING, S3_ENDPOINT_DEFAULT, Importance.LOW, S3_ENDPOINT_DOC)
+                .define(S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, Type.BOOLEAN, S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT,
+                        Importance.LOW, S3_ENABLE_PATH_STYLE_ACCESS_DOC)
                 .define(S3_REGION_CONFIG, Type.STRING, S3_REGION_DEFAULT, Importance.LOW, S3_REGION_DOC)
                 .define(S3_ACCESS_KEY_CONFIG, Type.PASSWORD, S3_ACCESS_KEY_DEFAULT, Importance.LOW, S3_ACCESS_KEY_DOC)
                 .define(S3_SECRET_KEY_CONFIG, Type.PASSWORD, S3_SECRET_KEY_DEFAULT, Importance.LOW, S3_SECRET_KEY_DOC)
@@ -296,12 +301,19 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         this.getAmazonEndpointOverride().ifPresent(clientBuilder::endpointOverride);
         this.getAmazonRegion().ifPresent(clientBuilder::region);
         this.getAmazonCredentialsProvider().ifPresent(clientBuilder::credentialsProvider);
+        if (this.enableAmazonS3PathStyleAccess()) {
+            clientBuilder.forcePathStyle(true);
+        }
         return new AmazonS3Client(clientBuilder.build());
     }
 
     private Optional<URI> getAmazonEndpointOverride() {
         final String endpoint = this.getString(S3_ENDPOINT_CONFIG);
         return isEmpty(endpoint) ? Optional.empty() : Optional.of(URI.create(endpoint));
+    }
+
+    private boolean enableAmazonS3PathStyleAccess() {
+        return this.getBoolean(S3_ENABLE_PATH_STYLE_ACCESS_CONFIG);
     }
 
     private Optional<Region> getAmazonRegion() {

@@ -30,6 +30,8 @@ import com.google.common.collect.ImmutableMap;
 import io.confluent.common.config.ConfigDef;
 import java.util.Map;
 import java.util.stream.Stream;
+import lombok.Builder;
+import lombok.Value;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
@@ -52,18 +54,25 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
 
     private static Stream<Arguments> provideParameters() {
         return Stream.of(true, false)
-                .flatMap(isKey -> Stream.of("none", "gzip", "snappy", "lz4", "zstd").map(c -> Arguments.of(isKey, c)));
+                .flatMap(isKey -> Stream.of(true, false)
+                        .map(enabledPathAccess -> RoundtripArgument.builder()
+                                .isKey(isKey)
+                                .isPathStyleAccess(enabledPathAccess)))
+                .flatMap(builder -> Stream.of("none", "gzip", "snappy", "lz4", "zstd")
+                        .map(c -> builder.compressionType(c).build())
+                        .map(Arguments::of));
     }
 
     @ParameterizedTest
     @MethodSource("provideParameters")
-    void shouldRoundtrip(final boolean isKey, final String compressionType) {
+    void shouldRoundtrip(final RoundtripArgument argument) {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
                 .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
                 .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
-                .put(AbstractLargeMessageConfig.COMPRESSION_TYPE_CONFIG, compressionType)
+                .put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, argument.isPathStyleAccess())
+                .put(AbstractLargeMessageConfig.COMPRESSION_TYPE_CONFIG, argument.getCompressionType())
                 .build();
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
@@ -73,16 +82,16 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
 
         final Headers headers = new RecordHeaders();
         final byte[] obj = serialize("big value");
-        final byte[] data = storer.storeBytes(TOPIC, obj, isKey, headers);
+        final byte[] data = storer.storeBytes(TOPIC, obj, argument.isKey(), headers);
 
         final Iterable<Header> compressionHeaders = headers.headers(CompressionType.HEADER_NAME);
-        if ("none".equals(compressionType)) {
+        if ("none".equals(argument.getCompressionType())) {
             assertThat(compressionHeaders).isEmpty();
         } else {
             assertThat(compressionHeaders).isNotEmpty();
         }
 
-        final byte[] result = retriever.retrieveBytes(data, headers, isKey);
+        final byte[] result = retriever.retrieveBytes(data, headers, argument.isKey());
         assertThat(result).isEqualTo(obj);
     }
 
@@ -104,5 +113,13 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
         final ConfigDef configDef = AbstractLargeMessageConfig.baseConfigDef();
         final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(configDef, properties);
         return config.getRetriever();
+    }
+
+    @Builder
+    @Value
+    static class RoundtripArgument {
+        boolean isKey;
+        boolean isPathStyleAccess;
+        String compressionType;
     }
 }

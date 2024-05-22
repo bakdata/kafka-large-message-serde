@@ -115,7 +115,7 @@ for backwards compatibility but leads to increased memory usage. It is recommend
    * Default: ""
    * Importance: low
 
-  
+
  ``large.message.s3.role.external.id``
    AWS STS role external ID used when retrieving session credentials under an assumed role. Leave empty if AWS Basic provider or AWS credential provider chain should be used.
 
@@ -151,6 +151,13 @@ Endpoint to use for connection to Amazon S3. Leave empty if default S3 endpoint 
   * Default: ""
   * Importance: low
 
+ ``large.message.s3.path.style.access``
+  Enable path-style access for S3 client.
+
+  * Type: boolean
+  * Default: false
+  * Importance: low
+
 ``large.message.abs.connection.string``
   Azure connection string for connection to blob storage. Leave empty if Azure credential provider chain should be used.
 
@@ -161,7 +168,7 @@ Endpoint to use for connection to Amazon S3. Leave empty if default S3 endpoint 
 ``large.message.gs.key.path``
   Google service account key JSON path. Leave empty If the environment variable GOOGLE_APPLICATION_CREDENTIALS is set
   or if you want to use the default service account provided by your computer engine. For more information about
-  authenticating as a service account please 
+  authenticating as a service account please
   refer to the [main documentation](https://cloud.google.com/docs/authentication/production).
 
   * Type: string
