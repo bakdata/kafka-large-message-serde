@@ -36,13 +36,6 @@ configure<com.bakdata.gradle.SonatypeSettings> {
     }
 }
 
-configure<org.hildan.github.changelog.plugin.GitHubChangelogExtension> {
-    githubUser = "bakdata"
-    githubRepository = "kafka-large-message-serde"
-    futureVersionTag = findProperty("changelog.releaseVersion")?.toString()
-    sinceTag = findProperty("changelog.sinceTag")?.toString()
-}
-
 subprojects {
     apply(plugin = "java-library")
     apply(plugin = "java-test-fixtures")
@@ -52,11 +45,5 @@ subprojects {
         toolchain {
             languageVersion = JavaLanguageVersion.of(11)
         }
-    }
-}
-
-release {
-    git {
-        requireBranch.set("master")
     }
 }
