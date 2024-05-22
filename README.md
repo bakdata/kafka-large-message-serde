@@ -149,13 +149,14 @@ Endpoint to use for connection to Amazon S3. Leave empty if default S3 endpoint 
 
   * Type: string
   * Default: ""
+  * Importance: low
 
  ``large.message.s3.path.style.access``
   Enable path-style access for S3 client.
 
   * Type: boolean
   * Default: false
-  * Importance: low * Importance: low
+  * Importance: low
 
 ``large.message.abs.connection.string``
   Azure connection string for connection to blob storage. Leave empty if Azure credential provider chain should be used.
