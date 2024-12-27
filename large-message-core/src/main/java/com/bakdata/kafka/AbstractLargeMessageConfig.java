@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
-
 import io.confluent.common.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.KafkaException;
