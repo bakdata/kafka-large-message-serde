@@ -39,6 +39,7 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
@@ -72,6 +73,7 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
                 .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
                 .put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, argument.isPathStyleAccess())
                 .put(AbstractLargeMessageConfig.COMPRESSION_TYPE_CONFIG, argument.getCompressionType())
+                .put(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, DefaultSdkHttpClientBuilder.class.getName())
                 .build();
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
