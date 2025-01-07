@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ package com.bakdata.kafka;
 /**
  * Interface to access blob storage for getting, putting, and deleting blobs.
  */
-public interface BlobStorageClient {
+public interface BlobStorageClient extends AutoCloseable {
     /**
      * Delete all objects in a bucket associated with a specified prefix
      *
@@ -54,4 +54,7 @@ public interface BlobStorageClient {
      * @return the payload
      */
     byte[] getObject(String bucket, String key);
+
+    @Override
+    void close();
 }

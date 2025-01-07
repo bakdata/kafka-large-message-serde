@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -111,14 +111,15 @@ class LargeMessageStoringClientS3IntegrationTest extends AmazonS3IntegrationTest
                 .build();
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-        final LargeMessageStoringClient storer = this.createStorer(properties);
-        when(idGenerator.generateId("foo".getBytes())).thenReturn("bar");
-        assertThat(storer.storeBytes(TOPIC, serialize("foo"), true, new RecordHeaders()))
-                .satisfies(backedText -> {
-                    final BlobStorageURI uri = deserializeUriWithFlag(backedText);
-                    this.expectBackedText(basePath, "foo", uri, "keys");
-                    assertThat(uri).asString().endsWith("bar");
-                });
+        try (final LargeMessageStoringClient storer = this.createStorer(properties)) {
+            when(idGenerator.generateId("foo".getBytes())).thenReturn("bar");
+            assertThat(storer.storeBytes(TOPIC, serialize("foo"), true, new RecordHeaders()))
+                    .satisfies(backedText -> {
+                        final BlobStorageURI uri = deserializeUriWithFlag(backedText);
+                        this.expectBackedText(basePath, "foo", uri, "keys");
+                        assertThat(uri).asString().endsWith("bar");
+                    });
+        }
     }
 
     private Map<String, Object> createProperties(final Map<String, Object> properties) {
