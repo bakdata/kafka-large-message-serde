@@ -270,8 +270,8 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
                 .toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(
-                        record -> this.expectBackedText(basePath, "foo", record.key(), "keys", record.headers(), true));
+                .anySatisfy(producerRecord -> this.expectBackedText(basePath, "foo", producerRecord.key(), "keys",
+                        producerRecord.headers(), true));
     }
 
     @Test
@@ -338,9 +338,8 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
                 .toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(
-                        record -> this.expectBackedText(basePath, "foo", record.value(), "values", record.headers(),
-                                false));
+                .anySatisfy(producerRecord -> this.expectBackedText(basePath, "foo", producerRecord.value(), "values",
+                        producerRecord.headers(), false));
     }
 
     @Test
