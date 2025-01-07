@@ -171,9 +171,9 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
                 .toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(record -> {
-                    assertThat(record.value()).isEqualTo("foo");
-                    assertThat(record.headers()).isEmpty();
+                .anySatisfy(producerRecord -> {
+                    assertThat(producerRecord.value()).isEqualTo("foo");
+                    assertThat(producerRecord.headers()).isEmpty();
                 });
     }
 
@@ -225,9 +225,9 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
                 .toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(record -> {
-                    assertThat(record.key()).isEqualTo("foo");
-                    assertThat(record.headers()).isEmpty();
+                .anySatisfy(producerRecord -> {
+                    assertThat(producerRecord.key()).isEqualTo("foo");
+                    assertThat(producerRecord.headers()).isEmpty();
                 });
     }
 
@@ -290,9 +290,9 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
                 .toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(record -> {
-                    assertThat(record.value()).isEqualTo("foo");
-                    assertThat(record.headers()).isEmpty();
+                .anySatisfy(producerRecord -> {
+                    assertThat(producerRecord.value()).isEqualTo("foo");
+                    assertThat(producerRecord.headers()).isEmpty();
                 });
     }
 
@@ -335,9 +335,9 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
                 .toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(record -> {
-                    assertThat(record.key()).isEqualTo("foo");
-                    assertThat(record.headers()).isEmpty();
+                .anySatisfy(producerRecord -> {
+                    assertThat(producerRecord.key()).isEqualTo("foo");
+                    assertThat(producerRecord.headers()).isEmpty();
                 });
     }
 
@@ -377,10 +377,10 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
                 .toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(record -> {
-                    assertThat(record.key()).isEqualTo("foo");
-                    assertThat(record.value()).isEqualTo("bar");
-                    assertThat(record.headers()).isEmpty();
+                .anySatisfy(producerRecord -> {
+                    assertThat(producerRecord.key()).isEqualTo("foo");
+                    assertThat(producerRecord.value()).isEqualTo("bar");
+                    assertThat(producerRecord.headers()).isEmpty();
                 });
     }
 
@@ -402,10 +402,10 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
                 .toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(record -> {
-                    assertThat(record.key()).isEqualTo("foo");
-                    assertThat(record.value()).isEqualTo("bar");
-                    assertThat(record.headers()).isEmpty();
+                .anySatisfy(producerRecord -> {
+                    assertThat(producerRecord.key()).isEqualTo("foo");
+                    assertThat(producerRecord.value()).isEqualTo("bar");
+                    assertThat(producerRecord.headers()).isEmpty();
                 });
     }
 

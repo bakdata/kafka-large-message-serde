@@ -36,7 +36,6 @@ import org.apache.kafka.common.errors.SerializationException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
@@ -156,9 +155,8 @@ class AmazonS3Client implements BlobStorageClient {
         if (!keys.isEmpty()) {
             this.s3.deleteObjects(DeleteObjectsRequest.builder()
                     .bucket(bucketName)
-                    .delete(Delete.builder()
-                            .objects(keys)
-                            .build())
+                    .delete(builder -> builder
+                            .objects(keys))
                     .build());
         }
     }

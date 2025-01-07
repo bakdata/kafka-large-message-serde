@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
-import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 
 /**
  * This class provides default configuration options for blob storage backed data. It offers configuration of the
@@ -339,11 +338,10 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
 
             if (!isEmpty(roleExternalId)) {
                 final AwsCredentialsProvider roleProvider = StsAssumeRoleCredentialsProvider.builder()
-                        .refreshRequest(AssumeRoleRequest.builder()
+                        .refreshRequest(builder -> builder
                                 .roleArn(roleArn)
                                 .roleSessionName(roleSessionName)
-                                .externalId(roleExternalId)
-                                .build())
+                                .externalId(roleExternalId))
                         .stsClient(StsClient.create())
                         .build();
 
