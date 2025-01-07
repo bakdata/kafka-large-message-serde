@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -122,6 +122,11 @@ class AmazonS3Client implements BlobStorageClient {
         } catch (final SdkException | IOException e) {
             throw new SerializationException("Cannot handle S3 backed message: " + s3URI, e);
         }
+    }
+
+    @Override
+    public void close() {
+        this.s3.close();
     }
 
     private void deleteObjects(final String bucketName, final String prefix) {
