@@ -1,8 +1,16 @@
 # Change Log
 
-## [2.7.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.7.0) (2024-05-22)
-[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.7.0...2.7.0)
+## [2.8.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.8.0) (2025-01-07)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.8.0...2.8.0)
 
+
+## [2.8.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.8.0) (2025-01-07)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.7.0...2.8.0)
+
+**Merged pull requests:**
+
+- Close Blobstorage clients [\#52](https://github.com/bakdata/kafka-large-message-serde/pull/52) ([@philipp94831](https://github.com/philipp94831))
+- Upgrade to Kafka 3.6 [\#51](https://github.com/bakdata/kafka-large-message-serde/pull/51) ([@philipp94831](https://github.com/philipp94831))
 
 ## [2.7.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.7.0) (2024-05-22)
 [View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.6.0...2.7.0)
