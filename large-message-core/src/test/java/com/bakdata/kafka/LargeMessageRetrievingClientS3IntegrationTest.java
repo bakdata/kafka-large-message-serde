@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -54,9 +54,10 @@ class LargeMessageRetrievingClientS3IntegrationTest extends AmazonS3IntegrationT
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final String key = "key";
         this.store(bucket, key, "foo");
-        final LargeMessageRetrievingClient retriever = this.createRetriever();
-        assertThat(retriever.retrieveBytes(createBackedText(bucket, key), new RecordHeaders(), false))
-                .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
+        try (final LargeMessageRetrievingClient retriever = this.createRetriever()) {
+            assertThat(retriever.retrieveBytes(createBackedText(bucket, key), new RecordHeaders(), false))
+                    .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
+        }
     }
 
     private LargeMessageRetrievingClient createRetriever() {

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ import org.apache.kafka.common.header.Headers;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class LargeMessageRetrievingClient {
+public class LargeMessageRetrievingClient implements AutoCloseable {
 
     private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
     private static final LargeMessagePayloadProtocol HEADER_PROTOCOL = new HeaderLargeMessagePayloadProtocol();
@@ -76,6 +76,11 @@ public class LargeMessageRetrievingClient {
         }
 
         return this.getBytes(payload, compressionType);
+    }
+
+    @Override
+    public void close() {
+        this.clientCache.values().forEach(BlobStorageClient::close);
     }
 
     private LargeMessagePayloadProtocol getProtocol(final Headers headers, final boolean isKey) {

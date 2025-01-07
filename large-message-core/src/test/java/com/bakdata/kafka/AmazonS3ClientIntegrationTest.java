@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -74,9 +74,10 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final String key = "key";
         this.store(bucket, key, "foo");
-        final BlobStorageClient client = new AmazonS3Client(s3);
-        assertThat(client.getObject(bucket, key))
-                .isEqualTo(serialize("foo"));
+        try (final BlobStorageClient client = new AmazonS3Client(s3)) {
+            assertThat(client.getObject(bucket, key))
+                    .isEqualTo(serialize("foo"));
+        }
     }
 
     @Test
@@ -85,9 +86,10 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
         final String key = "key";
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-        final BlobStorageClient client = new AmazonS3Client(s3);
-        assertThat(client.putObject(serialize("foo"), bucket, key))
-                .isEqualTo("s3://bucket/key");
+        try (final BlobStorageClient client = new AmazonS3Client(s3)) {
+            assertThat(client.putObject(serialize("foo"), bucket, key))
+                    .isEqualTo("s3://bucket/key");
+        }
     }
 
     @Test
@@ -95,14 +97,15 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
         final String bucket = "bucket";
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-        final BlobStorageClient client = new AmazonS3Client(s3);
-        client.putObject(serialize("foo"), bucket, "base/foo/1");
-        client.putObject(serialize("foo"), bucket, "base/foo/2");
-        client.putObject(serialize("foo"), bucket, "base/bar/1");
-        final ListObjectsRequest request = ListObjectsRequest.builder().bucket(bucket).prefix("base/").build();
-        assertThat(s3.listObjects(request).contents()).hasSize(3);
-        client.deleteAllObjects(bucket, "base/foo/");
+        try (final BlobStorageClient client = new AmazonS3Client(s3)) {
+            client.putObject(serialize("foo"), bucket, "base/foo/1");
+            client.putObject(serialize("foo"), bucket, "base/foo/2");
+            client.putObject(serialize("foo"), bucket, "base/bar/1");
+            final ListObjectsRequest request = ListObjectsRequest.builder().bucket(bucket).prefix("base/").build();
+            assertThat(s3.listObjects(request).contents()).hasSize(3);
+            client.deleteAllObjects(bucket, "base/foo/");
         assertThat(s3.listObjects(request).contents()).hasSize(1);
+        }
     }
 
     @Test
@@ -110,13 +113,14 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
         final String bucket = "bucket";
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-        final BlobStorageClient client = new AmazonS3Client(s3);
-        IntStream.range(0, 1001)
-                .forEach(i -> client.putObject(serialize("foo"), bucket, "base/foo/" + i));
-        final ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(bucket).prefix("base/").build();
-        assertThat(s3.listObjectsV2Paginator(request).contents()).hasSize(1001);
-        client.deleteAllObjects(bucket, "base/foo/");
+        try (final BlobStorageClient client = new AmazonS3Client(s3)) {
+            IntStream.range(0, 1001)
+                    .forEach(i -> client.putObject(serialize("foo"), bucket, "base/foo/" + i));
+            final ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(bucket).prefix("base/").build();
+            assertThat(s3.listObjectsV2Paginator(request).contents()).hasSize(1001);
+            client.deleteAllObjects(bucket, "base/foo/");
         assertThat(s3.listObjectsV2Paginator(request).contents()).isEmpty();
+        }
     }
 
     @Test
@@ -124,12 +128,13 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
         final String bucket = "bucket";
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-        final BlobStorageClient client = new AmazonS3Client(s3);
-        client.putObject(serialize("foo"), bucket, "base/bar/1");
-        final ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(bucket).prefix("base/").build();
+        try (final BlobStorageClient client = new AmazonS3Client(s3)) {
+            client.putObject(serialize("foo"), bucket, "base/bar/1");
+            final ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(bucket).prefix("base/").build();
+            assertThat(s3.listObjectsV2Paginator(request).contents()).hasSize(1);
+            client.deleteAllObjects(bucket, "base/foo/");
         assertThat(s3.listObjectsV2Paginator(request).contents()).hasSize(1);
-        client.deleteAllObjects(bucket, "base/foo/");
-        assertThat(s3.listObjectsV2Paginator(request).contents()).hasSize(1);
+        }
     }
 
     @Test
@@ -143,16 +148,17 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
                         .status(BucketVersioningStatus.ENABLED)
                         .build())
                 .build());
-        final BlobStorageClient client = new AmazonS3Client(s3);
-        client.putObject(serialize("foo"), bucket, "base/foo/1");
-        client.putObject(serialize("foo"), bucket, "base/foo/1");
-        client.putObject(serialize("foo"), bucket, "base/bar/1");
-        client.putObject(serialize("foo"), bucket, "base/bar/1");
-        final ListObjectVersionsRequest request =
-                ListObjectVersionsRequest.builder().bucket(bucket).prefix("base/").build();
-        assertThat(s3.listObjectVersionsPaginator(request).versions()).hasSize(4);
-        client.deleteAllObjects(bucket, "base/foo/");
+        try (final BlobStorageClient client = new AmazonS3Client(s3)) {
+            client.putObject(serialize("foo"), bucket, "base/foo/1");
+            client.putObject(serialize("foo"), bucket, "base/foo/1");
+            client.putObject(serialize("foo"), bucket, "base/bar/1");
+            client.putObject(serialize("foo"), bucket, "base/bar/1");
+            final ListObjectVersionsRequest request =
+                    ListObjectVersionsRequest.builder().bucket(bucket).prefix("base/").build();
+            assertThat(s3.listObjectVersionsPaginator(request).versions()).hasSize(4);
+            client.deleteAllObjects(bucket, "base/foo/");
         assertThat(s3.listObjectVersionsPaginator(request).versions()).hasSize(2);
+        }
     }
 
     @Test
@@ -166,14 +172,15 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
                         .status(BucketVersioningStatus.ENABLED)
                         .build())
                 .build());
-        final BlobStorageClient client = new AmazonS3Client(s3);
-        IntStream.range(0, 1001)
-                .forEach(i -> client.putObject(serialize("foo"), bucket, "base/foo/1"));
-        final ListObjectVersionsRequest request =
-                ListObjectVersionsRequest.builder().bucket(bucket).prefix("base/").build();
-        assertThat(s3.listObjectVersionsPaginator(request).versions()).hasSize(1001);
-        client.deleteAllObjects(bucket, "base/foo/");
+        try (final BlobStorageClient client = new AmazonS3Client(s3)) {
+            IntStream.range(0, 1001)
+                    .forEach(i -> client.putObject(serialize("foo"), bucket, "base/foo/1"));
+            final ListObjectVersionsRequest request =
+                    ListObjectVersionsRequest.builder().bucket(bucket).prefix("base/").build();
+            assertThat(s3.listObjectVersionsPaginator(request).versions()).hasSize(1001);
+            client.deleteAllObjects(bucket, "base/foo/");
         assertThat(s3.listObjectVersionsPaginator(request).versions()).isEmpty();
+        }
     }
 
     @Test
@@ -182,15 +189,16 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final String key = "key";
-        final BlobStorageClient client = new AmazonS3Client(s3);
-        assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> client.getObject(bucket, key))
-                .withMessageStartingWith("Cannot handle S3 backed message:")
-                .withMessageContainingAll(bucket, key)
-                .satisfies(e -> assertThat(e.getCause())
-                        .isInstanceOf(NoSuchKeyException.class)
-                        .hasMessageContaining("The specified key does not exist.")
-                );
+        try (final BlobStorageClient client = new AmazonS3Client(s3)) {
+            assertThatExceptionOfType(SerializationException.class)
+                    .isThrownBy(() -> client.getObject(bucket, key))
+                    .withMessageStartingWith("Cannot handle S3 backed message:")
+                    .withMessageContainingAll(bucket, key)
+                    .satisfies(e -> assertThat(e.getCause())
+                            .isInstanceOf(NoSuchKeyException.class)
+                            .hasMessageContaining("The specified key does not exist.")
+                    );
+        }
     }
 
     @Test
@@ -202,12 +210,13 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
                 (Answer<ResponseInputStream<GetObjectResponse>>) invocation -> {
                     throw new FakeSdkException();
                 });
-        final BlobStorageClient client = new AmazonS3Client(s3);
-        assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> client.getObject(bucket, key))
-                .withMessageStartingWith("Cannot handle S3 backed message:")
-                .withMessageContainingAll(bucket, key)
-                .withCauseInstanceOf(SdkException.class);
+        try (final BlobStorageClient client = new AmazonS3Client(s3)) {
+            assertThatExceptionOfType(SerializationException.class)
+                    .isThrownBy(() -> client.getObject(bucket, key))
+                    .withMessageStartingWith("Cannot handle S3 backed message:")
+                    .withMessageContainingAll(bucket, key)
+                    .withCauseInstanceOf(SdkException.class);
+        }
     }
 
     @Test
@@ -219,12 +228,13 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
                 (Answer<ResponseInputStream<GetObjectResponse>>) invocation -> {
                     throw new FakeSdkException();
                 });
-        final BlobStorageClient client = new AmazonS3Client(s3);
-        final byte[] foo = serialize("foo");
-        assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> client.putObject(foo, bucket, key))
-                .withMessageStartingWith("Error backing message on S3")
-                .withCauseInstanceOf(FakeSdkException.class);
+        try (final BlobStorageClient client = new AmazonS3Client(s3)) {
+            final byte[] foo = serialize("foo");
+            assertThatExceptionOfType(SerializationException.class)
+                    .isThrownBy(() -> client.putObject(foo, bucket, key))
+                    .withMessageStartingWith("Error backing message on S3")
+                    .withCauseInstanceOf(FakeSdkException.class);
+        }
     }
 
     @Test
@@ -232,15 +242,16 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
         final String bucket = "bucket";
         final String key = "key";
         final S3Client s3 = this.getS3Client();
-        final BlobStorageClient client = new AmazonS3Client(s3);
-        assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> client.getObject(bucket, key))
-                .withMessageStartingWith("Cannot handle S3 backed message:")
-                .withMessageContainingAll(bucket, key)
-                .satisfies(e -> assertThat(e.getCause())
-                        .isInstanceOf(NoSuchBucketException.class)
-                        .hasMessageContaining("The specified bucket does not exist")
-                );
+        try (final BlobStorageClient client = new AmazonS3Client(s3)) {
+            assertThatExceptionOfType(SerializationException.class)
+                    .isThrownBy(() -> client.getObject(bucket, key))
+                    .withMessageStartingWith("Cannot handle S3 backed message:")
+                    .withMessageContainingAll(bucket, key)
+                    .satisfies(e -> assertThat(e.getCause())
+                            .isInstanceOf(NoSuchBucketException.class)
+                            .hasMessageContaining("The specified bucket does not exist")
+                    );
+        }
     }
 
     @Test
@@ -248,15 +259,16 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
         final String bucket = "bucket";
         final String key = "key";
         final S3Client s3 = this.getS3Client();
-        final BlobStorageClient client = new AmazonS3Client(s3);
-        final byte[] foo = serialize("foo");
-        assertThatExceptionOfType(SerializationException.class)
-                .isThrownBy(() -> client.putObject(foo, bucket, key))
-                .withMessageStartingWith("Error backing message on S3")
-                .satisfies(e -> assertThat(e.getCause())
-                        .isInstanceOf(NoSuchBucketException.class)
-                        .hasMessageContaining("The specified bucket does not exist")
-                );
+        try (final BlobStorageClient client = new AmazonS3Client(s3)) {
+            final byte[] foo = serialize("foo");
+            assertThatExceptionOfType(SerializationException.class)
+                    .isThrownBy(() -> client.putObject(foo, bucket, key))
+                    .withMessageStartingWith("Error backing message on S3")
+                    .satisfies(e -> assertThat(e.getCause())
+                            .isInstanceOf(NoSuchBucketException.class)
+                            .hasMessageContaining("The specified bucket does not exist")
+                    );
+        }
     }
 
     private void store(final String bucket, final String key, final String s) {

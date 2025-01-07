@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,5 +38,10 @@ class NoBlobStorageClient implements BlobStorageClient {
     @Override
     public byte[] getObject(final String bucket, final String key) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void close() {
+        // do nothing
     }
 }

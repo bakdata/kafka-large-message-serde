@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -76,23 +76,23 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
                 .build();
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-        final LargeMessageStoringClient storer = this.createStorer(properties);
+        try (final LargeMessageStoringClient storer = this.createStorer(properties);
+                final LargeMessageRetrievingClient retriever = this.createRetriever()) {
 
-        final LargeMessageRetrievingClient retriever = this.createRetriever();
+            final Headers headers = new RecordHeaders();
+            final byte[] obj = serialize("big value");
+            final byte[] data = storer.storeBytes(TOPIC, obj, argument.isKey(), headers);
 
-        final Headers headers = new RecordHeaders();
-        final byte[] obj = serialize("big value");
-        final byte[] data = storer.storeBytes(TOPIC, obj, argument.isKey(), headers);
+            final Iterable<Header> compressionHeaders = headers.headers(CompressionType.HEADER_NAME);
+            if ("none".equals(argument.getCompressionType())) {
+                assertThat(compressionHeaders).isEmpty();
+            } else {
+                assertThat(compressionHeaders).isNotEmpty();
+            }
 
-        final Iterable<Header> compressionHeaders = headers.headers(CompressionType.HEADER_NAME);
-        if ("none".equals(argument.getCompressionType())) {
-            assertThat(compressionHeaders).isEmpty();
-        } else {
-            assertThat(compressionHeaders).isNotEmpty();
+            final byte[] result = retriever.retrieveBytes(data, headers, argument.isKey());
+            assertThat(result).isEqualTo(obj);
         }
-
-        final byte[] result = retriever.retrieveBytes(data, headers, argument.isKey());
-        assertThat(result).isEqualTo(obj);
     }
 
     private Map<String, Object> createStorerProperties(final Map<String, Object> properties) {
