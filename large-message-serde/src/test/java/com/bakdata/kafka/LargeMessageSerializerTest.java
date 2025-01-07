@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,9 +32,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.bakdata.fluent_kafka_streams_tests.TestTopology;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.function.Function;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Headers;
@@ -47,7 +47,6 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
-import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -66,7 +65,7 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
         return deserializeUri(uriBytes);
     }
 
-    private static Topology createValueTopology(final Properties properties) {
+    private static Topology createValueTopology(final Map<String, Object> properties) {
         final StreamsBuilder builder = new StreamsBuilder();
         final Map<String, Object> configs = new StreamsConfig(properties).originals();
         final Serde<String> serde = new LargeMessageSerde<>();
@@ -77,7 +76,7 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
         return builder.build();
     }
 
-    private static Topology createKeyTopology(final Properties properties) {
+    private static Topology createKeyTopology(final Map<String, Object> properties) {
         final StreamsBuilder builder = new StreamsBuilder();
         final Map<String, Object> configs = new StreamsConfig(properties).originals();
         final Serde<String> serde = new LargeMessageSerde<>();
@@ -111,16 +110,16 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
 
     @Test
     void shouldWriteNonBackedTextKey() {
-        final Properties properties = new Properties();
+        final Map<String, Object> properties = new HashMap<>();
         properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
         this.createTopology(LargeMessageSerializerTest::createKeyTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.String())
                 .withValueSerde(Serdes.Integer())
                 .add("foo", 1);
-        final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.ByteArray())
-                        .withValueSerde(Serdes.Integer()))
+        final List<ProducerRecord<byte[], Integer>> records = this.topology.streamOutput()
+                .withKeySerde(Serdes.ByteArray())
+                .withValueSerde(Serdes.Integer())
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -130,7 +129,7 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
 
     @Test
     void shouldWriteNonBackedTextKeyWithHeaders() {
-        final Properties properties = new Properties();
+        final Map<String, Object> properties = new HashMap<>();
         properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
         properties.put(AbstractLargeMessageConfig.USE_HEADERS_CONFIG, true);
         this.createTopology(LargeMessageSerializerTest::createKeyTopology, properties);
@@ -138,9 +137,9 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
                 .withKeySerde(Serdes.String())
                 .withValueSerde(Serdes.Integer())
                 .add("foo", 1);
-        final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.ByteArray())
-                        .withValueSerde(Serdes.Integer()))
+        final List<ProducerRecord<byte[], Integer>> records = this.topology.streamOutput()
+                .withKeySerde(Serdes.ByteArray())
+                .withValueSerde(Serdes.Integer())
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -149,16 +148,16 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
 
     @Test
     void shouldWriteNonBackedNullKey() {
-        final Properties properties = new Properties();
+        final Map<String, Object> properties = new HashMap<>();
         properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
         this.createTopology(LargeMessageSerializerTest::createKeyTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.String())
                 .withValueSerde(Serdes.Integer())
                 .add(null, 1);
-        final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.ByteArray())
-                        .withValueSerde(Serdes.Integer()))
+        final List<ProducerRecord<byte[], Integer>> records = this.topology.streamOutput()
+                .withKeySerde(Serdes.ByteArray())
+                .withValueSerde(Serdes.Integer())
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -168,16 +167,16 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
 
     @Test
     void shouldWriteNonBackedTextValue() {
-        final Properties properties = new Properties();
+        final Map<String, Object> properties = new HashMap<>();
         properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
         this.createTopology(LargeMessageSerializerTest::createValueTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.String())
                 .add(1, "foo");
-        final List<ProducerRecord<Integer, byte[]>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.Integer())
-                        .withValueSerde(Serdes.ByteArray()))
+        final List<ProducerRecord<Integer, byte[]>> records = this.topology.streamOutput()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.ByteArray())
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -187,7 +186,7 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
 
     @Test
     void shouldWriteNonBackedTextValueWithHeaders() {
-        final Properties properties = new Properties();
+        final Map<String, Object> properties = new HashMap<>();
         properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
         properties.put(AbstractLargeMessageConfig.USE_HEADERS_CONFIG, true);
         this.createTopology(LargeMessageSerializerTest::createValueTopology, properties);
@@ -195,9 +194,9 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.String())
                 .add(1, "foo");
-        final List<ProducerRecord<Integer, byte[]>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.Integer())
-                        .withValueSerde(Serdes.ByteArray()))
+        final List<ProducerRecord<Integer, byte[]>> records = this.topology.streamOutput()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.ByteArray())
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -206,16 +205,16 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
 
     @Test
     void shouldWriteNonBackedNullValue() {
-        final Properties properties = new Properties();
+        final Map<String, Object> properties = new HashMap<>();
         properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE);
         this.createTopology(LargeMessageSerializerTest::createValueTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.String())
                 .add(1, null);
-        final List<ProducerRecord<Integer, byte[]>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.Integer())
-                        .withValueSerde(Serdes.ByteArray()))
+        final List<ProducerRecord<Integer, byte[]>> records = this.topology.streamOutput()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.ByteArray())
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -227,9 +226,9 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
     void shouldWriteBackedTextKey() {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
-        final Properties properties = new Properties();
+        final Map<String, Object> properties = new HashMap<>();
         properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0);
-        properties.setProperty(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
+        properties.put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
         this.createTopology(LargeMessageSerializerTest::createKeyTopology, properties);
         final S3Client s3Client = this.getS3Client();
         s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
@@ -237,23 +236,23 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
                 .withKeySerde(Serdes.String())
                 .withValueSerde(Serdes.Integer())
                 .add("foo", 1);
-        final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.ByteArray())
-                        .withValueSerde(Serdes.Integer()))
+        final List<ProducerRecord<byte[], Integer>> records = this.topology.streamOutput()
+                .withKeySerde(Serdes.ByteArray())
+                .withValueSerde(Serdes.Integer())
                 .toList();
         assertThat(records)
                 .hasSize(1)
                 .extracting(ProducerRecord::key)
-                .anySatisfy(s3BackedText -> expectBackedText(basePath, "foo", s3BackedText, "keys"));
+                .anySatisfy(s3BackedText -> this.expectBackedText(basePath, "foo", s3BackedText, "keys"));
     }
 
     @Test
     void shouldWriteBackedTextKeyWithHeaders() {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
-        final Properties properties = new Properties();
+        final Map<String, Object> properties = new HashMap<>();
         properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0);
-        properties.setProperty(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
+        properties.put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
         properties.put(AbstractLargeMessageConfig.USE_HEADERS_CONFIG, true);
         this.createTopology(LargeMessageSerializerTest::createKeyTopology, properties);
         final S3Client s3Client = this.getS3Client();
@@ -262,9 +261,9 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
                 .withKeySerde(Serdes.String())
                 .withValueSerde(Serdes.Integer())
                 .add("foo", 1);
-        final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.ByteArray())
-                        .withValueSerde(Serdes.Integer()))
+        final List<ProducerRecord<byte[], Integer>> records = this.topology.streamOutput()
+                .withKeySerde(Serdes.ByteArray())
+                .withValueSerde(Serdes.Integer())
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -274,16 +273,16 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
 
     @Test
     void shouldWriteBackedNullKey() {
-        final Properties properties = new Properties();
+        final Map<String, Object> properties = new HashMap<>();
         properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0);
         this.createTopology(LargeMessageSerializerTest::createKeyTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.String())
                 .withValueSerde(Serdes.Integer())
                 .add(null, 1);
-        final List<ProducerRecord<byte[], Integer>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.ByteArray())
-                        .withValueSerde(Serdes.Integer()))
+        final List<ProducerRecord<byte[], Integer>> records = this.topology.streamOutput()
+                .withKeySerde(Serdes.ByteArray())
+                .withValueSerde(Serdes.Integer())
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -295,9 +294,9 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
     void shouldWriteBackedTextValue() {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
-        final Properties properties = new Properties();
+        final Map<String, Object> properties = new HashMap<>();
         properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0);
-        properties.setProperty(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
+        properties.put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
         this.createTopology(LargeMessageSerializerTest::createValueTopology, properties);
         final S3Client s3Client = this.getS3Client();
         s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
@@ -305,23 +304,23 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.String())
                 .add(1, "foo");
-        final List<ProducerRecord<Integer, byte[]>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.Integer())
-                        .withValueSerde(Serdes.ByteArray()))
+        final List<ProducerRecord<Integer, byte[]>> records = this.topology.streamOutput()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.ByteArray())
                 .toList();
         assertThat(records)
                 .hasSize(1)
                 .extracting(ProducerRecord::value)
-                .anySatisfy(s3BackedText -> expectBackedText(basePath, "foo", s3BackedText, "values"));
+                .anySatisfy(s3BackedText -> this.expectBackedText(basePath, "foo", s3BackedText, "values"));
     }
 
     @Test
     void shouldWriteBackedTextValueWithHeaders() {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
-        final Properties properties = new Properties();
+        final Map<String, Object> properties = new HashMap<>();
         properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0);
-        properties.setProperty(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
+        properties.put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath);
         properties.put(AbstractLargeMessageConfig.USE_HEADERS_CONFIG, true);
         this.createTopology(LargeMessageSerializerTest::createValueTopology, properties);
         final S3Client s3Client = this.getS3Client();
@@ -330,9 +329,9 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.String())
                 .add(1, "foo");
-        final List<ProducerRecord<Integer, byte[]>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.Integer())
-                        .withValueSerde(Serdes.ByteArray()))
+        final List<ProducerRecord<Integer, byte[]>> records = this.topology.streamOutput()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.ByteArray())
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -343,16 +342,16 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
 
     @Test
     void shouldWriteBackedNullValue() {
-        final Properties properties = new Properties();
+        final Map<String, Object> properties = new HashMap<>();
         properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0);
         this.createTopology(LargeMessageSerializerTest::createValueTopology, properties);
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.String())
                 .add(1, null);
-        final List<ProducerRecord<Integer, byte[]>> records = Seq.seq(this.topology.streamOutput()
-                        .withKeySerde(Serdes.Integer())
-                        .withValueSerde(Serdes.ByteArray()))
+        final List<ProducerRecord<Integer, byte[]>> records = this.topology.streamOutput()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.ByteArray())
                 .toList();
         assertThat(records)
                 .hasSize(1)
@@ -360,9 +359,9 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
                 .anySatisfy(s3BackedText -> assertThat(s3BackedText).isNull());
     }
 
-    private Properties createProperties(final Properties properties) {
-        properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "broker");
-        properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
+    private Map<String, Object> createProperties(final Map<String, Object> properties) {
+        properties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "broker");
+        properties.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.ByteArraySerde.class);
         properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.ByteArraySerde.class);
         properties.putAll(this.getLargeMessageConfig());
@@ -404,8 +403,8 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
         }
     }
 
-    private void createTopology(final Function<? super Properties, ? extends Topology> topologyFactory,
-            final Properties properties) {
+    private void createTopology(final Function<? super Map<String, Object>, ? extends Topology> topologyFactory,
+            final Map<String, Object> properties) {
         this.topology = new TestTopology<>(topologyFactory, this.createProperties(properties));
         this.topology.start();
     }
