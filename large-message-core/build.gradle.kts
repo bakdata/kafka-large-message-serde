@@ -42,9 +42,9 @@ dependencies {
     implementation(group = "com.google.guava", name = "guava", version = "33.4.0-jre")
 
     val junitVersion: String by project
+    testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", version = junitVersion)
-    testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
     val assertJVersion: String by project
     testImplementation(group = "org.assertj", name = "assertj-core", version = assertJVersion)
     val mockitoVersion = "5.15.2"
@@ -53,8 +53,8 @@ dependencies {
 
     val log4jVersion: String by project
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
+    testImplementation(group = "com.google.cloud", name = "google-cloud-nio", version = "0.127.28")
     val testContainersVersion: String by project
     testFixturesApi(group = "org.testcontainers", name = "junit-jupiter", version = testContainersVersion)
     testFixturesImplementation(group = "org.testcontainers", name = "localstack", version = testContainersVersion)
-    testImplementation(group = "com.google.cloud", name = "google-cloud-nio", version = "0.127.28")
 }

@@ -143,7 +143,8 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
                 .toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(record -> expectNonBackedText("foo", record.key(), record.headers(), true));
+                .anySatisfy(producerRecord -> expectNonBackedText("foo", producerRecord.key(), producerRecord.headers(),
+                        true));
     }
 
     @Test
@@ -200,7 +201,9 @@ class LargeMessageSerializerTest extends AmazonS3IntegrationTest {
                 .toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(record -> expectNonBackedText("foo", record.value(), record.headers(), false));
+                .anySatisfy(
+                        producerRecord -> expectNonBackedText("foo", producerRecord.value(), producerRecord.headers(),
+                                false));
     }
 
     @Test

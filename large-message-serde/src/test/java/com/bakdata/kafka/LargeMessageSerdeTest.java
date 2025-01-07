@@ -90,9 +90,9 @@ class LargeMessageSerdeTest extends AmazonS3IntegrationTest {
         final List<ProducerRecord<String, String>> records = this.getOutput().toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(record -> {
-                    assertThat(record.key()).isEqualTo("a");
-                    assertThat(record.value()).isEqualTo("foobar");
+                .anySatisfy(producerRecord -> {
+                    assertThat(producerRecord.key()).isEqualTo("a");
+                    assertThat(producerRecord.value()).isEqualTo("foobar");
                 });
     }
 
