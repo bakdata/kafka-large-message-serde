@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,9 +29,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.bakdata.fluent_kafka_streams_tests.TestInput;
 import com.bakdata.fluent_kafka_streams_tests.TestOutput;
 import com.bakdata.fluent_kafka_streams_tests.TestTopology;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -40,7 +40,6 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Produced;
-import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -88,20 +87,20 @@ class LargeMessageSerdeTest extends AmazonS3IntegrationTest {
                 .add("a", "foo");
         this.getInput(INPUT_TOPIC_2)
                 .add("a", "bar");
-        final List<ProducerRecord<String, String>> records = Seq.seq(this.getOutput()).toList();
+        final List<ProducerRecord<String, String>> records = this.getOutput().toList();
         assertThat(records)
                 .hasSize(1)
-                .anySatisfy(record -> {
-                    assertThat(record.key()).isEqualTo("a");
-                    assertThat(record.value()).isEqualTo("foobar");
+                .anySatisfy(producerRecord -> {
+                    assertThat(producerRecord.key()).isEqualTo("a");
+                    assertThat(producerRecord.value()).isEqualTo("foobar");
                 });
     }
 
-    private Properties createLargeMessageProperties() {
+    private Map<String, Object> createLargeMessageProperties() {
         final Map<String, String> endpointConfig = this.getLargeMessageConfig();
-        final Properties properties = new Properties();
-        properties.setProperty(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "broker");
-        properties.setProperty(StreamsConfig.APPLICATION_ID_CONFIG, "test");
+        final Map<String, Object> properties = new HashMap<>();
+        properties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "broker");
+        properties.put(StreamsConfig.APPLICATION_ID_CONFIG, "test");
         properties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, LargeMessageSerde.class);
         properties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, LargeMessageSerde.class);
         properties.putAll(endpointConfig);

@@ -32,19 +32,17 @@ dependencies {
     api(group = "org.apache.kafka", name = "connect-api", version = kafkaVersion)
     compileOnly(group = "org.apache.kafka", name = "connect-runtime", version = kafkaVersion)
 
-    testImplementation(project(":large-message-serde"))
     val junitVersion: String by project
+    testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", version = junitVersion)
-    testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
+    testImplementation(project(":large-message-serde"))
     val assertJVersion: String by project
     testImplementation(group = "org.assertj", name = "assertj-core", version = assertJVersion)
 
     val log4jVersion: String by project
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
-    val joolVersion: String by project
-    testImplementation(group = "org.jooq", name = "jool-java-8", version = joolVersion)
-    testImplementation(group = "net.mguenther.kafka", name = "kafka-junit", version = "3.5.0") {
+    testImplementation(group = "net.mguenther.kafka", name = "kafka-junit", version = "3.6.0") {
         exclude(group = "org.slf4j", module = "slf4j-log4j12")
     }
     testImplementation(group = "org.apache.kafka", name = "connect-file", version = kafkaVersion)
