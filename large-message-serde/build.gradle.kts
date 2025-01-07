@@ -30,20 +30,18 @@ dependencies {
     api(project(":large-message-core"))
 
     val junitVersion: String by project
+    testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", version = junitVersion)
-    testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
     val assertJVersion: String by project
     testImplementation(group = "org.assertj", name = "assertj-core", version = assertJVersion)
 
     testImplementation(
         group = "com.bakdata.fluent-kafka-streams-tests",
         name = "fluent-kafka-streams-tests-junit5",
-        version = "2.11.1"
+        version = "2.14.0"
     )
     val log4jVersion: String by project
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
-    val joolVersion: String by project
-    testImplementation(group = "org.jooq", name = "jool", version = joolVersion)
     testImplementation(testFixtures(project(":large-message-core")))
 }
