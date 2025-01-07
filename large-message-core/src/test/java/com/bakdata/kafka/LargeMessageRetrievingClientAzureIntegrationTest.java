@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,9 +58,10 @@ class LargeMessageRetrievingClientAzureIntegrationTest extends AzureBlobStorageI
             containerClient.create();
             final String key = "key";
             store(containerClient, key, "foo");
-            final LargeMessageRetrievingClient retriever = this.createRetriever();
-            assertThat(retriever.retrieveBytes(createBackedText(bucket, key), new RecordHeaders(), false))
-                    .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
+            try (final LargeMessageRetrievingClient retriever = this.createRetriever()) {
+                assertThat(retriever.retrieveBytes(createBackedText(bucket, key), new RecordHeaders(), false))
+                        .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
+            }
         } finally {
             containerClient.delete();
         }

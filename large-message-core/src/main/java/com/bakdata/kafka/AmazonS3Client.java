@@ -123,6 +123,11 @@ class AmazonS3Client implements BlobStorageClient {
         }
     }
 
+    @Override
+    public void close() {
+        this.s3.close();
+    }
+
     private void deleteObjects(final String bucketName, final String prefix) {
         final ListObjectsV2Request request = ListObjectsV2Request.builder()
                 .bucket(bucketName)

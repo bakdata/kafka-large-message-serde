@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -63,9 +63,10 @@ class AzureBlobStorageClientIntegrationTest extends AzureBlobStorageIntegrationT
             containerClient.create();
             final String key = "key";
             store(containerClient, key, "foo");
-            final BlobStorageClient client = new AzureBlobStorageClient(blobServiceClient);
-            assertThat(client.getObject(bucket, key))
-                    .isEqualTo(serialize("foo"));
+            try (final BlobStorageClient client = new AzureBlobStorageClient(blobServiceClient)) {
+                assertThat(client.getObject(bucket, key))
+                        .isEqualTo(serialize("foo"));
+            }
         } finally {
             containerClient.delete();
         }
@@ -79,9 +80,10 @@ class AzureBlobStorageClientIntegrationTest extends AzureBlobStorageIntegrationT
         final BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient(bucket);
         try {
             containerClient.create();
-            final BlobStorageClient client = new AzureBlobStorageClient(blobServiceClient);
-            assertThat(client.putObject(serialize("foo"), bucket, key))
-                    .isEqualTo("abs://" + bucket + "/key");
+            try (final BlobStorageClient client = new AzureBlobStorageClient(blobServiceClient)) {
+                assertThat(client.putObject(serialize("foo"), bucket, key))
+                        .isEqualTo("abs://" + bucket + "/key");
+            }
         } finally {
             containerClient.delete();
         }
@@ -94,13 +96,14 @@ class AzureBlobStorageClientIntegrationTest extends AzureBlobStorageIntegrationT
         final BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient(bucket);
         containerClient.create();
         try {
-            final BlobStorageClient client = new AzureBlobStorageClient(blobServiceClient);
-            client.putObject(serialize("foo"), bucket, "base/foo/1");
-            client.putObject(serialize("foo"), bucket, "base/foo/2");
-            client.putObject(serialize("foo"), bucket, "base/bar/1");
-            assertThat(containerClient.listBlobs(withPrefix("base/"), null).stream()
-                    .collect(Collectors.toList())).hasSize(3);
-            client.deleteAllObjects(bucket, "base/foo/");
+            try (final BlobStorageClient client = new AzureBlobStorageClient(blobServiceClient)) {
+                client.putObject(serialize("foo"), bucket, "base/foo/1");
+                client.putObject(serialize("foo"), bucket, "base/foo/2");
+                client.putObject(serialize("foo"), bucket, "base/bar/1");
+                assertThat(containerClient.listBlobs(withPrefix("base/"), null).stream()
+                        .collect(Collectors.toList())).hasSize(3);
+                client.deleteAllObjects(bucket, "base/foo/");
+            }
             assertThat(containerClient.listBlobs(withPrefix("base/"), null).stream()
                     .collect(Collectors.toList())).hasSize(1);
         } finally {
@@ -116,10 +119,11 @@ class AzureBlobStorageClientIntegrationTest extends AzureBlobStorageIntegrationT
         try {
             containerClient.create();
             final String key = "key";
-            final BlobStorageClient client = new AzureBlobStorageClient(blobServiceClient);
-            assertThatExceptionOfType(BlobStorageException.class)
-                    .isThrownBy(() -> client.getObject(bucket, key))
-                    .withMessageContaining("The specified blob does not exist.");
+            try (final BlobStorageClient client = new AzureBlobStorageClient(blobServiceClient)) {
+                assertThatExceptionOfType(BlobStorageException.class)
+                        .isThrownBy(() -> client.getObject(bucket, key))
+                        .withMessageContaining("The specified blob does not exist.");
+            }
         } finally {
             containerClient.delete();
         }
@@ -129,21 +133,23 @@ class AzureBlobStorageClientIntegrationTest extends AzureBlobStorageIntegrationT
     void shouldThrowExceptionOnMissingBucketForGet() {
         final String bucket = "bucket";
         final String key = "key";
-        final BlobStorageClient client = new AzureBlobStorageClient(this.getBlobServiceClient());
-        assertThatExceptionOfType(BlobStorageException.class)
-                .isThrownBy(() -> client.getObject(bucket, key))
-                .withMessageContaining("The specified container does not exist.");
+        try (final BlobStorageClient client = new AzureBlobStorageClient(this.getBlobServiceClient())) {
+            assertThatExceptionOfType(BlobStorageException.class)
+                    .isThrownBy(() -> client.getObject(bucket, key))
+                    .withMessageContaining("The specified container does not exist.");
+        }
     }
 
     @Test
     void shouldThrowExceptionOnMissingBucketForPut() {
         final String bucket = "bucket";
         final String key = "key";
-        final BlobStorageClient client = new AzureBlobStorageClient(this.getBlobServiceClient());
-        final byte[] foo = serialize("foo");
-        assertThatExceptionOfType(BlobStorageException.class)
-                .isThrownBy(() -> client.putObject(foo, bucket, key))
-                .withMessageContaining("The specified container does not exist.");
+        try (final BlobStorageClient client = new AzureBlobStorageClient(this.getBlobServiceClient())) {
+            final byte[] foo = serialize("foo");
+            assertThatExceptionOfType(BlobStorageException.class)
+                    .isThrownBy(() -> client.putObject(foo, bucket, key))
+                    .withMessageContaining("The specified container does not exist.");
+        }
     }
 
 }

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ import org.apache.kafka.common.header.Headers;
  */
 @Slf4j
 @Builder
-public class LargeMessageStoringClient {
+public class LargeMessageStoringClient implements AutoCloseable {
 
     private static final String VALUE_PREFIX = "values";
     private static final String KEY_PREFIX = "keys";
@@ -116,6 +116,11 @@ public class LargeMessageStoringClient {
         log.info("Deleting blob storage backed files for topic '{}'", topic);
         this.client.deleteAllObjects(bucketName, prefix);
         log.info("Finished deleting blob storage backed files for topic '{}'", topic);
+    }
+
+    @Override
+    public void close() {
+        this.client.close();
     }
 
     private byte[] serialize(final String uri, final Headers headers, final boolean isKey) {
