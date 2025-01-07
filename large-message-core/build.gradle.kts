@@ -33,13 +33,13 @@ dependencies {
     val confluentVersion: String by project
     api(group = "io.confluent", name = "common-config", version = confluentVersion)
 
-    implementation(group = "org.slf4j", name = "slf4j-api", version = "2.0.10")
-    val awsVersion = "2.22.10"
+    implementation(group = "org.slf4j", name = "slf4j-api", version = "2.0.16")
+    val awsVersion = "2.29.4"
     api(group = "software.amazon.awssdk", name = "s3", version = awsVersion)
     api(group = "software.amazon.awssdk", name = "sts", version = awsVersion)
-    api(group = "com.azure", name = "azure-storage-blob", version = "12.25.1")
-    api(group = "com.google.cloud", name = "google-cloud-storage", version = "2.30.1")
-    implementation(group = "com.google.guava", name = "guava", version = "33.0.0-jre")
+    api(group = "com.azure", name = "azure-storage-blob", version = "12.29.0")
+    api(group = "com.google.cloud", name = "google-cloud-storage", version = "2.46.0")
+    implementation(group = "com.google.guava", name = "guava", version = "33.4.0-jre")
 
     val junitVersion: String by project
     testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
@@ -47,7 +47,7 @@ dependencies {
     testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
     val assertJVersion: String by project
     testImplementation(group = "org.assertj", name = "assertj-core", version = assertJVersion)
-    val mockitoVersion = "5.8.0"
+    val mockitoVersion = "5.15.2"
     testImplementation(group = "org.mockito", name = "mockito-core", version = mockitoVersion)
     testImplementation(group = "org.mockito", name = "mockito-junit-jupiter", version = mockitoVersion)
 
@@ -56,5 +56,5 @@ dependencies {
     val testContainersVersion: String by project
     testFixturesApi(group = "org.testcontainers", name = "junit-jupiter", version = testContainersVersion)
     testFixturesImplementation(group = "org.testcontainers", name = "localstack", version = testContainersVersion)
-    testImplementation(group = "com.google.cloud", name = "google-cloud-nio", version = "0.127.8")
+    testImplementation(group = "com.google.cloud", name = "google-cloud-nio", version = "0.127.28")
 }
