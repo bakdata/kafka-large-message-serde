@@ -24,6 +24,7 @@
 
 package com.bakdata.kafka;
 
+import static org.apache.kafka.connect.runtime.isolation.PluginDiscoveryMode.HYBRID_WARN;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
@@ -70,8 +71,10 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
         s3.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
         this.kafkaCluster = new EmbeddedConnectCluster.Builder()
                 .name("test-cluster")
-                .workerProps(new HashMap<>(Map.of(WorkerConfig.PLUGIN_DISCOVERY_CONFIG,
-                        "hybrid_warn"))) // map needs to be mutable // FIXME make compatible with service discovery
+                .workerProps(new HashMap<>(Map.of( // map needs to be mutable
+                        // FIXME make compatible with service discovery
+                        WorkerConfig.PLUGIN_DISCOVERY_CONFIG, HYBRID_WARN.toString()
+                )))
                 .build();
         this.kafkaCluster.start();
     }
