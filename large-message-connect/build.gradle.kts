@@ -42,9 +42,16 @@ dependencies {
 
     val log4jVersion: String by project
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
-    testImplementation(group = "net.mguenther.kafka", name = "kafka-junit", version = "3.6.0") {
-        exclude(group = "org.slf4j", module = "slf4j-log4j12")
-    }
     testImplementation(group = "org.apache.kafka", name = "connect-file", version = kafkaVersion)
     testImplementation(testFixtures(project(":large-message-core")))
+    testImplementation(group = "org.apache.kafka", name = "connect-runtime", version = kafkaVersion)
+    testImplementation(
+        group = "org.apache.kafka",
+        name = "connect-runtime",
+        version = kafkaVersion,
+        classifier = "test"
+    )
+    testImplementation(group = "org.apache.kafka", name = "kafka-clients", version = kafkaVersion, classifier = "test")
+    testImplementation(group = "org.apache.kafka", name = "kafka_2.13", version = kafkaVersion)
+    testImplementation(group = "org.apache.kafka", name = "kafka_2.13", version = kafkaVersion, classifier = "test")
 }
