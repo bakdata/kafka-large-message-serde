@@ -29,15 +29,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.Serdes.StringSerde;
-import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.connect.file.FileStreamSinkConnector;
 import org.apache.kafka.connect.runtime.ConnectorConfig;
@@ -86,10 +85,11 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
     void shouldProcessRecordsCorrectly() throws InterruptedException, IOException {
         this.kafkaCluster.kafka().createTopic(TOPIC);
         this.kafkaCluster.configureConnector("test", this.config());
-        try (final Producer<byte[], byte[]> producer = this.kafkaCluster.kafka()
-                .createProducer(Collections.emptyMap())) {
-            producer.send(this.createRecord(DOWNLOAD_RECORD_KEY, "toS3", true));
-            producer.send(this.createRecord(EXTRACT_RECORD_KEY, "local", false));
+        try (final Producer<String, String> producer = this.createProducer(this.createProducerProperties(true))) {
+            producer.send(new ProducerRecord<>(TOPIC, DOWNLOAD_RECORD_KEY, "toS3"));
+        }
+        try (final Producer<String, String> producer = this.createProducer(this.createProducerProperties(false))) {
+            producer.send(new ProducerRecord<>(TOPIC, EXTRACT_RECORD_KEY, "local"));
         }
 
         // makes sure that both records are processed
@@ -98,14 +98,10 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
         assertThat(output).containsExactly("toS3", "local");
     }
 
-    private ProducerRecord<byte[], byte[]> createRecord(final String key, final String value,
-            final boolean shouldBack) {
-        try (final Serializer<String> keySerializer = new StringSerializer();
-                final Serializer<String> valueSerializer = this.createSerializer(shouldBack)) {
-            final byte[] keyBytes = keySerializer.serialize(TOPIC, key);
-            final byte[] valueBytes = valueSerializer.serialize(TOPIC, value);
-            return new ProducerRecord<>(TOPIC, keyBytes, valueBytes);
-        }
+    @SuppressWarnings("unchecked") // Producer always uses byte[] although serializer is customizable
+    private <K, V> Producer<K, V> createProducer(final Map<String, Object> properties) {
+        return (Producer<K, V>) this.kafkaCluster.kafka()
+                .createProducer(properties);
     }
 
     private Map<String, String> createS3BackedProperties() {
@@ -131,13 +127,13 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
         return properties;
     }
 
-    private Serializer<String> createSerializer(final boolean shouldBack) {
+    private Map<String, Object> createProducerProperties(final boolean shouldBack) {
         final Map<String, Object> properties = new HashMap<>();
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, LargeMessageSerializer.class);
         properties.put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG,
                 Integer.toString(shouldBack ? 0 : Integer.MAX_VALUE));
         properties.putAll(this.createS3BackedProperties());
-        final Serializer<String> serializer = new LargeMessageSerializer<>();
-        serializer.configure(properties, false);
-        return serializer;
+        return properties;
     }
 }
