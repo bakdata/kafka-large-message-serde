@@ -48,6 +48,7 @@ import org.apache.kafka.connect.util.clusters.EmbeddedConnectCluster;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
@@ -58,6 +59,7 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
     private static final String EXTRACT_RECORD_KEY = "key1";
     private static final String DOWNLOAD_RECORD_KEY = "key2";
     private EmbeddedConnectCluster kafkaCluster;
+    @TempDir
     private Path outputFile;
 
     private static String asValueConfig(final String key) {
@@ -65,8 +67,7 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
     }
 
     @BeforeEach
-    void setUp() throws IOException {
-        this.outputFile = Files.createTempFile("test", "temp");
+    void setUp() {
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
         this.kafkaCluster = new EmbeddedConnectCluster.Builder()
@@ -80,9 +81,8 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
     }
 
     @AfterEach
-    void tearDown() throws IOException {
+    void tearDown() {
         this.kafkaCluster.stop();
-        Files.deleteIfExists(this.outputFile);
     }
 
     @Test
