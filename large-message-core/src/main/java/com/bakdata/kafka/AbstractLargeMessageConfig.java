@@ -36,6 +36,7 @@ import io.confluent.common.config.AbstractConfig;
 import io.confluent.common.config.ConfigDef;
 import io.confluent.common.config.ConfigDef.Importance;
 import io.confluent.common.config.ConfigDef.Type;
+import io.confluent.common.config.ConfigException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -45,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import io.confluent.common.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.SerializationException;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -52,6 +54,8 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider;
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
+import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
@@ -143,6 +147,8 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_CONFIG = S3_PREFIX + "path.style.access";
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_DOC = "Enable path-style access for S3 client.";
     public static final boolean S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT = false;
+    public static final String S3_SDK_HTTP_CLIENT_BUILDER_CONFIG = S3_PREFIX + "sdk.http.client.builder";
+    public static final String S3_SDK_HTTP_CLIENT_BUILDER_DOC = "The HTTP client to use for S3 client.";
     public static final String S3_REGION_DEFAULT = "";
     public static final String S3_ACCESS_KEY_DOC = "AWS access key to use for connecting to S3. Leave empty if AWS"
             + " credential provider chain or STS Assume Role provider should be used.";
@@ -300,10 +306,30 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         this.getAmazonEndpointOverride().ifPresent(clientBuilder::endpointOverride);
         this.getAmazonRegion().ifPresent(clientBuilder::region);
         this.getAmazonCredentialsProvider().ifPresent(clientBuilder::credentialsProvider);
+        this.getAmazonSdkHttpClientBuilderInstance()
+                .ifPresent(clientBuilder::httpClientBuilder);
         if (this.enableAmazonS3PathStyleAccess()) {
             clientBuilder.forcePathStyle(true);
         }
         return new AmazonS3Client(clientBuilder.build());
+    }
+
+    private Optional<SdkHttpClient.Builder> getAmazonSdkHttpClientBuilderInstance() {
+        try {
+            final Class<?> c = getClass(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG);
+            if (c == null) {
+                return Optional.empty();
+            }
+            final Object o = Utils.newInstance(c);
+            if (!(o instanceof SdkHttpClient.Builder)) {
+                throw new RuntimeException(
+                        c.getName() + " is not an instance of " + SdkHttpClient.Builder.class.getName());
+            } else {
+                return Optional.of((SdkHttpClient.Builder) o);
+            }
+        } catch (final ConfigException e) {
+            return Optional.empty();
+        }
     }
 
     private Optional<URI> getAmazonEndpointOverride() {
