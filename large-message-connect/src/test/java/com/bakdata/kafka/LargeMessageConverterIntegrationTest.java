@@ -27,9 +27,9 @@ package com.bakdata.kafka;
 import static org.apache.kafka.connect.runtime.isolation.PluginDiscoveryMode.HYBRID_WARN;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +48,7 @@ import org.apache.kafka.connect.util.clusters.EmbeddedConnectCluster;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
@@ -58,15 +59,15 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
     private static final String EXTRACT_RECORD_KEY = "key1";
     private static final String DOWNLOAD_RECORD_KEY = "key2";
     private EmbeddedConnectCluster kafkaCluster;
-    private Path outputFile;
+    @TempDir
+    private File outputDir;
 
     private static String asValueConfig(final String key) {
         return ConnectorConfig.VALUE_CONVERTER_CLASS_CONFIG + "." + key;
     }
 
     @BeforeEach
-    void setUp() throws IOException {
-        this.outputFile = Files.createTempFile("test", "temp");
+    void setUp() {
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
         this.kafkaCluster = new EmbeddedConnectCluster.Builder()
@@ -80,15 +81,15 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
     }
 
     @AfterEach
-    void tearDown() throws IOException {
+    void tearDown() {
         this.kafkaCluster.stop();
-        Files.deleteIfExists(this.outputFile);
     }
 
     @Test
     void shouldProcessRecordsCorrectly() throws InterruptedException, IOException {
         this.kafkaCluster.kafka().createTopic(TOPIC);
-        this.kafkaCluster.configureConnector("test", this.config());
+        final File file = new File(this.outputDir, "out");
+        this.kafkaCluster.configureConnector("test", this.config(file));
         try (final Producer<String, String> producer = this.createProducer(this.createProducerProperties(true))) {
             producer.send(new ProducerRecord<>(TOPIC, DOWNLOAD_RECORD_KEY, "toS3"));
         }
@@ -98,7 +99,7 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
 
         // makes sure that both records are processed
         Thread.sleep(TimeUnit.SECONDS.toMillis(2));
-        final List<String> output = Files.readAllLines(this.outputFile);
+        final List<String> output = Files.readAllLines(file.toPath());
         assertThat(output).containsExactly("toS3", "local");
     }
 
@@ -117,11 +118,11 @@ class LargeMessageConverterIntegrationTest extends AmazonS3IntegrationTest {
         return properties;
     }
 
-    private Map<String, String> config() {
+    private Map<String, String> config(final File file) {
         final Map<String, String> properties = new HashMap<>();
         properties.put(ConnectorConfig.CONNECTOR_CLASS_CONFIG, FileStreamSinkConnector.class.getName());
         properties.put(SinkConnector.TOPICS_CONFIG, TOPIC);
-        properties.put(FileStreamSinkConnector.FILE_CONFIG, this.outputFile.toString());
+        properties.put(FileStreamSinkConnector.FILE_CONFIG, file.getAbsolutePath());
         properties.put(ConnectorConfig.KEY_CONVERTER_CLASS_CONFIG, StringConverter.class.getName());
         properties.put(ConnectorConfig.VALUE_CONVERTER_CLASS_CONFIG, LargeMessageConverter.class.getName());
         properties.put(asValueConfig(LargeMessageConverterConfig.CONVERTER_CLASS_CONFIG),
