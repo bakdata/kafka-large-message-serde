@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import lombok.Getter;
 import lombok.NonNull;
+import org.apache.kafka.common.compress.Compression;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.record.RecordBatch;
 import org.apache.kafka.common.utils.BufferSupplier;
@@ -148,7 +149,8 @@ public enum CompressionType {
     private static byte[] compress(final org.apache.kafka.common.record.CompressionType compressionType,
             final byte[] bytes) {
         final ByteBufferOutputStream outStream = new ByteBufferOutputStream(bytes.length);
-        try (final OutputStream stream = compressionType.wrapForOutput(outStream, RecordBatch.MAGIC_VALUE_V2)) {
+        final Compression compression = Compression.of(compressionType).build();
+        try (final OutputStream stream = compression.wrapForOutput(outStream, RecordBatch.MAGIC_VALUE_V2)) {
             stream.write(bytes);
             stream.flush();
         } catch (final IOException e) {
@@ -160,7 +162,8 @@ public enum CompressionType {
 
     private static byte[] decompress(final org.apache.kafka.common.record.CompressionType compressionType,
             final byte[] bytes) {
-        try (final InputStream stream = compressionType.wrapForInput(ByteBuffer.wrap(bytes), RecordBatch.MAGIC_VALUE_V2,
+        final Compression compression = Compression.of(compressionType).build();
+        try (final InputStream stream = compression.wrapForInput(ByteBuffer.wrap(bytes), RecordBatch.MAGIC_VALUE_V2,
                 BUFFER_SUPPLIER)) {
             return stream.readAllBytes();
         } catch (final IOException e) {
