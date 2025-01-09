@@ -31,6 +31,12 @@ import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.StorageOptions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import io.confluent.common.config.AbstractConfig;
+import io.confluent.common.config.ConfigDef;
+import io.confluent.common.config.ConfigDef.Importance;
+import io.confluent.common.config.ConfigDef.Type;
+import io.confluent.common.config.ConfigException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -149,7 +155,6 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final boolean S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT = false;
     public static final String S3_SDK_HTTP_CLIENT_BUILDER_CONFIG = S3_PREFIX + "sdk.http.client.builder";
     public static final String S3_SDK_HTTP_CLIENT_BUILDER_DOC = "The HTTP client to use for S3 client.";
-    public static final Class<? extends SdkHttpClient.Builder> S3_SDK_HTTP_CLIENT_BUILDER_DEFAULT = DefaultSdkHttpClientBuilder.class;
     public static final String S3_REGION_DEFAULT = "";
     public static final String S3_ACCESS_KEY_DOC = "AWS access key to use for connecting to S3. Leave empty if AWS"
             + " credential provider chain or STS Assume Role provider should be used.";
@@ -218,8 +223,6 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .define(S3_ENDPOINT_CONFIG, Type.STRING, S3_ENDPOINT_DEFAULT, Importance.LOW, S3_ENDPOINT_DOC)
                 .define(S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, Type.BOOLEAN, S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT,
                         Importance.LOW, S3_ENABLE_PATH_STYLE_ACCESS_DOC)
-                .define(S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, Type.CLASS, S3_SDK_HTTP_CLIENT_BUILDER_DEFAULT, Importance.LOW,
-                        S3_SDK_HTTP_CLIENT_BUILDER_DOC)
                 .define(S3_REGION_CONFIG, Type.STRING, S3_REGION_DEFAULT, Importance.LOW, S3_REGION_DOC)
                 .define(S3_ACCESS_KEY_CONFIG, Type.PASSWORD, S3_ACCESS_KEY_DEFAULT, Importance.LOW, S3_ACCESS_KEY_DOC)
                 .define(S3_SECRET_KEY_CONFIG, Type.PASSWORD, S3_SECRET_KEY_DEFAULT, Importance.LOW, S3_SECRET_KEY_DOC)
@@ -327,15 +330,20 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     }
 
     private Optional<SdkHttpClient.Builder> getAmazonSdkHttpClientBuilderInstance() {
-        final Class<?> c = getClass(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG);
-        if (c == null) {
+        try {
+            final Class<?> c = getClass(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG);
+            if (c == null) {
+                return Optional.empty();
+            }
+            final Object o = Utils.newInstance(c);
+            if (!(o instanceof SdkHttpClient.Builder)) {
+                throw new RuntimeException(
+                        c.getName() + " is not an instance of " + SdkHttpClient.Builder.class.getName());
+            } else {
+                return Optional.of((SdkHttpClient.Builder) o);
+            }
+        } catch (final ConfigException e) {
             return Optional.empty();
-        }
-        final Object o = Utils.newInstance(c);
-        if (!(o instanceof SdkHttpClient.Builder)) {
-            throw new RuntimeException(c.getName() + " is not an instance of " + SdkHttpClient.Builder.class.getName());
-        }else {
-            return Optional.of((SdkHttpClient.Builder) o);
         }
     }
 
