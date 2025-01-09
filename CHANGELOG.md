@@ -1,8 +1,16 @@
 # Change Log
 
-## [2.8.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.8.0) (2025-01-07)
-[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.8.0...2.8.0)
+## [2.9.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.9.0) (2025-01-09)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.9.0...2.9.0)
 
+
+## [2.9.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.9.0) (2025-01-09)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.8.0...2.9.0)
+
+**Merged pull requests:**
+
+- Upgrade to Kafka 3.8 [\#54](https://github.com/bakdata/kafka-large-message-serde/pull/54) ([@philipp94831](https://github.com/philipp94831))
+- Test converter using embedded connect [\#53](https://github.com/bakdata/kafka-large-message-serde/pull/53) ([@philipp94831](https://github.com/philipp94831))
 
 ## [2.8.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.8.0) (2025-01-07)
 [View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.7.0...2.8.0)
