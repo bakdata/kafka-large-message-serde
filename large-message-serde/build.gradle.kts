@@ -25,10 +25,6 @@
 description = "Kafka serde that stores large messages on a blob storage, such as Amazon S3 and Azure Blob Storage"
 
 
-repositories {
-    mavenCentral()
-    maven(url = "https://packages.confluent.io/maven/")
-}
 
 dependencies {
     api(project(":large-message-core"))
@@ -43,7 +39,7 @@ dependencies {
     testImplementation(
         group = "com.bakdata.fluent-kafka-streams-tests",
         name = "fluent-kafka-streams-tests-junit5",
-        version = "2.16.0"
+        version = "3.0.0"
     )
     val log4jVersion: String by project
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
