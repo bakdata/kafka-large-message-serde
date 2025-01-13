@@ -25,6 +25,10 @@
 description = "Kafka serde that stores large messages on a blob storage, such as Amazon S3 and Azure Blob Storage"
 
 
+repositories {
+    mavenCentral()
+    maven(url = "https://packages.confluent.io/maven/")
+}
 
 dependencies {
     api(project(":large-message-core"))

@@ -31,7 +31,6 @@ import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.StorageOptions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -383,7 +382,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
 
     private GoogleCredentials getGoogleCredentials() {
         try (final FileInputStream credentialsStream = new FileInputStream(this.getString(GOOGLE_CLOUD_KEY_PATH))) {
-            final List<String> scopes = Lists.newArrayList(GOOGLE_CLOUD_OAUTH_SCOPE);
+            final List<String> scopes = List.of(GOOGLE_CLOUD_OAUTH_SCOPE);
             return GoogleCredentials.fromStream(credentialsStream).createScoped(scopes);
         } catch (final IOException ioException) {
             throw new UncheckedIOException(
