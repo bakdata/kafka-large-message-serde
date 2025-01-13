@@ -30,9 +30,6 @@ dependencies {
     val kafkaVersion: String by project
     api(group = "org.apache.kafka", name = "kafka-clients", version = kafkaVersion)
 
-    val confluentVersion: String by project
-    api(group = "io.confluent", name = "common-config", version = confluentVersion)
-
     implementation(group = "org.slf4j", name = "slf4j-api", version = "2.0.16")
     val awsVersion = "2.29.4"
     api(group = "software.amazon.awssdk", name = "s3", version = awsVersion)
