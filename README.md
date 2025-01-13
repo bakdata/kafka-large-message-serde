@@ -29,8 +29,6 @@ implementation group: 'com.bakdata.kafka', name: 'large-message-serde', version:
 
 For other build tools or versions, refer to the [latest version in MvnRepository](https://mvnrepository.com/artifact/com.bakdata.kafka/large-message-serde/latest).
 
-Make sure to also add [Confluent Maven Repository](http://packages.confluent.io/maven/) to your build file.
-
 #### Usage
 
 You can use it from your Kafka Streams application like any other Serde
@@ -228,8 +226,8 @@ We also provide a method for cleaning up all files on the blob storage associate
 
 ```java
 final Map<String, Object> properties = ...;
-final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
-final LargeMessageStoringClient storer = config.getStorer()
+final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(this.properties);
+final LargeMessageStoringClient storer = this.config.getStorer()
 storer.deleteAllFiles("topic");
 ```
 
