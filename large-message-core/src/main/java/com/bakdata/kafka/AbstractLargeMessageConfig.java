@@ -157,7 +157,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final boolean S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT = false;
     public static final String S3_SDK_HTTP_CLIENT_BUILDER_CONFIG = S3_PREFIX + "sdk.http.client.builder";
     public static final String S3_SDK_HTTP_CLIENT_BUILDER_DOC = "The HTTP client to use for S3 client.";
-    public static final Class<? extends SdkHttpClient.Builder> S3_SDK_HTTP_CLIENT_BUILDER_DEFAULT = DefaultSdkHttpClientBuilder.class;
+    public static final Class<? extends SdkHttpClient.Builder> S3_SDK_HTTP_CLIENT_BUILDER_DEFAULT = NoSdkHttpClientBuilder.class;
     public static final String S3_REGION_DEFAULT = "";
     public static final String S3_ACCESS_KEY_DOC = "AWS access key to use for connecting to S3. Leave empty if AWS"
             + " credential provider chain or STS Assume Role provider should be used.";
@@ -337,7 +337,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         final Class<?> c = getClass(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG);
         if (c == null) {
             return Optional.empty();
-        }else if (c.getName().equals(DefaultSdkHttpClientBuilder.class.getName())) {
+        }else if (c.getName().equals(NoSdkHttpClientBuilder.class.getName())) {
             return Optional.empty();
         }
         final Object o = Utils.newInstance(c);
