@@ -226,8 +226,8 @@ We also provide a method for cleaning up all files on the blob storage associate
 
 ```java
 final Map<String, Object> properties = ...;
-final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(this.properties);
-final LargeMessageStoringClient storer = this.config.getStorer()
+final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
+final LargeMessageStoringClient storer = config.getStorer();
 storer.deleteAllFiles("topic");
 ```
 
