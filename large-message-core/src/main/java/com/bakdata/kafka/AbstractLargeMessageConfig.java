@@ -337,7 +337,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         final Class<?> c = getClass(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG);
         if (c == null) {
             return Optional.empty();
-        }else if (c.getName().equals(NoSdkHttpClientBuilder.class.getName())) {
+        } else if (c.getName().equals(NoSdkHttpClientBuilder.class.getName())) {
             return Optional.empty();
         }
         final Object o = Utils.newInstance(c);

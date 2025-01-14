@@ -108,12 +108,12 @@ class LargeMessageRetrievingClientS3IntegrationTest extends AmazonS3IntegrationT
                 .build(), RequestBody.fromString(s));
     }
 
-    private static <T> T getPrivateField(Object object, String fieldName, Class<T> fieldType){
+    private static <T> T getPrivateField(Object object, String fieldName, Class<T> fieldType) {
         try {
             Field field = object.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);
             return fieldType.cast(field.get(object));
-        } catch (NoSuchFieldException | IllegalAccessException e){
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
