@@ -27,7 +27,6 @@ package com.bakdata.kafka;
 import static com.bakdata.kafka.LargeMessageRetrievingClientTest.serializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.confluent.common.config.ConfigDef;
 import java.util.Map;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serdes;
@@ -62,8 +61,7 @@ class LargeMessageRetrievingClientS3IntegrationTest extends AmazonS3IntegrationT
 
     private LargeMessageRetrievingClient createRetriever() {
         final Map<String, String> properties = this.getLargeMessageConfig();
-        final ConfigDef configDef = AbstractLargeMessageConfig.baseConfigDef();
-        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(configDef, properties);
+        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
         return config.getRetriever();
     }
 

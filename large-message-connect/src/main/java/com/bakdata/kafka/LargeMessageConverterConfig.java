@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +24,10 @@
 
 package com.bakdata.kafka;
 
-import io.confluent.common.config.ConfigDef;
-import io.confluent.common.config.ConfigDef.Importance;
-import io.confluent.common.config.ConfigDef.Type;
 import java.util.Map;
+import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.common.config.ConfigDef.Importance;
+import org.apache.kafka.common.config.ConfigDef.Type;
 import org.apache.kafka.connect.converters.ByteArrayConverter;
 import org.apache.kafka.connect.storage.Converter;
 
@@ -76,7 +76,7 @@ public class LargeMessageConverterConfig extends AbstractLargeMessageConfig {
     }
 
     Converter getConverter() {
-        return this.getConfiguredInstance(CONVERTER_CLASS_CONFIG, Converter.class);
+        return this.getInstance(CONVERTER_CLASS_CONFIG, Converter.class);
     }
 
 }
