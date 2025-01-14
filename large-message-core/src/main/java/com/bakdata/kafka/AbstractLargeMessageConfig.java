@@ -41,11 +41,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Importance;
 import org.apache.kafka.common.config.ConfigDef.Type;
 import org.apache.kafka.common.errors.SerializationException;
+import org.apache.kafka.common.utils.Utils;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -254,6 +256,15 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                         : new ByteFlagLargeMessagePayloadProtocol())
                 .compressionType(this.getCompressionType())
                 .build();
+    }
+
+    protected <T> T getInstance(final String key, final Class<T> targetClass) {
+        final Class<?> configuredClass = this.getClass(key);
+        final Object o = Utils.newInstance(configuredClass);
+        if (!targetClass.isInstance(o)) {
+            throw new KafkaException(configuredClass.getName() + " is not an instance of " + targetClass.getName());
+        }
+        return targetClass.cast(o);
     }
 
     private BlobStorageClient getClient() {
