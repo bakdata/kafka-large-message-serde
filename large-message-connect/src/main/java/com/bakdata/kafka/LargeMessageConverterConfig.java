@@ -25,9 +25,11 @@
 package com.bakdata.kafka;
 
 import java.util.Map;
+import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Importance;
 import org.apache.kafka.common.config.ConfigDef.Type;
+import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.connect.converters.ByteArrayConverter;
 import org.apache.kafka.connect.storage.Converter;
 
@@ -76,7 +78,12 @@ public class LargeMessageConverterConfig extends AbstractLargeMessageConfig {
     }
 
     Converter getConverter() {
-        return this.getConfiguredInstance(CONVERTER_CLASS_CONFIG, Converter.class);
+        final Class<?> converterClass = this.getClass(CONVERTER_CLASS_CONFIG);
+        final Object converter = Utils.newInstance(converterClass);
+        if (!(converter instanceof Converter)) {
+            throw new KafkaException(converterClass.getName() + " is not an instance of " + Converter.class.getName());
+        }
+        return (Converter) converter;
     }
 
 }
