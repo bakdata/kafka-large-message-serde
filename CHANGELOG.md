@@ -1,8 +1,15 @@
 # Change Log
 
-## [2.9.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.9.0) (2025-01-09)
-[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.9.0...2.9.0)
+## [2.9.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.9.1) (2025-01-14)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.9.1...2.9.1)
 
+
+## [2.9.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.9.1) (2025-01-14)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.9.0...2.9.1)
+
+**Merged pull requests:**
+
+- Use Apache Kafka ConfigDef [\#55](https://github.com/bakdata/kafka-large-message-serde/pull/55) ([@philipp94831](https://github.com/philipp94831))
 
 ## [2.9.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.9.0) (2025-01-09)
 [View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.8.0...2.9.0)
