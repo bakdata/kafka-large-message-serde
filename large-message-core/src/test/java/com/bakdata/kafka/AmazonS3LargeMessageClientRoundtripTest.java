@@ -27,7 +27,6 @@ package com.bakdata.kafka;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableMap;
-import io.confluent.common.config.ConfigDef;
 import java.util.Map;
 import java.util.stream.Stream;
 import lombok.Builder;
@@ -110,8 +109,7 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
 
     private LargeMessageRetrievingClient createRetriever() {
         final Map<String, String> properties = this.getLargeMessageConfig();
-        final ConfigDef configDef = AbstractLargeMessageConfig.baseConfigDef();
-        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(configDef, properties);
+        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
         return config.getRetriever();
     }
 

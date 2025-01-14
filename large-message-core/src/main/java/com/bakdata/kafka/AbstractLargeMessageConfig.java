@@ -31,11 +31,6 @@ import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.StorageOptions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import io.confluent.common.config.AbstractConfig;
-import io.confluent.common.config.ConfigDef;
-import io.confluent.common.config.ConfigDef.Importance;
-import io.confluent.common.config.ConfigDef.Type;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -46,7 +41,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.KafkaException;
+import org.apache.kafka.common.config.AbstractConfig;
+import org.apache.kafka.common.config.ConfigDef;
+import org.apache.kafka.common.config.ConfigDef.Importance;
+import org.apache.kafka.common.config.ConfigDef.Type;
 import org.apache.kafka.common.errors.SerializationException;
+import org.apache.kafka.common.utils.Utils;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -257,6 +258,15 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .build();
     }
 
+    protected <T> T getInstance(final String key, final Class<T> targetClass) {
+        final Class<?> configuredClass = this.getClass(key);
+        final Object o = Utils.newInstance(configuredClass);
+        if (!targetClass.isInstance(o)) {
+            throw new KafkaException(configuredClass.getName() + " is not an instance of " + targetClass.getName());
+        }
+        return targetClass.cast(o);
+    }
+
     private BlobStorageClient getClient() {
         return this.getBasePath()
                 .map(BlobStorageURI::getScheme)
@@ -383,7 +393,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
 
     private GoogleCredentials getGoogleCredentials() {
         try (final FileInputStream credentialsStream = new FileInputStream(this.getString(GOOGLE_CLOUD_KEY_PATH))) {
-            final List<String> scopes = Lists.newArrayList(GOOGLE_CLOUD_OAUTH_SCOPE);
+            final List<String> scopes = List.of(GOOGLE_CLOUD_OAUTH_SCOPE);
             return GoogleCredentials.fromStream(credentialsStream).createScoped(scopes);
         } catch (final IOException ioException) {
             throw new UncheckedIOException(

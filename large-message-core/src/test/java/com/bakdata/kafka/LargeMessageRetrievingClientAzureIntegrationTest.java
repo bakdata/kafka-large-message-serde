@@ -29,7 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.azure.core.util.BinaryData;
 import com.azure.storage.blob.BlobContainerClient;
 import com.google.common.collect.ImmutableMap;
-import io.confluent.common.config.ConfigDef;
 import java.util.Map;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serdes;
@@ -75,8 +74,7 @@ class LargeMessageRetrievingClientAzureIntegrationTest extends AzureBlobStorageI
 
     private LargeMessageRetrievingClient createRetriever() {
         final Map<String, Object> properties = this.createProperties();
-        final ConfigDef configDef = AbstractLargeMessageConfig.baseConfigDef();
-        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(configDef, properties);
+        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
         return config.getRetriever();
     }
 
