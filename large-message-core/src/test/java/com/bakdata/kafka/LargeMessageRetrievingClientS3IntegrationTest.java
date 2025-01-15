@@ -30,7 +30,6 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGUR
 import static software.amazon.awssdk.core.client.config.SdkClientOption.SYNC_HTTP_CLIENT;
 
 import com.google.common.collect.ImmutableMap;
-import io.confluent.common.config.ConfigDef;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.function.Supplier;

@@ -31,13 +31,6 @@ import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.StorageOptions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import io.confluent.common.config.AbstractConfig;
-import io.confluent.common.config.ConfigDef;
-import io.confluent.common.config.ConfigDef.Importance;
-import io.confluent.common.config.ConfigDef.Type;
-import io.confluent.common.config.ConfigException;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -48,7 +41,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import io.confluent.common.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.config.AbstractConfig;
@@ -62,7 +54,6 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider;
-import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -334,19 +325,11 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     }
 
     private Optional<SdkHttpClient.Builder> getAmazonSdkHttpClientBuilderInstance() {
-        final Class<?> c = getClass(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG);
-        if (c == null) {
-            return Optional.empty();
-        } else if (c.getName().equals(NoSdkHttpClientBuilder.class.getName())) {
+        SdkHttpClient.Builder builder = getInstance(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, SdkHttpClient.Builder.class);
+        if (builder instanceof NoSdkHttpClientBuilder) {
             return Optional.empty();
         }
-        final Object o = Utils.newInstance(c);
-        if (!(o instanceof SdkHttpClient.Builder)) {
-            throw new RuntimeException(
-                    c.getName() + " is not an instance of " + SdkHttpClient.Builder.class.getName());
-        } else {
-            return Optional.of((SdkHttpClient.Builder) o);
-        }
+        return Optional.of(builder);
     }
 
     private Optional<URI> getAmazonEndpointOverride() {
