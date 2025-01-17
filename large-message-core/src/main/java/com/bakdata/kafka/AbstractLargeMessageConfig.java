@@ -53,6 +53,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider;
+import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
@@ -144,6 +145,9 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_CONFIG = S3_PREFIX + "path.style.access";
     public static final String S3_ENABLE_PATH_STYLE_ACCESS_DOC = "Enable path-style access for S3 client.";
     public static final boolean S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT = false;
+    public static final String S3_SDK_HTTP_CLIENT_BUILDER_CONFIG = S3_PREFIX + "sdk.http.client.builder";
+    public static final String S3_SDK_HTTP_CLIENT_BUILDER_DOC = "The HTTP client to use for S3 client.";
+    public static final Class<? extends SdkHttpClient.Builder> S3_SDK_HTTP_CLIENT_BUILDER_DEFAULT = null;
     public static final String S3_REGION_DEFAULT = "";
     public static final String S3_ACCESS_KEY_DOC = "AWS access key to use for connecting to S3. Leave empty if AWS"
             + " credential provider chain or STS Assume Role provider should be used.";
@@ -212,6 +216,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .define(S3_ENDPOINT_CONFIG, Type.STRING, S3_ENDPOINT_DEFAULT, Importance.LOW, S3_ENDPOINT_DOC)
                 .define(S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, Type.BOOLEAN, S3_ENABLE_PATH_STYLE_ACCESS_DEFAULT,
                         Importance.LOW, S3_ENABLE_PATH_STYLE_ACCESS_DOC)
+                .define(S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, Type.CLASS, S3_SDK_HTTP_CLIENT_BUILDER_DEFAULT, Importance.LOW, S3_SDK_HTTP_CLIENT_BUILDER_DOC)
                 .define(S3_REGION_CONFIG, Type.STRING, S3_REGION_DEFAULT, Importance.LOW, S3_REGION_DOC)
                 .define(S3_ACCESS_KEY_CONFIG, Type.PASSWORD, S3_ACCESS_KEY_DEFAULT, Importance.LOW, S3_ACCESS_KEY_DOC)
                 .define(S3_SECRET_KEY_CONFIG, Type.PASSWORD, S3_SECRET_KEY_DEFAULT, Importance.LOW, S3_SECRET_KEY_DOC)
@@ -260,6 +265,9 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
 
     protected <T> T getInstance(final String key, final Class<T> targetClass) {
         final Class<?> configuredClass = this.getClass(key);
+        if (configuredClass == null) {
+            return null;
+        }
         final Object o = Utils.newInstance(configuredClass);
         if (!targetClass.isInstance(o)) {
             throw new KafkaException(configuredClass.getName() + " is not an instance of " + targetClass.getName());
@@ -310,10 +318,17 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         this.getAmazonEndpointOverride().ifPresent(clientBuilder::endpointOverride);
         this.getAmazonRegion().ifPresent(clientBuilder::region);
         this.getAmazonCredentialsProvider().ifPresent(clientBuilder::credentialsProvider);
+        this.getAmazonSdkHttpClientBuilderInstance()
+                .ifPresent(clientBuilder::httpClientBuilder);
         if (this.enableAmazonS3PathStyleAccess()) {
             clientBuilder.forcePathStyle(true);
         }
         return new AmazonS3Client(clientBuilder.build());
+    }
+
+    private <T extends SdkHttpClient.Builder<T>> Optional<SdkHttpClient.Builder<T>> getAmazonSdkHttpClientBuilderInstance() {
+        final SdkHttpClient.Builder<T> builder = this.getInstance(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, SdkHttpClient.Builder.class);
+        return Optional.ofNullable(builder);
     }
 
     private Optional<URI> getAmazonEndpointOverride() {
