@@ -265,6 +265,9 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
 
     protected <T> T getInstance(final String key, final Class<T> targetClass) {
         final Class<?> configuredClass = this.getClass(key);
+        if (configuredClass == null) {
+            return null;
+        }
         final Object o = Utils.newInstance(configuredClass);
         if (!targetClass.isInstance(o)) {
             throw new KafkaException(configuredClass.getName() + " is not an instance of " + targetClass.getName());
@@ -323,12 +326,9 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         return new AmazonS3Client(clientBuilder.build());
     }
 
-    private Optional<SdkHttpClient.Builder> getAmazonSdkHttpClientBuilderInstance() {
-        final SdkHttpClient.Builder builder = getInstance(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, SdkHttpClient.Builder.class);
-        if (builder instanceof NoSdkHttpClientBuilder) {
-            return Optional.empty();
-        }
-        return Optional.of(builder);
+    private <T extends SdkHttpClient.Builder<T>> Optional<SdkHttpClient.Builder<T>> getAmazonSdkHttpClientBuilderInstance() {
+        final SdkHttpClient.Builder<T> builder = this.getInstance(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, SdkHttpClient.Builder.class);
+        return Optional.ofNullable(builder);
     }
 
     private Optional<URI> getAmazonEndpointOverride() {
