@@ -1,8 +1,15 @@
 # Change Log
 
-## [2.9.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.9.1) (2025-01-14)
-[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.9.1...2.9.1)
+## [2.10.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.10.0) (2025-01-17)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.10.0...2.10.0)
 
+
+## [2.10.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.10.0) (2025-01-17)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.9.1...2.10.0)
+
+**Merged pull requests:**
+
+- Add support to customize httpClientBuilder for s3 client [\#50](https://github.com/bakdata/kafka-large-message-serde/pull/50) ([@yidian1997](https://github.com/yidian1997))
 
 ## [2.9.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.9.1) (2025-01-14)
 [View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.9.0...2.9.1)
