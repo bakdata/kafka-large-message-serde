@@ -27,20 +27,32 @@ package com.bakdata.kafka;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableMap;
+import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Stream;
 import lombok.Builder;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
+import software.amazon.awssdk.http.ExecutableHttpRequest;
+import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.utils.AttributeMap;
 
 class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
 
@@ -94,6 +106,42 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
         }
     }
 
+    @Test
+    void shouldUseConfiguredSdkHttpClientBuilder() {
+        final String bucket = "bucket";
+        final String basePath = "s3://" + bucket + "/base/";
+        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, RecordingHttpClientBuilder.class)
+                .build();
+        final S3Client s3 = this.getS3Client();
+        s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+        final Map<String, Object> fullProperties = this.createStorerProperties(properties);
+        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(fullProperties);
+        try (final LargeMessageStoringClient storer = config.getStorer();
+                final LargeMessageRetrievingClient retriever = config.getRetriever()) {
+
+            final Headers headers = new RecordHeaders();
+            final byte[] obj = serialize("foo");
+            final boolean isKey = false;
+            final byte[] data = storer.storeBytes(TOPIC, obj, isKey, headers);
+
+            final byte[] result = retriever.retrieveBytes(data, headers, isKey);
+            assertThat(result).isEqualTo(obj);
+            assertThat(RecordingHttpClient.REQUESTS)
+                    .hasSize(2)
+                    .anySatisfy(request -> {
+                        assertThat(request.method()).isEqualTo(SdkHttpMethod.PUT);
+                        assertThat(request.encodedPath()).startsWith("/" + bucket + "/base/" + TOPIC + "/values/");
+                    })
+                    .anySatisfy(request -> {
+                        assertThat(request.method()).isEqualTo(SdkHttpMethod.GET);
+                        assertThat(request.encodedPath()).startsWith("/" + bucket + "/base/" + TOPIC + "/values/");
+                    });
+        }
+    }
+
     private Map<String, Object> createStorerProperties(final Map<String, Object> properties) {
         return ImmutableMap.<String, Object>builder()
                 .putAll(properties)
@@ -119,5 +167,37 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
         boolean isKey;
         boolean isPathStyleAccess;
         String compressionType;
+    }
+
+    @RequiredArgsConstructor
+    public static class RecordingHttpClientBuilder<T extends SdkHttpClient.Builder<T>>
+            implements SdkHttpClient.Builder<T> {
+
+        @Override
+        public SdkHttpClient buildWithDefaults(final AttributeMap attributeMap) {
+            return new RecordingHttpClient(new DefaultSdkHttpClientBuilder().buildWithDefaults(attributeMap));
+        }
+    }
+
+    @RequiredArgsConstructor
+    private static class RecordingHttpClient implements SdkHttpClient {
+        private static final Collection<SdkHttpRequest> REQUESTS = new ConcurrentLinkedQueue<>();
+        private final @NonNull SdkHttpClient wrapped;
+
+        @Override
+        public ExecutableHttpRequest prepareRequest(final HttpExecuteRequest httpExecuteRequest) {
+            REQUESTS.add(httpExecuteRequest.httpRequest());
+            return this.wrapped.prepareRequest(httpExecuteRequest);
+        }
+
+        @Override
+        public String clientName() {
+            return "MockSdkHttpClient";
+        }
+
+        @Override
+        public void close() {
+            this.wrapped.close();
+        }
     }
 }
