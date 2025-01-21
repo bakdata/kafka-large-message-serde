@@ -1,9 +1,22 @@
+buildscript {
+    repositories {
+        maven {
+            url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots")
+        }
+    }
+    dependencies {
+        classpath("com.bakdata.gradle:sonar:1.5.3-SNAPSHOT")
+        classpath("com.bakdata.gradle:release:1.5.3-SNAPSHOT")
+        classpath("com.bakdata.gradle:sonatype:1.5.3-SNAPSHOT")
+    }
+}
+
 plugins {
-    id("com.bakdata.release") version "1.4.0"
-    id("com.bakdata.sonar") version "1.4.0"
-    id("com.bakdata.sonatype") version "1.4.1"
     id("io.freefair.lombok") version "8.4"
 }
+apply(plugin = "com.bakdata.release")
+apply(plugin = "com.bakdata.sonar")
+apply(plugin = "com.bakdata.sonatype")
 
 allprojects {
     group = "com.bakdata.kafka"
