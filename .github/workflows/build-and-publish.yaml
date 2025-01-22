@@ -8,10 +8,9 @@ on:
 jobs:
   build-and-publish:
     name: Java Gradle
-    uses: bakdata/ci-templates/.github/workflows/java-gradle-library.yaml@feature/gradle-publish-2
+    uses: bakdata/ci-templates/.github/workflows/java-gradle-library.yaml@1.56.0
     with:
       java-version: 17
-      gradle-refresh-dependencies: true
     secrets:
       sonar-token: ${{ secrets.SONARCLOUD_TOKEN }}
       sonar-organization: ${{ secrets.SONARCLOUD_ORGANIZATION }}
