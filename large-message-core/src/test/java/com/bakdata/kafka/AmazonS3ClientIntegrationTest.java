@@ -104,7 +104,7 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
             final ListObjectsRequest request = ListObjectsRequest.builder().bucket(bucket).prefix("base/").build();
             assertThat(s3.listObjects(request).contents()).hasSize(3);
             client.deleteAllObjects(bucket, "base/foo/");
-        assertThat(s3.listObjects(request).contents()).hasSize(1);
+            assertThat(s3.listObjects(request).contents()).hasSize(1);
         }
     }
 
@@ -119,7 +119,7 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
             final ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(bucket).prefix("base/").build();
             assertThat(s3.listObjectsV2Paginator(request).contents()).hasSize(1001);
             client.deleteAllObjects(bucket, "base/foo/");
-        assertThat(s3.listObjectsV2Paginator(request).contents()).isEmpty();
+            assertThat(s3.listObjectsV2Paginator(request).contents()).isEmpty();
         }
     }
 
@@ -133,7 +133,7 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
             final ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(bucket).prefix("base/").build();
             assertThat(s3.listObjectsV2Paginator(request).contents()).hasSize(1);
             client.deleteAllObjects(bucket, "base/foo/");
-        assertThat(s3.listObjectsV2Paginator(request).contents()).hasSize(1);
+            assertThat(s3.listObjectsV2Paginator(request).contents()).hasSize(1);
         }
     }
 
@@ -157,7 +157,7 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
                     ListObjectVersionsRequest.builder().bucket(bucket).prefix("base/").build();
             assertThat(s3.listObjectVersionsPaginator(request).versions()).hasSize(4);
             client.deleteAllObjects(bucket, "base/foo/");
-        assertThat(s3.listObjectVersionsPaginator(request).versions()).hasSize(2);
+            assertThat(s3.listObjectVersionsPaginator(request).versions()).hasSize(2);
         }
     }
 
@@ -179,7 +179,7 @@ class AmazonS3ClientIntegrationTest extends AmazonS3IntegrationTest {
                     ListObjectVersionsRequest.builder().bucket(bucket).prefix("base/").build();
             assertThat(s3.listObjectVersionsPaginator(request).versions()).hasSize(1001);
             client.deleteAllObjects(bucket, "base/foo/");
-        assertThat(s3.listObjectVersionsPaginator(request).versions()).isEmpty();
+            assertThat(s3.listObjectVersionsPaginator(request).versions()).isEmpty();
         }
     }
 
