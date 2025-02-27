@@ -41,7 +41,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 abstract class AmazonS3IntegrationTest {
 
     private static final DockerImageName LOCAL_STACK_IMAGE = DockerImageName.parse("localstack/localstack")
-            .withTag("latest"); // TODO pin
+            .withTag("4.2.0");
     @Container
     private final LocalStackContainer localStackContainer = new LocalStackContainer(LOCAL_STACK_IMAGE)
             .withServices(Service.S3);
