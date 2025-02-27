@@ -1,8 +1,21 @@
 # Change Log
 
-## [2.10.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.10.0) (2025-01-17)
-[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.10.0...2.10.0)
+## [2.10.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.10.1) (2025-02-27)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.10.1...2.10.1)
 
+
+## [2.10.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.10.1) (2025-02-27)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.10.0...2.10.1)
+
+**Closed issues:**
+
+- What to customize httpClient for S3Client [\#49](https://github.com/bakdata/kafka-large-message-serde/issues/49)
+
+**Merged pull requests:**
+
+- Upgrade to AWS SDK 2.30 [\#58](https://github.com/bakdata/kafka-large-message-serde/pull/58) ([@philipp94831](https://github.com/philipp94831))
+- Upgrade to Gradle 8.12 [\#57](https://github.com/bakdata/kafka-large-message-serde/pull/57) ([@philipp94831](https://github.com/philipp94831))
+- Improve testing of custom HTTP client [\#56](https://github.com/bakdata/kafka-large-message-serde/pull/56) ([@philipp94831](https://github.com/philipp94831))
 
 ## [2.10.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.10.0) (2025-01-17)
 [View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.9.1...2.10.0)
