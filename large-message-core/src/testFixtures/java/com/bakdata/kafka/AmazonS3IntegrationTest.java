@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 abstract class AmazonS3IntegrationTest {
 
     private static final DockerImageName LOCAL_STACK_IMAGE = DockerImageName.parse("localstack/localstack")
-            .withTag("1.3.1");
+            .withTag("4.2.0");
     @Container
     private final LocalStackContainer localStackContainer = new LocalStackContainer(LOCAL_STACK_IMAGE)
             .withServices(Service.S3);

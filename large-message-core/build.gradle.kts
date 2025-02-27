@@ -31,7 +31,7 @@ dependencies {
     api(group = "org.apache.kafka", name = "kafka-clients", version = kafkaVersion)
 
     implementation(group = "org.slf4j", name = "slf4j-api", version = "2.0.16")
-    val awsVersion = "2.29.4"
+    val awsVersion = "2.30.18"
     api(group = "software.amazon.awssdk", name = "s3", version = awsVersion)
     api(group = "software.amazon.awssdk", name = "sts", version = awsVersion)
     api(group = "com.azure", name = "azure-storage-blob", version = "12.29.0")
