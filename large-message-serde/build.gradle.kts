@@ -24,6 +24,9 @@
 
 description = "Kafka serde that stores large messages on a blob storage, such as Amazon S3 and Azure Blob Storage"
 
+plugins {
+    id("java-library")
+}
 
 
 dependencies {
