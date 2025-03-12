@@ -1,8 +1,15 @@
 # Change Log
 
-## [2.10.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.10.1) (2025-02-27)
-[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.10.1...2.10.1)
+## [2.11.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.11.0) (2025-03-12)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.11.0...2.11.0)
 
+
+## [2.11.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.11.0) (2025-03-12)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.10.1...2.11.0)
+
+**Merged pull requests:**
+
+- Create BOM [\#59](https://github.com/bakdata/kafka-large-message-serde/pull/59) ([@philipp94831](https://github.com/philipp94831))
 
 ## [2.10.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.10.1) (2025-02-27)
 [View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.10.0...2.10.1)
