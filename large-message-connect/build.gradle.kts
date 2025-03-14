@@ -31,8 +31,9 @@ plugins {
 
 dependencies {
     api(project(":large-message-core"))
-    api(group = "org.apache.kafka", name = "connect-api")
-    compileOnly(group = "org.apache.kafka", name = "connect-runtime")
+    val kafkaVersion: String by project
+    api(group = "org.apache.kafka", name = "connect-api", version = kafkaVersion)
+    compileOnly(group = "org.apache.kafka", name = "connect-runtime", version = kafkaVersion)
 
     val junitVersion: String by project
     testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
@@ -44,15 +45,16 @@ dependencies {
 
     val log4jVersion: String by project
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
-    testImplementation(group = "org.apache.kafka", name = "connect-file")
+    testImplementation(group = "org.apache.kafka", name = "connect-file", version = kafkaVersion)
     testImplementation(testFixtures(project(":large-message-core")))
-    testImplementation(group = "org.apache.kafka", name = "connect-runtime")
+    testImplementation(group = "org.apache.kafka", name = "connect-runtime", version = kafkaVersion)
     testImplementation(
         group = "org.apache.kafka",
         name = "connect-runtime",
+        version = kafkaVersion,
         classifier = "test"
     )
-    testImplementation(group = "org.apache.kafka", name = "kafka-clients", classifier = "test")
-    testImplementation(group = "org.apache.kafka", name = "kafka_2.13")
-    testImplementation(group = "org.apache.kafka", name = "kafka_2.13", classifier = "test")
+    testImplementation(group = "org.apache.kafka", name = "kafka-clients", version = kafkaVersion, classifier = "test")
+    testImplementation(group = "org.apache.kafka", name = "kafka_2.13", version = kafkaVersion)
+    testImplementation(group = "org.apache.kafka", name = "kafka_2.13", version = kafkaVersion, classifier = "test")
 }
