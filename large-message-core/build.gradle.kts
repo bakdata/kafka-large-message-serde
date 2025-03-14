@@ -30,8 +30,7 @@ plugins {
 
 
 dependencies {
-    api(platform("com.bakdata.kafka:kafka-utils-bom:1.0.1-SNAPSHOT"))
-    api(platform("com.bakdata.kafka:kafka-bom"))
+    api(platform("com.bakdata.kafka:kafka-bom:1.0.1-SNAPSHOT"))
     api(group = "org.apache.kafka", name = "kafka-clients")
 
     implementation(group = "org.slf4j", name = "slf4j-api", version = "2.0.16")
