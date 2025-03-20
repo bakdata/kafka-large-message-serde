@@ -30,8 +30,8 @@ plugins {
 
 
 dependencies {
-    val kafkaVersion: String by project
-    api(group = "org.apache.kafka", name = "kafka-clients", version = kafkaVersion)
+    api(platform("com.bakdata.kafka:kafka-bom:1.1.0"))
+    api(group = "org.apache.kafka", name = "kafka-clients")
 
     implementation(group = "org.slf4j", name = "slf4j-api", version = "2.0.16")
     val awsVersion = "2.30.18"

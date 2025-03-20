@@ -42,7 +42,7 @@ dependencies {
     testImplementation(
         group = "com.bakdata.fluent-kafka-streams-tests",
         name = "fluent-kafka-streams-tests-junit5",
-        version = "3.0.0"
+        version = "3.3.0"
     )
     val log4jVersion: String by project
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
