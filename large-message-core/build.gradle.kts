@@ -33,12 +33,20 @@ dependencies {
     api(platform("com.bakdata.kafka:kafka-bom:1.1.0"))
     api(group = "org.apache.kafka", name = "kafka-clients")
 
-    implementation(group = "org.slf4j", name = "slf4j-api", version = "2.0.16")
+    val slf4jVersion = "2.0.16"
+    implementation(group = "org.slf4j", name = "slf4j-api", version = slf4jVersion)
+    implementation(group = "org.slf4j", name = "jcl-over-slf4j", version = slf4jVersion)
     val awsVersion = "2.30.18"
-    api(group = "software.amazon.awssdk", name = "s3", version = awsVersion)
-    api(group = "software.amazon.awssdk", name = "sts", version = awsVersion)
+    api(group = "software.amazon.awssdk", name = "s3", version = awsVersion) {
+        exclude(group = "commons-logging", module = "commons-logging")
+    }
+    api(group = "software.amazon.awssdk", name = "sts", version = awsVersion) {
+        exclude(group = "commons-logging", module = "commons-logging")
+    }
     api(group = "com.azure", name = "azure-storage-blob", version = "12.29.0")
-    api(group = "com.google.cloud", name = "google-cloud-storage", version = "2.46.0")
+    api(group = "com.google.cloud", name = "google-cloud-storage", version = "2.46.0") {
+        exclude(group = "commons-logging", module = "commons-logging")
+    }
     implementation(group = "com.google.guava", name = "guava", version = "33.4.0-jre")
 
     val junitVersion: String by project
@@ -53,7 +61,9 @@ dependencies {
 
     val log4jVersion: String by project
     testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
-    testImplementation(group = "com.google.cloud", name = "google-cloud-nio", version = "0.127.28")
+    testImplementation(group = "com.google.cloud", name = "google-cloud-nio", version = "0.127.28") {
+        exclude(group = "commons-logging", module = "commons-logging")
+    }
     val testContainersVersion: String by project
     testFixturesApi(group = "org.testcontainers", name = "junit-jupiter", version = testContainersVersion)
     testFixturesImplementation(group = "org.testcontainers", name = "localstack", version = testContainersVersion)
