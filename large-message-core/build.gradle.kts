@@ -33,33 +33,26 @@ configurations.all {
 }
 
 dependencies {
-    api(platform("com.bakdata.kafka:kafka-bom:1.1.0"))
-    api(group = "org.apache.kafka", name = "kafka-clients")
+    api(platform(libs.kafka.bom))
+    api(libs.kafka.clients)
 
-    val slf4jVersion = "2.0.16"
-    implementation(group = "org.slf4j", name = "slf4j-api", version = slf4jVersion)
-    implementation(group = "org.slf4j", name = "jcl-over-slf4j", version = slf4jVersion)
-    val awsVersion = "2.30.18"
-    api(group = "software.amazon.awssdk", name = "s3", version = awsVersion)
-    api(group = "software.amazon.awssdk", name = "sts", version = awsVersion)
-    api(group = "com.azure", name = "azure-storage-blob", version = "12.29.0")
-    api(group = "com.google.cloud", name = "google-cloud-storage", version = "2.46.0")
-    implementation(group = "com.google.guava", name = "guava", version = "33.4.0-jre")
+    implementation(libs.slf4j.api)
+    implementation(libs.slf4j.jcl)
+    api(libs.aws.s3)
+    api(libs.aws.sts)
+    api(libs.azure.storage.blob)
+    api(libs.google.cloud.storage)
+    implementation(libs.guava)
 
-    val junitVersion: String by project
-    testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
-    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
-    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", version = junitVersion)
-    val assertJVersion: String by project
-    testImplementation(group = "org.assertj", name = "assertj-core", version = assertJVersion)
-    val mockitoVersion = "5.15.2"
-    testImplementation(group = "org.mockito", name = "mockito-core", version = mockitoVersion)
-    testImplementation(group = "org.mockito", name = "mockito-junit-jupiter", version = mockitoVersion)
+    testRuntimeOnly(libs.junit.platform.launcher)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.assertj)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.junit)
 
-    val log4jVersion: String by project
-    testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
-    testImplementation(group = "com.google.cloud", name = "google-cloud-nio", version = "0.127.28")
+    testImplementation(libs.log4j.slf4j2)
+    testImplementation(libs.google.cloud.nio)
     val testContainersVersion: String by project
-    testFixturesApi(group = "org.testcontainers", name = "junit-jupiter", version = testContainersVersion)
-    testFixturesImplementation(group = "org.testcontainers", name = "localstack", version = testContainersVersion)
+    testFixturesApi(libs.testcontainers.junit)
+    testFixturesImplementation(libs.testcontainers.localstack)
 }

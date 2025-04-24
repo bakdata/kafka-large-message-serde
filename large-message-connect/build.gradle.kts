@@ -31,29 +31,29 @@ plugins {
 
 dependencies {
     api(project(":large-message-core"))
-    api(group = "org.apache.kafka", name = "connect-api")
-    compileOnly(group = "org.apache.kafka", name = "connect-runtime")
+    api(libs.kafka.connect.api)
+    compileOnly(libs.kafka.connect.runtime)
 
-    val junitVersion: String by project
-    testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = junitVersion)
-    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-api", version = junitVersion)
-    testImplementation(group = "org.junit.jupiter", name = "junit-jupiter-params", version = junitVersion)
+    testRuntimeOnly(libs.junit.platform.launcher)
+    testImplementation(libs.junit.jupiter)
     testImplementation(project(":large-message-serde"))
-    val assertJVersion: String by project
-    testImplementation(group = "org.assertj", name = "assertj-core", version = assertJVersion)
+    testImplementation(libs.assertj)
 
-    val log4jVersion: String by project
-    testImplementation(group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = log4jVersion)
-    testImplementation(group = "org.apache.kafka", name = "connect-file")
+    testImplementation(libs.log4j.slf4j2)
+    testImplementation(libs.kafka.connect.file)
     testImplementation(testFixtures(project(":large-message-core")))
-    testImplementation(group = "org.apache.kafka", name = "connect-runtime")
-    testImplementation(
-        group = "org.apache.kafka",
-        name = "connect-runtime",
-        classifier = "test"
-    )
-    testImplementation(group = "org.apache.kafka", name = "kafka-clients", classifier = "test")
-    testImplementation(group = "org.apache.kafka", name = "kafka_2.13")
-    testImplementation(group = "org.apache.kafka", name = "kafka_2.13", classifier = "test")
-    testImplementation(group = "org.apache.kafka", name = "kafka-server-common", classifier = "test")
+    testImplementation(libs.kafka.connect.runtime)
+    testImplementation(variantOf(libs.kafka.connect.runtime) {
+        classifier("test")
+    })
+    testImplementation(variantOf(libs.kafka.clients) {
+        classifier("test")
+    })
+    testImplementation(libs.kafka.core)
+    testImplementation(variantOf(libs.kafka.core) {
+        classifier("test")
+    })
+    testImplementation(variantOf(libs.kafka.server.common) {
+        classifier("test")
+    })
 }
