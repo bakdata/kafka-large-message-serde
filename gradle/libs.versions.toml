@@ -36,4 +36,4 @@ log4j-slf4j2 = { group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl",
 release = { id = "com.bakdata.release", version = "1.7.1" }
 sonar = { id = "com.bakdata.sonar", version = "1.7.1" }
 sonatype = { id = "com.bakdata.sonatype", version = "1.9.0" }
-lombok = { id = "io.freefair.lombok", version = "8.12.2" }
+lombok = { id = "io.freefair.lombok", version = "8.13.1" }
