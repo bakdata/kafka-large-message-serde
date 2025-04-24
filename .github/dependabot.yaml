@@ -28,6 +28,9 @@ updates:
           - "com.bakdata.release"
           - "com.bakdata.sonar"
           - "com.bakdata.sonatype"
+      google-cloud:
+        patterns:
+          - "com.google.cloud*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
