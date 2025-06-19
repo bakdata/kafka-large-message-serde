@@ -49,6 +49,7 @@ dependencies {
     testImplementation(libs.assertj)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.junit)
+    testImplementation(libs.kafka.clients)
 
     testImplementation(libs.log4j.slf4j2)
     testImplementation(libs.google.cloud.nio)
