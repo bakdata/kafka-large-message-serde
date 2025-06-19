@@ -33,8 +33,8 @@ configurations.all {
 }
 
 dependencies {
-    api(platform(libs.kafka.bom))
-    api(libs.kafka.clients)
+    implementation(platform(libs.kafka.bom))
+    runtimeOnly(libs.kafka.clients)
 
     implementation(libs.slf4j.api)
     implementation(libs.slf4j.jcl)
@@ -52,7 +52,6 @@ dependencies {
 
     testImplementation(libs.log4j.slf4j2)
     testImplementation(libs.google.cloud.nio)
-    val testContainersVersion: String by project
     testFixturesApi(libs.testcontainers.junit)
     testFixturesImplementation(libs.testcontainers.localstack)
 }
