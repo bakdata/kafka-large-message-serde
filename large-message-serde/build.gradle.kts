@@ -30,6 +30,7 @@ plugins {
 
 
 dependencies {
+    implementation(platform(libs.kafka.bom))
     api(project(":large-message-core"))
     compileOnly(libs.kafka.clients)
 
