@@ -34,7 +34,7 @@ configurations.all {
 
 dependencies {
     implementation(platform(libs.kafka.bom))
-    runtimeOnly(libs.kafka.clients)
+    compileOnly(libs.kafka.clients)
 
     implementation(libs.slf4j.api)
     implementation(libs.slf4j.jcl)
