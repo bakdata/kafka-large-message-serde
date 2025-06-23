@@ -33,7 +33,6 @@ configurations.all {
 }
 
 dependencies {
-    implementation(platform(libs.kafka.bom))
     implementation(libs.slf4j.api)
     implementation(libs.slf4j.jcl)
     implementation(libs.guava)
@@ -41,6 +40,7 @@ dependencies {
     api(libs.aws.sts)
     api(libs.azure.storage.blob)
     api(libs.google.cloud.storage)
+    compileOnly(platform(libs.kafka.bom))
     compileOnly(libs.kafka.clients)
 
     testRuntimeOnly(libs.junit.platform.launcher)

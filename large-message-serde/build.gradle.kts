@@ -30,8 +30,8 @@ plugins {
 
 
 dependencies {
-    implementation(platform(libs.kafka.bom))
     api(project(":large-message-core"))
+    compileOnly(platform(libs.kafka.bom))
     compileOnly(libs.kafka.clients)
 
     testRuntimeOnly(libs.junit.platform.launcher)
