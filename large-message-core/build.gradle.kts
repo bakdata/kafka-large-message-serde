@@ -55,4 +55,5 @@ dependencies {
     testImplementation(libs.google.cloud.nio)
     testFixturesApi(libs.testcontainers.junit)
     testFixturesImplementation(libs.testcontainers.localstack)
+    testCompileOnly(platform(libs.kafka.bom))
 }
