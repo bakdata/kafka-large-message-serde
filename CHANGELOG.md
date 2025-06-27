@@ -1,8 +1,32 @@
 # Change Log
 
-## [2.12.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.12.1) (2025-03-31)
-[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.12.1...2.12.1)
+## [2.13.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.13.0) (2025-06-27)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.13.0...2.13.0)
 
+
+## [2.13.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.13.0) (2025-06-27)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.12.1...2.13.0)
+
+**Merged pull requests:**
+
+- Expose Kafka dependencies as provided [\#99](https://github.com/bakdata/kafka-large-message-serde/pull/99) ([@philipp94831](https://github.com/philipp94831))
+- Migrate to Central Portal [\#100](https://github.com/bakdata/kafka-large-message-serde/pull/100) ([@philipp94831](https://github.com/philipp94831))
+- Group Dependabot updates for Google Cloud [\#71](https://github.com/bakdata/kafka-large-message-serde/pull/71) ([@philipp94831](https://github.com/philipp94831))
+- Configure Dependabot [\#64](https://github.com/bakdata/kafka-large-message-serde/pull/64) ([@philipp94831](https://github.com/philipp94831))
+- Upgrade to Gradle 8.13 [\#63](https://github.com/bakdata/kafka-large-message-serde/pull/63) ([@philipp94831](https://github.com/philipp94831))
+- Migrate to version catalog [\#62](https://github.com/bakdata/kafka-large-message-serde/pull/62) ([@philipp94831](https://github.com/philipp94831))
+
+**Upgraded dependencies:**
+
+- Bump the google\-cloud group across 1 directory with 2 updates [\#78](https://github.com/bakdata/kafka-large-message-serde/pull/78) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump aws from 2.31.28 to 2.31.53 [\#96](https://github.com/bakdata/kafka-large-message-serde/pull/96) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump com.azure:azure\-storage\-blob from 12.29.0 to 12.30.1 [\#101](https://github.com/bakdata/kafka-large-message-serde/pull/101) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump aws from 2.30.18 to 2.31.28 [\#70](https://github.com/bakdata/kafka-large-message-serde/pull/70) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump the google\-cloud group with 2 updates [\#72](https://github.com/bakdata/kafka-large-message-serde/pull/72) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump the log\-dependencies group with 2 updates [\#65](https://github.com/bakdata/kafka-large-message-serde/pull/65) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump the test\-dependencies group with 6 updates [\#67](https://github.com/bakdata/kafka-large-message-serde/pull/67) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump the plugins group with 3 updates [\#68](https://github.com/bakdata/kafka-large-message-serde/pull/68) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump bakdata/ci\-templates from 1.62.0 to 1.66.1 [\#66](https://github.com/bakdata/kafka-large-message-serde/pull/66) ([@dependabot[bot]](https://github.com/apps/dependabot))
 
 ## [2.12.1](https://github.com/bakdata/kafka-large-message-serde/tree/2.12.1) (2025-03-31)
 [View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.12.0...2.12.1)
