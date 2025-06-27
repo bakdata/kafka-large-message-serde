@@ -31,7 +31,8 @@ plugins {
 
 dependencies {
     api(project(":large-message-core"))
-    api(libs.kafka.connect.api)
+    compileOnly(platform(libs.kafka.bom))
+    compileOnly(libs.kafka.connect.api)
     compileOnly(libs.kafka.connect.runtime)
 
     testRuntimeOnly(libs.junit.platform.launcher)
@@ -40,6 +41,7 @@ dependencies {
     testImplementation(libs.assertj)
 
     testImplementation(libs.log4j.slf4j2)
+    testImplementation(platform(libs.kafka.bom))
     testImplementation(libs.kafka.connect.file)
     testImplementation(testFixtures(project(":large-message-core")))
     testImplementation(libs.kafka.connect.runtime)

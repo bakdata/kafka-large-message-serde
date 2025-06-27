@@ -33,26 +33,27 @@ configurations.all {
 }
 
 dependencies {
-    api(platform(libs.kafka.bom))
-    api(libs.kafka.clients)
+    compileOnly(platform(libs.kafka.bom))
+    compileOnly(libs.kafka.clients)
 
     implementation(libs.slf4j.api)
     implementation(libs.slf4j.jcl)
+    implementation(libs.guava)
     api(libs.aws.s3)
     api(libs.aws.sts)
     api(libs.azure.storage.blob)
     api(libs.google.cloud.storage)
-    implementation(libs.guava)
 
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.assertj)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.junit)
+    testImplementation(platform(libs.kafka.bom))
+    testImplementation(libs.kafka.clients)
 
     testImplementation(libs.log4j.slf4j2)
     testImplementation(libs.google.cloud.nio)
-    val testContainersVersion: String by project
     testFixturesApi(libs.testcontainers.junit)
     testFixturesImplementation(libs.testcontainers.localstack)
 }
