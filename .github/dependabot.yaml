@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: "gradle"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     groups:
       kafka-dependencies:
         patterns:
@@ -23,6 +23,8 @@ updates:
           - "org.mockito*"
           - "org.testcontainers*"
           - "org.awaitility*"
+        exclude-patterns:
+          - "com.bakdata.fluent-kafka-streams-tests*"
       plugins:
         patterns:
           - "com.bakdata.release"
