@@ -58,4 +58,5 @@ dependencies {
     testImplementation(variantOf(libs.kafka.server.common) {
         classifier("test")
     })
+    testImplementation(libs.kafka.test.common.runtime)
 }

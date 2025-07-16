@@ -6,13 +6,14 @@ mockito = "5.18.0"
 testcontainers = "1.21.2"
 
 [libraries]
-kafka-bom = { group = "com.bakdata.kafka", name = "kafka-bom", version = "1.1.0" }
+kafka-bom = { group = "com.bakdata.kafka", name = "kafka-bom", version = "1.2.0" }
 kafka-clients = { group = "org.apache.kafka", name = "kafka-clients" }
 kafka-server-common = { group = "org.apache.kafka", name = "kafka-server-common" }
 kafka-core = { group = "org.apache.kafka", name = "kafka_2.13" }
 kafka-connect-api = { group = "org.apache.kafka", name = "connect-api" }
 kafka-connect-runtime = { group = "org.apache.kafka", name = "connect-runtime" }
 kafka-connect-file = { group = "org.apache.kafka", name = "connect-file" }
+kafka-test-common-runtime = { group = "org.apache.kafka", name = "kafka-test-common-runtime" }
 slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 slf4j-jcl = { group = "org.slf4j", name = "jcl-over-slf4j", version.ref = "slf4j" }
 aws-s3 = { group = "software.amazon.awssdk", name = "s3", version.ref = "aws" }
@@ -29,7 +30,7 @@ mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mo
 mockito-junit = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockito" }
 testcontainers-junit = { group = "org.testcontainers", name = "junit-jupiter", version.ref = "testcontainers" }
 testcontainers-localstack = { group = "org.testcontainers", name = "localstack", version.ref = "testcontainers" }
-fluentKafkaStreamsTests = { group = "com.bakdata.fluent-kafka-streams-tests", name = "fluent-kafka-streams-tests-junit5", version = "3.3.0" }
+fluentKafkaStreamsTests = { group = "com.bakdata.fluent-kafka-streams-tests", name = "fluent-kafka-streams-tests-junit5", version = "3.4.1" }
 log4j-slf4j2 = { group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = "2.25.1" }
 
 [plugins]
