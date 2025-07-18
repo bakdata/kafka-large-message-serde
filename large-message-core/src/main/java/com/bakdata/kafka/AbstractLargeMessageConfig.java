@@ -53,6 +53,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -138,6 +139,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final String S3_ROLE_ARN_CONFIG = S3_PREFIX + "sts.role.arn";
     public static final String S3_ROLE_SESSION_NAME_CONFIG = S3_PREFIX + "sts.role.session.name";
     public static final String S3_JWT_PATH_CONFIG = S3_PREFIX + "jwt.path";
+    public static final String S3_REQUEST_CHECKSUM_CALCULATION_CONFIG = S3_PREFIX + "request.checksum.calculation";
     public static final String S3_REGION_DOC = "S3 region to use. Leave empty if default S3 region should be used.";
     public static final String S3_ENDPOINT_DOC =
             "Endpoint to use for connection to Amazon S3. Leave empty if default S3 endpoint should be used.";
@@ -169,6 +171,10 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                     + "e.g. for EKS `/var/run/secrets/eks.amazonaws.com/serviceaccount/token`.";
     public static final String S3_JWT_PATH_CONFIG_DEFAULT = "";
     public static final String S3_SECRET_KEY_DEFAULT = "";
+    public static final String S3_REQUEST_CHECKSUM_CALCULATION_DOC =
+            "AWS request checksum validation mode to use when uploading to S3. Leave empty to use the AWS SDK default.";
+    public static final String S3_REQUEST_CHECKSUM_CALCULATION_DEFAULT =
+            AmazonS3Client.DEFAULT_REQUEST_CHECKSUM_CALCULATION;
 
     public static final String AZURE_PREFIX = PREFIX + AzureBlobStorageClient.SCHEME + ".";
     public static final String AZURE_CONNECTION_STRING_CONFIG = AZURE_PREFIX + "connection.string";
@@ -228,6 +234,8 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                         S3_ROLE_SESSION_NAME_CONFIG_DOC)
                 .define(S3_JWT_PATH_CONFIG, Type.STRING, S3_JWT_PATH_CONFIG_DEFAULT, Importance.LOW,
                         S3_JWT_PATH_CONFIG_DOC)
+                .define(S3_REQUEST_CHECKSUM_CALCULATION_CONFIG, Type.STRING, S3_REQUEST_CHECKSUM_CALCULATION_DEFAULT,
+                        Importance.LOW, S3_REQUEST_CHECKSUM_CALCULATION_DOC)
                 // Azure Blob Storage
                 .define(AZURE_CONNECTION_STRING_CONFIG, Type.PASSWORD, AZURE_CONNECTION_STRING_DEFAULT, Importance.LOW,
                         AZURE_CONNECTION_STRING_DOC)
@@ -323,6 +331,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         if (this.enableAmazonS3PathStyleAccess()) {
             clientBuilder.forcePathStyle(true);
         }
+        this.getAmazonRequestChecksumCalculation().ifPresent(clientBuilder::requestChecksumCalculation);
         return new AmazonS3Client(clientBuilder.build());
     }
 
@@ -343,6 +352,12 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     private Optional<Region> getAmazonRegion() {
         final String region = this.getString(S3_REGION_CONFIG);
         return isEmpty(region) ? Optional.empty() : Optional.of(Region.of(region));
+    }
+
+    private Optional<RequestChecksumCalculation> getAmazonRequestChecksumCalculation() {
+        final String requestChecksumCalculation = this.getString(S3_REQUEST_CHECKSUM_CALCULATION_CONFIG);
+        return isEmpty(requestChecksumCalculation) ? Optional.empty()
+                : Optional.of(RequestChecksumCalculation.fromValue(requestChecksumCalculation));
     }
 
     private Optional<AwsCredentialsProvider> getAmazonCredentialsProvider() {
