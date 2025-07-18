@@ -39,9 +39,13 @@ abstract class AzureBlobStorageIntegrationTest {
     @Container
     private final AzuriteContainer azure = new AzuriteContainer(AZURITE_IMAGE);
 
+    String getConnectionString() {
+        return this.azure.getConnectionString();
+    }
+
     BlobServiceClient getBlobServiceClient() {
         return new BlobServiceClientBuilder()
-                .connectionString(this.azure.getConnectionString())
+                .connectionString(this.getConnectionString())
                 .buildClient();
     }
 }
