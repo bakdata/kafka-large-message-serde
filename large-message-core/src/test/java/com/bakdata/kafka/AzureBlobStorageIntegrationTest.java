@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 bakdata
+ * Copyright (c) 2025 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,29 +26,26 @@ package com.bakdata.kafka;
 
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.azure.AzuriteContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
 abstract class AzureBlobStorageIntegrationTest {
+    private static final DockerImageName AZURITE_IMAGE =
+            DockerImageName.parse("mcr.microsoft.com/azure-storage/azurite")
+                    .withTag("3.34.0");
     @Container
-    private final GenericContainer<?> azure = new GenericContainer<>("mcr.microsoft.com/azure-storage/azurite")
-            .withExposedPorts(10000)
-            .withCommand("azurite-blob", "--blobHost", "0.0.0.0");
+    private final AzuriteContainer azure = new AzuriteContainer(AZURITE_IMAGE);
 
-    String generateConnectionString() {
-        final int port = this.azure.getMappedPort(10000);
-        final String host = this.azure.getHost();
-        return String.format("DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;"
-                        + "AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq"
-                        + "/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://%s:%d/devstoreaccount1;",
-                host, port);
+    String getConnectionString() {
+        return this.azure.getConnectionString();
     }
 
     BlobServiceClient getBlobServiceClient() {
         return new BlobServiceClientBuilder()
-                .connectionString(this.generateConnectionString())
+                .connectionString(this.getConnectionString())
                 .buildClient();
     }
 }
