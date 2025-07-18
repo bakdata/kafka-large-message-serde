@@ -6,7 +6,7 @@ mockito = "5.18.0"
 testcontainers = "1.21.2"
 
 [libraries]
-kafka-bom = { group = "com.bakdata.kafka", name = "kafka-bom", version = "1.2.1-SNAPSHOT" }
+kafka-bom = { group = "com.bakdata.kafka", name = "kafka-bom", version = "1.2.1" }
 kafka-clients = { group = "org.apache.kafka", name = "kafka-clients" }
 kafka-server-common = { group = "org.apache.kafka", name = "kafka-server-common" }
 kafka-core = { group = "org.apache.kafka", name = "kafka_2.13" }
