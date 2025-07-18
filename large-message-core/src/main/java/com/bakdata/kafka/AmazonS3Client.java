@@ -33,6 +33,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.SerializationException;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -57,6 +58,7 @@ import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 class AmazonS3Client implements BlobStorageClient {
 
     static final String SCHEME = "s3";
+    static final String DEFAULT_REQUEST_CHECKSUM_CALCULATION = RequestChecksumCalculation.WHEN_SUPPORTED.toString();
     private final @NonNull S3Client s3;
 
     static ObjectIdentifier asIdentifier(final S3Object s3Object) {

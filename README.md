@@ -156,6 +156,13 @@ Endpoint to use for connection to Amazon S3. Leave empty if default S3 endpoint 
   * Default: false
   * Importance: low
 
+  ``large.message.s3.request.checksum.calculation``
+  AWS request checksum validation mode to use when uploading to S3. Leave empty to use the AWS SDK default.
+  
+  * Type: string
+  * Default: "WHEN_SUPPORTED"
+  * Importance: low
+
 ``large.message.abs.connection.string``
   Azure connection string for connection to blob storage. Leave empty if Azure credential provider chain should be used.
 
