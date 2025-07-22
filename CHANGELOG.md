@@ -1,8 +1,15 @@
 # Change Log
 
-## [3.0.0](https://github.com/bakdata/kafka-large-message-serde/tree/3.0.0) (2025-07-18)
-[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/3.0.0...3.0.0)
+## [3.1.0](https://github.com/bakdata/kafka-large-message-serde/tree/3.1.0) (2025-07-22)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/3.1.0...3.1.0)
 
+
+## [3.1.0](https://github.com/bakdata/kafka-large-message-serde/tree/3.1.0) (2025-07-22)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/3.0.0...3.1.0)
+
+**Merged pull requests:**
+
+- Add config option for request checksum calculation [\#119](https://github.com/bakdata/kafka-large-message-serde/pull/119) ([@raphala](https://github.com/raphala))
 
 ## [3.0.0](https://github.com/bakdata/kafka-large-message-serde/tree/3.0.0) (2025-07-18)
 [View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.13.0...3.0.0)
