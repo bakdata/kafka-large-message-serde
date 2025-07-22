@@ -83,6 +83,7 @@ import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider
  *     <li> S3 secret key
  *     <li> AWS security token service
  *     <li> AWS OIDC token path
+ *     <li> S3 request checksum calculation mode
  * </ul>
  * <p></p>
  * Azure Blob Storage specific
