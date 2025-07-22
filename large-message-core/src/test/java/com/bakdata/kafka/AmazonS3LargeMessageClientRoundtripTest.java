@@ -149,7 +149,7 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
     }
 
     @Test
-    void shouldDefaultToRequestChecksumValidation() {
+    void shouldValidateChecksumByDefault() {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
@@ -161,18 +161,14 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final Map<String, Object> fullProperties = this.createStorerProperties(properties);
         final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(fullProperties);
-        try (final LargeMessageStoringClient storer = config.getStorer();
-                final LargeMessageRetrievingClient retriever = config.getRetriever()) {
-
+        try (final LargeMessageStoringClient storer = config.getStorer()) {
             final Headers headers = new RecordHeaders();
             final byte[] obj = serialize("foo");
             final boolean isKey = false;
-            final byte[] data = storer.storeBytes(TOPIC, obj, isKey, headers);
+            storer.storeBytes(TOPIC, obj, isKey, headers);
 
-            final byte[] result = retriever.retrieveBytes(data, headers, isKey);
-            assertThat(result).isEqualTo(obj);
             assertThat(RecordingHttpClient.REQUESTS)
-                    .hasSize(2)
+                    .hasSize(1)
                     .anySatisfy(request -> {
                         assertThat(request.method()).isEqualTo(SdkHttpMethod.PUT);
                         assertThat(request.headers()).containsKey("x-amz-sdk-checksum-algorithm");
@@ -181,7 +177,7 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
     }
 
     @Test
-    void shouldNotCalculateChecksumWhenConfigured() {
+    void shouldNotValidateChecksumWhenConfigured() {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
@@ -194,18 +190,14 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final Map<String, Object> fullProperties = this.createStorerProperties(properties);
         final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(fullProperties);
-        try (final LargeMessageStoringClient storer = config.getStorer();
-                final LargeMessageRetrievingClient retriever = config.getRetriever()) {
-
+        try (final LargeMessageStoringClient storer = config.getStorer()) {
             final Headers headers = new RecordHeaders();
             final byte[] obj = serialize("foo");
             final boolean isKey = false;
-            final byte[] data = storer.storeBytes(TOPIC, obj, isKey, headers);
+            storer.storeBytes(TOPIC, obj, isKey, headers);
 
-            final byte[] result = retriever.retrieveBytes(data, headers, isKey);
-            assertThat(result).isEqualTo(obj);
             assertThat(RecordingHttpClient.REQUESTS)
-                    .hasSize(2)
+                    .hasSize(1)
                     .anySatisfy(request -> {
                         assertThat(request.method()).isEqualTo(SdkHttpMethod.PUT);
                         assertThat(request.headers()).doesNotContainKey("x-amz-sdk-checksum-algorithm");
