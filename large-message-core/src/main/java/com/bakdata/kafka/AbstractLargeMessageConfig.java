@@ -173,8 +173,6 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final String S3_SECRET_KEY_DEFAULT = "";
     public static final String S3_REQUEST_CHECKSUM_CALCULATION_DOC =
             "AWS request checksum validation mode to use when uploading to S3. Leave empty to use the AWS SDK default.";
-    public static final String S3_REQUEST_CHECKSUM_CALCULATION_DEFAULT =
-            AmazonS3Client.DEFAULT_REQUEST_CHECKSUM_CALCULATION;
 
     public static final String AZURE_PREFIX = PREFIX + AzureBlobStorageClient.SCHEME + ".";
     public static final String AZURE_CONNECTION_STRING_CONFIG = AZURE_PREFIX + "connection.string";
@@ -234,7 +232,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                         S3_ROLE_SESSION_NAME_CONFIG_DOC)
                 .define(S3_JWT_PATH_CONFIG, Type.STRING, S3_JWT_PATH_CONFIG_DEFAULT, Importance.LOW,
                         S3_JWT_PATH_CONFIG_DOC)
-                .define(S3_REQUEST_CHECKSUM_CALCULATION_CONFIG, Type.STRING, S3_REQUEST_CHECKSUM_CALCULATION_DEFAULT,
+                .define(S3_REQUEST_CHECKSUM_CALCULATION_CONFIG, Type.STRING, null,
                         Importance.LOW, S3_REQUEST_CHECKSUM_CALCULATION_DOC)
                 // Azure Blob Storage
                 .define(AZURE_CONNECTION_STRING_CONFIG, Type.PASSWORD, AZURE_CONNECTION_STRING_DEFAULT, Importance.LOW,

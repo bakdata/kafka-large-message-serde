@@ -58,7 +58,6 @@ import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 class AmazonS3Client implements BlobStorageClient {
 
     static final String SCHEME = "s3";
-    static final String DEFAULT_REQUEST_CHECKSUM_CALCULATION = RequestChecksumCalculation.WHEN_SUPPORTED.toString();
     private final @NonNull S3Client s3;
 
     static ObjectIdentifier asIdentifier(final S3Object s3Object) {
