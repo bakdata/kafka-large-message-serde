@@ -40,6 +40,7 @@ import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -72,6 +73,11 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
                 .flatMap(builder -> Stream.of("none", "gzip", "snappy", "lz4", "zstd")
                         .map(c -> builder.compressionType(c).build())
                         .map(Arguments::of));
+    }
+
+    @BeforeEach
+    void clearRecordedRequests() {
+        RecordingHttpClient.REQUESTS.clear();
     }
 
     @ParameterizedTest
@@ -138,6 +144,63 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
                     .anySatisfy(request -> {
                         assertThat(request.method()).isEqualTo(SdkHttpMethod.GET);
                         assertThat(request.encodedPath()).startsWith("/" + bucket + "/base/" + TOPIC + "/values/");
+                    });
+        }
+    }
+
+    @Test
+    void shouldValidateChecksumByDefault() {
+        final String bucket = "bucket";
+        final String basePath = "s3://" + bucket + "/base/";
+        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, RecordingHttpClientBuilder.class)
+                .build();
+        final S3Client s3 = this.getS3Client();
+        s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+        final Map<String, Object> fullProperties = this.createStorerProperties(properties);
+        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(fullProperties);
+        try (final LargeMessageStoringClient storer = config.getStorer()) {
+            final Headers headers = new RecordHeaders();
+            final byte[] obj = serialize("foo");
+            final boolean isKey = false;
+            storer.storeBytes(TOPIC, obj, isKey, headers);
+
+            assertThat(RecordingHttpClient.REQUESTS)
+                    .hasSize(1)
+                    .anySatisfy(request -> {
+                        assertThat(request.method()).isEqualTo(SdkHttpMethod.PUT);
+                        assertThat(request.headers()).containsKey("x-amz-sdk-checksum-algorithm");
+                    });
+        }
+    }
+
+    @Test
+    void shouldNotValidateChecksumWhenConfigured() {
+        final String bucket = "bucket";
+        final String basePath = "s3://" + bucket + "/base/";
+        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
+                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
+                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
+                .put(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, RecordingHttpClientBuilder.class)
+                .put(AbstractLargeMessageConfig.S3_REQUEST_CHECKSUM_CALCULATION_CONFIG, "WHEN_REQUIRED")
+                .build();
+        final S3Client s3 = this.getS3Client();
+        s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+        final Map<String, Object> fullProperties = this.createStorerProperties(properties);
+        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(fullProperties);
+        try (final LargeMessageStoringClient storer = config.getStorer()) {
+            final Headers headers = new RecordHeaders();
+            final byte[] obj = serialize("foo");
+            final boolean isKey = false;
+            storer.storeBytes(TOPIC, obj, isKey, headers);
+
+            assertThat(RecordingHttpClient.REQUESTS)
+                    .hasSize(1)
+                    .anySatisfy(request -> {
+                        assertThat(request.method()).isEqualTo(SdkHttpMethod.PUT);
+                        assertThat(request.headers()).doesNotContainKey("x-amz-sdk-checksum-algorithm");
                     });
         }
     }
