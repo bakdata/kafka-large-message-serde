@@ -54,6 +54,7 @@ dependencies {
 
     testImplementation(libs.log4j.slf4j2)
     testImplementation(libs.google.cloud.nio)
+    testImplementation(libs.testcontainers.azure)
     testFixturesApi(libs.testcontainers.junit)
     testFixturesImplementation(libs.testcontainers.localstack)
 }

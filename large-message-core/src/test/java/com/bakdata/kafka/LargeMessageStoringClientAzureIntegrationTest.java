@@ -71,7 +71,7 @@ class LargeMessageStoringClientAzureIntegrationTest extends AzureBlobStorageInte
     private Map<String, Object> createProperties(final Map<String, Object> properties) {
         return ImmutableMap.<String, Object>builder()
                 .putAll(properties)
-                .put(AbstractLargeMessageConfig.AZURE_CONNECTION_STRING_CONFIG, this.generateConnectionString())
+                .put(AbstractLargeMessageConfig.AZURE_CONNECTION_STRING_CONFIG, this.getConnectionString())
                 .build();
     }
 

@@ -1,8 +1,27 @@
 # Change Log
 
-## [2.13.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.13.0) (2025-06-27)
-[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.13.0...2.13.0)
+## [3.0.0](https://github.com/bakdata/kafka-large-message-serde/tree/3.0.0) (2025-07-18)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/3.0.0...3.0.0)
 
+
+## [3.0.0](https://github.com/bakdata/kafka-large-message-serde/tree/3.0.0) (2025-07-18)
+[View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.13.0...3.0.0)
+
+**Merged pull requests:**
+
+- Upgrade to Kafka 4.0 and Java 17 [\#114](https://github.com/bakdata/kafka-large-message-serde/pull/114) ([@philipp94831](https://github.com/philipp94831))
+- Use Azure Testcontainers [\#120](https://github.com/bakdata/kafka-large-message-serde/pull/120) ([@philipp94831](https://github.com/philipp94831))
+- Upgrade to Gradle 8.14 [\#113](https://github.com/bakdata/kafka-large-message-serde/pull/113) ([@philipp94831](https://github.com/philipp94831))
+
+**Upgraded dependencies:**
+
+- Bump aws from 2.31.72 to 2.32.2 [\#115](https://github.com/bakdata/kafka-large-message-serde/pull/115) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump the google\-cloud group across 1 directory with 2 updates [\#111](https://github.com/bakdata/kafka-large-message-serde/pull/111) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump the test\-dependencies group across 1 directory with 3 updates [\#117](https://github.com/bakdata/kafka-large-message-serde/pull/117) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump the plugins group with 2 updates [\#104](https://github.com/bakdata/kafka-large-message-serde/pull/104) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump com.google.guava:guava from 33.4.0\-jre to 33.4.8\-jre [\#75](https://github.com/bakdata/kafka-large-message-serde/pull/75) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump org.apache.logging.log4j:log4j\-slf4j2\-impl from 2.24.3 to 2.25.0 in the log\-dependencies group [\#102](https://github.com/bakdata/kafka-large-message-serde/pull/102) ([@dependabot[bot]](https://github.com/apps/dependabot))
+- Bump the test\-dependencies group across 1 directory with 5 updates [\#98](https://github.com/bakdata/kafka-large-message-serde/pull/98) ([@dependabot[bot]](https://github.com/apps/dependabot))
 
 ## [2.13.0](https://github.com/bakdata/kafka-large-message-serde/tree/2.13.0) (2025-06-27)
 [View commits](https://github.com/bakdata/kafka-large-message-serde/compare/2.12.1...2.13.0)
