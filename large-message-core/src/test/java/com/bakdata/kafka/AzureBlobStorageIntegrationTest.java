@@ -35,7 +35,7 @@ import org.testcontainers.utility.DockerImageName;
 abstract class AzureBlobStorageIntegrationTest {
     private static final DockerImageName AZURITE_IMAGE =
             DockerImageName.parse("mcr.microsoft.com/azure-storage/azurite")
-                    .withTag("3.34.0");
+                    .withTag("3.35.0");
     @Container
     private final AzuriteContainer azure = new AzuriteContainer(AZURITE_IMAGE);
 
