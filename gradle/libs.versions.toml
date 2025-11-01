@@ -1,5 +1,5 @@
 [versions]
-junit = "6.0.0"
+junit = "6.0.1"
 slf4j = "2.0.17"
 aws = "2.32.29"
 mockito = "5.20.0"
