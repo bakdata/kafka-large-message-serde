@@ -21,7 +21,7 @@ aws-sts = { group = "software.amazon.awssdk", name = "sts", version.ref = "aws" 
 azure-storage-blob = { group = "com.azure", name = "azure-storage-blob", version = "12.31.3" }
 google-cloud-storage = { group = "com.google.cloud", name = "google-cloud-storage", version = "2.59.0" }
 google-cloud-nio = { group = "com.google.cloud", name = "google-cloud-nio", version = "0.128.7" }
-guava = { group = "com.google.guava", name = "guava", version = "33.4.8-jre" }
+guava = { group = "com.google.guava", name = "guava", version = "33.5.0-jre" }
 
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
