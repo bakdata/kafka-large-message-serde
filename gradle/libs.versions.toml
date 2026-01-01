@@ -1,9 +1,9 @@
 [versions]
-junit = "6.0.0"
+junit = "6.0.1"
 slf4j = "2.0.17"
 aws = "2.32.29"
-mockito = "5.20.0"
-testcontainers = "1.21.3"
+mockito = "5.21.0"
+testcontainers = "1.21.4"
 
 [libraries]
 kafka-bom = { group = "com.bakdata.kafka", name = "kafka-bom", version = "1.2.1" }
