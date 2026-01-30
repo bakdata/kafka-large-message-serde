@@ -35,7 +35,7 @@ fluentKafkaStreamsTests = { group = "com.bakdata.fluent-kafka-streams-tests", na
 log4j-slf4j2 = { group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = "2.25.2" }
 
 [plugins]
-release = { id = "com.bakdata.release", version = "1.11.1" }
-sonar = { id = "com.bakdata.sonar", version = "1.11.1" }
-sonatype = { id = "com.bakdata.sonatype", version = "1.11.1" }
-lombok = { id = "io.freefair.lombok", version = "8.14.4" }
+release = { id = "com.bakdata.release", version = "2.0.3-SNAPSHOT" }
+sonar = { id = "com.bakdata.sonar", version = "2.0.3-SNAPSHOT" }
+sonatype = { id = "com.bakdata.sonatype", version = "2.0.3-SNAPSHOT" }
+lombok = { id = "io.freefair.lombok", version = "9.2.0" }
