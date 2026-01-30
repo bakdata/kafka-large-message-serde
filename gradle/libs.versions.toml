@@ -32,7 +32,7 @@ testcontainers-junit = { group = "org.testcontainers", name = "junit-jupiter", v
 testcontainers-localstack = { group = "org.testcontainers", name = "localstack", version.ref = "testcontainers" }
 testcontainers-azure = { group = "org.testcontainers", name = "azure", version.ref = "testcontainers" }
 fluentKafkaStreamsTests = { group = "com.bakdata.fluent-kafka-streams-tests", name = "fluent-kafka-streams-tests-junit5", version = "3.5.0" }
-log4j-slf4j2 = { group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = "2.25.2" }
+log4j-slf4j2 = { group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = "2.25.3" }
 
 [plugins]
 release = { id = "com.bakdata.release", version = "2.1.0" }
