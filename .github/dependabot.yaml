@@ -33,8 +33,15 @@ updates:
       google-cloud:
         patterns:
           - "com.google.cloud*"
+      freefair-plugins:
+        patterns:
+          - "io.freefair*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "monthly"
+    groups:
+      ci-templates:
+        patterns:
+          - "bakdata/ci-templates*"
