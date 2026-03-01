@@ -18,7 +18,7 @@ slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 slf4j-jcl = { group = "org.slf4j", name = "jcl-over-slf4j", version.ref = "slf4j" }
 aws-s3 = { group = "software.amazon.awssdk", name = "s3", version.ref = "aws" }
 aws-sts = { group = "software.amazon.awssdk", name = "sts", version.ref = "aws" }
-azure-storage-blob = { group = "com.azure", name = "azure-storage-blob", version = "12.31.3" }
+azure-storage-blob = { group = "com.azure", name = "azure-storage-blob", version = "12.33.2" }
 google-cloud-storage = { group = "com.google.cloud", name = "google-cloud-storage", version = "2.62.1" }
 google-cloud-nio = { group = "com.google.cloud", name = "google-cloud-nio", version = "0.128.11" }
 guava = { group = "com.google.guava", name = "guava", version = "33.5.0-jre" }
