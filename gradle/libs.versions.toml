@@ -1,8 +1,8 @@
 [versions]
-junit = "6.0.2"
+junit = "6.0.3"
 slf4j = "2.0.17"
 aws = "2.41.19"
-mockito = "5.21.0"
+mockito = "5.22.0"
 testcontainers = "1.21.4"
 
 [libraries]
