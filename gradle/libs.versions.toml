@@ -2,7 +2,7 @@
 junit = "6.0.3"
 slf4j = "2.0.17"
 aws = "2.42.4"
-mockito = "5.22.0"
+mockito = "5.23.0"
 testcontainers = "1.21.4"
 
 [libraries]
