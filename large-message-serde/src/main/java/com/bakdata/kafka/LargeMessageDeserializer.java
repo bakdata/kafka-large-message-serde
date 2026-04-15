@@ -24,8 +24,6 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.getHeaderName;
-
 import java.util.Map;
 import java.util.Objects;
 import lombok.NoArgsConstructor;
