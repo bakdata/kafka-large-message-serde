@@ -78,7 +78,8 @@ class LargeMessageSerdeTest extends AmazonS3IntegrationTest {
     @Test
     void shouldJoin() {
         // this test creates a topology with a changelog store. The changelog store uses the Serde without headers
-        try (final TestTopology<String, String> topology = new TestTopology<>(LargeMessageSerdeTest::createJoinTopology, this.createLargeMessageProperties())) {
+        try (final TestTopology<String, String> topology = new TestTopology<>(LargeMessageSerdeTest::createJoinTopology,
+                this.createLargeMessageProperties())) {
             topology.start();
             topology.input(JOIN_INPUT_TOPIC_1)
                     .withKeySerde(Serdes.String())
@@ -106,8 +107,10 @@ class LargeMessageSerdeTest extends AmazonS3IntegrationTest {
         final Map<String, Object> properties = this.createLargeMessageProperties();
         final String errorTopic = "error";
         properties.put(StreamsConfig.ERRORS_DEAD_LETTER_QUEUE_TOPIC_NAME_CONFIG, errorTopic);
-        properties.put(StreamsConfig.PROCESSING_EXCEPTION_HANDLER_CLASS_CONFIG,                LogAndContinueProcessingExceptionHandler.class);
-        try (final TestTopology<String, String> topology = new TestTopology<>(LargeMessageSerdeTest::createDeadLetterTopology, properties)) {
+        properties.put(StreamsConfig.PROCESSING_EXCEPTION_HANDLER_CLASS_CONFIG,
+                LogAndContinueProcessingExceptionHandler.class);
+        try (final TestTopology<String, String> topology = new TestTopology<>(
+                LargeMessageSerdeTest::createDeadLetterTopology, properties)) {
             topology.start();
             topology.input(INPUT_TOPIC)
                     .add("a", "foo");
