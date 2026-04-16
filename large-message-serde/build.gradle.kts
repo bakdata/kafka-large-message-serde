@@ -38,6 +38,7 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.assertj)
 
+    testImplementation(platform(libs.kafka.bom))
     testImplementation(libs.fluentKafkaStreamsTests)
     testImplementation(libs.log4j.slf4j2)
     testImplementation(testFixtures(project(":large-message-core")))

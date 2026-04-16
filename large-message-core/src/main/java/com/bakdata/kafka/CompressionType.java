@@ -55,51 +55,52 @@ public enum CompressionType {
     GZIP(1, "gzip") {
         @Override
         public byte[] compress(final byte[] bytes) {
-            return CompressionType.compress(org.apache.kafka.common.record.CompressionType.GZIP, bytes);
+            return compress(org.apache.kafka.common.record.CompressionType.GZIP, bytes);
         }
 
         @Override
         public byte[] decompress(final byte[] bytes) {
-            return CompressionType.decompress(org.apache.kafka.common.record.CompressionType.GZIP, bytes);
+            return decompress(org.apache.kafka.common.record.CompressionType.GZIP, bytes);
         }
     },
 
     SNAPPY(2, "snappy") {
         @Override
         public byte[] compress(final byte[] bytes) {
-            return CompressionType.compress(org.apache.kafka.common.record.CompressionType.SNAPPY, bytes);
+            return compress(org.apache.kafka.common.record.CompressionType.SNAPPY, bytes);
         }
 
         @Override
         public byte[] decompress(final byte[] bytes) {
-            return CompressionType.decompress(org.apache.kafka.common.record.CompressionType.SNAPPY, bytes);
+            return decompress(org.apache.kafka.common.record.CompressionType.SNAPPY, bytes);
         }
     },
 
     LZ4(3, "lz4") {
         @Override
         public byte[] compress(final byte[] bytes) {
-            return CompressionType.compress(org.apache.kafka.common.record.CompressionType.LZ4, bytes);
+            return compress(org.apache.kafka.common.record.CompressionType.LZ4, bytes);
         }
 
         @Override
         public byte[] decompress(final byte[] bytes) {
-            return CompressionType.decompress(org.apache.kafka.common.record.CompressionType.LZ4, bytes);
+            return decompress(org.apache.kafka.common.record.CompressionType.LZ4, bytes);
         }
     },
 
     ZSTD(4, "zstd") {
         @Override
         public byte[] compress(final byte[] bytes) {
-            return CompressionType.compress(org.apache.kafka.common.record.CompressionType.ZSTD, bytes);
+            return compress(org.apache.kafka.common.record.CompressionType.ZSTD, bytes);
         }
 
         @Override
         public byte[] decompress(final byte[] bytes) {
-            return CompressionType.decompress(org.apache.kafka.common.record.CompressionType.ZSTD, bytes);
+            return decompress(org.apache.kafka.common.record.CompressionType.ZSTD, bytes);
         }
     };
 
+    //FIXME key contains `..`
     public static final String HEADER_NAME = HeaderLargeMessagePayloadProtocol.HEADER_PREFIX + ".compression";
     private static final BufferSupplier BUFFER_SUPPLIER = BufferSupplier.create();
     @Getter

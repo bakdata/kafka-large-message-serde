@@ -4,6 +4,14 @@ pluginManagement {
     }
 }
 
+dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
+    repositories {
+        mavenCentral()
+        maven(url = "https://central.sonatype.com/repository/maven-snapshots")
+    }
+}
+
 rootProject.name = "large-message"
 
 include(
