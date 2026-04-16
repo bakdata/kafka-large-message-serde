@@ -24,6 +24,8 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.KEY_HEADER;
+import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.VALUE_HEADER;
 import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.getHeaderName;
 import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
 import static com.bakdata.kafka.LargeMessagePayload.ofUri;
@@ -37,6 +39,7 @@ import java.util.Map;
 import java.util.function.Function;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.errors.SerializationException;
+import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -173,7 +176,10 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
                 .hasSize(1)
                 .anySatisfy(producerRecord -> {
                     assertThat(producerRecord.value()).isEqualTo("foo");
-                    assertThat(producerRecord.headers()).isEmpty();
+                    assertThat(producerRecord.headers())
+                            .hasSize(1)
+                            .extracting(Header::key)
+                            .containsExactlyInAnyOrder(VALUE_HEADER);
                 });
     }
 
@@ -227,7 +233,10 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
                 .hasSize(1)
                 .anySatisfy(producerRecord -> {
                     assertThat(producerRecord.key()).isEqualTo("foo");
-                    assertThat(producerRecord.headers()).isEmpty();
+                    assertThat(producerRecord.headers())
+                            .hasSize(1)
+                            .extracting(Header::key)
+                            .containsExactlyInAnyOrder(KEY_HEADER);
                 });
     }
 
@@ -278,8 +287,6 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
         this.createTopology(LargeMessageDeserializerTest::createValueTopology);
         final Headers headers = new RecordHeaders();
         final byte[] value = createBackedText(bucket, key, headers, false);
-        // add compression header for 'none' type, so we can assert it is also properly removed
-        headers.add(CompressionType.HEADER_NAME, new byte[]{CompressionType.NONE.getId()});
         this.topology.input()
                 .withKeySerde(Serdes.Integer())
                 .withValueSerde(Serdes.ByteArray())
@@ -292,7 +299,10 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
                 .hasSize(1)
                 .anySatisfy(producerRecord -> {
                     assertThat(producerRecord.value()).isEqualTo("foo");
-                    assertThat(producerRecord.headers()).isEmpty();
+                    assertThat(producerRecord.headers())
+                            .hasSize(1)
+                            .extracting(Header::key)
+                            .containsExactlyInAnyOrder(VALUE_HEADER);
                 });
     }
 
@@ -337,7 +347,10 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
                 .hasSize(1)
                 .anySatisfy(producerRecord -> {
                     assertThat(producerRecord.key()).isEqualTo("foo");
-                    assertThat(producerRecord.headers()).isEmpty();
+                    assertThat(producerRecord.headers())
+                            .hasSize(1)
+                            .extracting(Header::key)
+                            .containsExactlyInAnyOrder(KEY_HEADER);
                 });
     }
 
@@ -380,7 +393,10 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
                 .anySatisfy(producerRecord -> {
                     assertThat(producerRecord.key()).isEqualTo("foo");
                     assertThat(producerRecord.value()).isEqualTo("bar");
-                    assertThat(producerRecord.headers()).isEmpty();
+                    assertThat(producerRecord.headers())
+                            .hasSize(2)
+                            .extracting(Header::key)
+                            .containsExactlyInAnyOrder(KEY_HEADER, VALUE_HEADER);
                 });
     }
 
@@ -405,7 +421,10 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
                 .anySatisfy(producerRecord -> {
                     assertThat(producerRecord.key()).isEqualTo("foo");
                     assertThat(producerRecord.value()).isEqualTo("bar");
-                    assertThat(producerRecord.headers()).isEmpty();
+                    assertThat(producerRecord.headers())
+                            .hasSize(2)
+                            .extracting(Header::key)
+                            .containsExactlyInAnyOrder(KEY_HEADER, VALUE_HEADER);
                 });
     }
 
