@@ -32,7 +32,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import org.apache.kafka.common.compress.Compression;
 import org.apache.kafka.common.errors.SerializationException;
-import org.apache.kafka.common.record.RecordBatch;
+import org.apache.kafka.common.record.internal.RecordBatch;
 import org.apache.kafka.common.utils.BufferSupplier;
 import org.apache.kafka.common.utils.ByteBufferOutputStream;
 
@@ -55,48 +55,48 @@ public enum CompressionType {
     GZIP(1, "gzip") {
         @Override
         public byte[] compress(final byte[] bytes) {
-            return CompressionType.compress(org.apache.kafka.common.record.CompressionType.GZIP, bytes);
+            return CompressionType.compress(org.apache.kafka.common.record.internal.CompressionType.GZIP, bytes);
         }
 
         @Override
         public byte[] decompress(final byte[] bytes) {
-            return CompressionType.decompress(org.apache.kafka.common.record.CompressionType.GZIP, bytes);
+            return CompressionType.decompress(org.apache.kafka.common.record.internal.CompressionType.GZIP, bytes);
         }
     },
 
     SNAPPY(2, "snappy") {
         @Override
         public byte[] compress(final byte[] bytes) {
-            return CompressionType.compress(org.apache.kafka.common.record.CompressionType.SNAPPY, bytes);
+            return CompressionType.compress(org.apache.kafka.common.record.internal.CompressionType.SNAPPY, bytes);
         }
 
         @Override
         public byte[] decompress(final byte[] bytes) {
-            return CompressionType.decompress(org.apache.kafka.common.record.CompressionType.SNAPPY, bytes);
+            return CompressionType.decompress(org.apache.kafka.common.record.internal.CompressionType.SNAPPY, bytes);
         }
     },
 
     LZ4(3, "lz4") {
         @Override
         public byte[] compress(final byte[] bytes) {
-            return CompressionType.compress(org.apache.kafka.common.record.CompressionType.LZ4, bytes);
+            return CompressionType.compress(org.apache.kafka.common.record.internal.CompressionType.LZ4, bytes);
         }
 
         @Override
         public byte[] decompress(final byte[] bytes) {
-            return CompressionType.decompress(org.apache.kafka.common.record.CompressionType.LZ4, bytes);
+            return CompressionType.decompress(org.apache.kafka.common.record.internal.CompressionType.LZ4, bytes);
         }
     },
 
     ZSTD(4, "zstd") {
         @Override
         public byte[] compress(final byte[] bytes) {
-            return CompressionType.compress(org.apache.kafka.common.record.CompressionType.ZSTD, bytes);
+            return CompressionType.compress(org.apache.kafka.common.record.internal.CompressionType.ZSTD, bytes);
         }
 
         @Override
         public byte[] decompress(final byte[] bytes) {
-            return CompressionType.decompress(org.apache.kafka.common.record.CompressionType.ZSTD, bytes);
+            return CompressionType.decompress(org.apache.kafka.common.record.internal.CompressionType.ZSTD, bytes);
         }
     };
 
@@ -147,7 +147,7 @@ public enum CompressionType {
         }
     }
 
-    private static byte[] compress(final org.apache.kafka.common.record.CompressionType compressionType,
+    private static byte[] compress(final org.apache.kafka.common.record.internal.CompressionType compressionType,
             final byte[] bytes) {
         final ByteBufferOutputStream outStream = new ByteBufferOutputStream(bytes.length);
         final Compression compression = Compression.of(compressionType).build();
@@ -161,7 +161,7 @@ public enum CompressionType {
         return outStream.buffer().array();
     }
 
-    private static byte[] decompress(final org.apache.kafka.common.record.CompressionType compressionType,
+    private static byte[] decompress(final org.apache.kafka.common.record.internal.CompressionType compressionType,
             final byte[] bytes) {
         final Compression compression = Compression.of(compressionType).build();
         try (final InputStream stream = compression.wrapForInput(ByteBuffer.wrap(bytes), RecordBatch.MAGIC_VALUE_V2,
