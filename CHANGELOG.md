@@ -2,6 +2,70 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.2.0](https://github.com/bakdata/kafka-large-message-serde/tree/3.2.0) - 2026-07-01
+### What's changed
+
+* Bump the ci-templates group with 2 updates by @dependabot[bot] in [#161](https://github.com/bakdata/kafka-large-message-serde/pull/161)
+
+* Bump aws from 2.41.18 to 2.41.19 by @dependabot[bot] in [#162](https://github.com/bakdata/kafka-large-message-serde/pull/162)
+
+* Bump aws from 2.41.19 to 2.42.4 by @dependabot[bot] in [#167](https://github.com/bakdata/kafka-large-message-serde/pull/167)
+
+* Bump the google-cloud group with 2 updates by @dependabot[bot] in [#165](https://github.com/bakdata/kafka-large-message-serde/pull/165)
+
+* Bump the test-dependencies group with 3 updates by @dependabot[bot] in [#164](https://github.com/bakdata/kafka-large-message-serde/pull/164)
+
+* Bump the ci-templates group with 2 updates by @dependabot[bot] in [#163](https://github.com/bakdata/kafka-large-message-serde/pull/163)
+
+* Setup multi-ecosystem Dependabot group by @philipp94831 in [#174](https://github.com/bakdata/kafka-large-message-serde/pull/174)
+
+* Add missing sonatype plugin to Dependabot multi-ecosystem group by @philipp94831 in [#177](https://github.com/bakdata/kafka-large-message-serde/pull/177)
+
+* Bump org.apache.logging.log4j:log4j-slf4j2-impl from 2.25.3 to 2.25.4 in the log-dependencies group across 1 directory by @dependabot[bot] in [#170](https://github.com/bakdata/kafka-large-message-serde/pull/170)
+
+* Bump the test-dependencies group across 1 directory with 2 updates by @dependabot[bot] in [#171](https://github.com/bakdata/kafka-large-message-serde/pull/171)
+
+* Bump com.bakdata.kafka:kafka-bom from 1.3.1 to 1.4.0 in the kafka-dependencies group across 1 directory by @dependabot[bot] in [#169](https://github.com/bakdata/kafka-large-message-serde/pull/169)
+
+* Bump the google-cloud group with 2 updates by @dependabot[bot] in [#178](https://github.com/bakdata/kafka-large-message-serde/pull/178)
+
+* Bump the "build" group with 1 update across multiple ecosystems by @dependabot[bot] in [#176](https://github.com/bakdata/kafka-large-message-serde/pull/176)
+
+* Test against correct Kafka version by @philipp94831 in [#180](https://github.com/bakdata/kafka-large-message-serde/pull/180)
+
+* Upgrade to Testcontainers v2 by @philipp94831 in [#182](https://github.com/bakdata/kafka-large-message-serde/pull/182)
+
+* Bump the "build" group with 2 updates across multiple ecosystems by @dependabot[bot] in [#187](https://github.com/bakdata/kafka-large-message-serde/pull/187)
+
+* Bump aws from 2.42.4 to 2.42.40 by @dependabot[bot] in [#186](https://github.com/bakdata/kafka-large-message-serde/pull/186)
+
+* Bump the kafka-dependencies group with 2 updates by @dependabot[bot] in [#183](https://github.com/bakdata/kafka-large-message-serde/pull/183)
+
+* Bump the test-dependencies group with 3 updates by @dependabot[bot] in [#184](https://github.com/bakdata/kafka-large-message-serde/pull/184)
+
+* Bump the google-cloud group with 2 updates by @dependabot[bot] in [#185](https://github.com/bakdata/kafka-large-message-serde/pull/185)
+
+* Bump the "build" group with 1 update across multiple ecosystems by @dependabot[bot] in [#193](https://github.com/bakdata/kafka-large-message-serde/pull/193)
+
+* Bump com.google.guava:guava from 33.5.0-jre to 33.6.0-jre by @dependabot[bot] in [#191](https://github.com/bakdata/kafka-large-message-serde/pull/191)
+
+* Bump the log-dependencies group with 3 updates by @dependabot[bot] in [#188](https://github.com/bakdata/kafka-large-message-serde/pull/188)
+
+* Bump the google-cloud group across 1 directory with 2 updates by @dependabot[bot] in [#190](https://github.com/bakdata/kafka-large-message-serde/pull/190)
+
+* Bump org.junit.jupiter:junit-jupiter from 6.0.3 to 6.1.0 in the test-dependencies group across 1 directory by @dependabot[bot] in [#189](https://github.com/bakdata/kafka-large-message-serde/pull/189)
+
+* Bump the "build" group with 2 updates across multiple ecosystems by @dependabot[bot] in [#198](https://github.com/bakdata/kafka-large-message-serde/pull/198)
+
+* Bump the google-cloud group with 2 updates by @dependabot[bot] in [#195](https://github.com/bakdata/kafka-large-message-serde/pull/195)
+
+* Bump aws from 2.42.40 to 2.46.17 by @dependabot[bot] in [#196](https://github.com/bakdata/kafka-large-message-serde/pull/196)
+
+* Bump com.bakdata.kafka:kafka-bom from 1.5.0 to 1.6.0 in the kafka-dependencies group by @dependabot[bot] in [#194](https://github.com/bakdata/kafka-large-message-serde/pull/194)
+
+
+**Full Changelog**: https://github.com/bakdata/kafka-large-message-serde/compare/3.1.1...3.2.0
+
 ## [3.1.1](https://github.com/bakdata/kafka-large-message-serde/tree/3.1.1) - 2026-01-30
 ### What's changed
 
