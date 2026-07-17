@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.2.1](https://github.com/bakdata/kafka-large-message-serde/tree/3.2.1) - 2026-07-17
+### What's changed
+
+* Bump com.bakdata.kafka:kafka-bom from 1.6.0 to 1.6.1 in the kafka-dependencies group by @dependabot[bot] in [#199](https://github.com/bakdata/kafka-large-message-serde/pull/199)
+
+* Bump the google-cloud group with 2 updates by @dependabot[bot] in [#202](https://github.com/bakdata/kafka-large-message-serde/pull/202)
+
+* Bump org.junit.jupiter:junit-jupiter from 6.1.0 to 6.1.1 in the test-dependencies group by @dependabot[bot] in [#201](https://github.com/bakdata/kafka-large-message-serde/pull/201)
+
+* Bump org.apache.logging.log4j:log4j-slf4j2-impl from 2.26.0 to 2.26.1 in the log-dependencies group by @dependabot[bot] in [#200](https://github.com/bakdata/kafka-large-message-serde/pull/200)
+
+* Bump com.azure:azure-storage-blob from 12.31.3 to 12.32.0 by @dependabot[bot] in [#197](https://github.com/bakdata/kafka-large-message-serde/pull/197)
+
+
+**Full Changelog**: https://github.com/bakdata/kafka-large-message-serde/compare/3.2.0...3.2.1
+
 ## [3.2.0](https://github.com/bakdata/kafka-large-message-serde/tree/3.2.0) - 2026-07-01
 ### What's changed
 
