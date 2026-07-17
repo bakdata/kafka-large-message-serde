@@ -1,12 +1,12 @@
 [versions]
-junit = "6.1.0"
+junit = "6.1.1"
 slf4j = "2.0.18"
 aws = "2.46.17"
 mockito = "5.23.0"
 testcontainers = "2.0.5"
 
 [libraries]
-kafka-bom = { group = "com.bakdata.kafka", name = "kafka-bom", version = "1.6.0" }
+kafka-bom = { group = "com.bakdata.kafka", name = "kafka-bom", version = "1.6.1" }
 kafka-clients = { group = "org.apache.kafka", name = "kafka-clients" }
 kafka-server-common = { group = "org.apache.kafka", name = "kafka-server-common" }
 kafka-core = { group = "org.apache.kafka", name = "kafka_2.13" }
@@ -19,8 +19,8 @@ slf4j-jcl = { group = "org.slf4j", name = "jcl-over-slf4j", version.ref = "slf4j
 aws-s3 = { group = "software.amazon.awssdk", name = "s3", version.ref = "aws" }
 aws-sts = { group = "software.amazon.awssdk", name = "sts", version.ref = "aws" }
 azure-storage-blob = { group = "com.azure", name = "azure-storage-blob", version = "12.32.0" }
-google-cloud-storage = { group = "com.google.cloud", name = "google-cloud-storage", version = "2.69.0" }
-google-cloud-nio = { group = "com.google.cloud", name = "google-cloud-nio", version = "0.133.0" }
+google-cloud-storage = { group = "com.google.cloud", name = "google-cloud-storage", version = "2.70.0" }
+google-cloud-nio = { group = "com.google.cloud", name = "google-cloud-nio", version = "0.134.0" }
 guava = { group = "com.google.guava", name = "guava", version = "33.6.0-jre" }
 
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
@@ -32,7 +32,7 @@ testcontainers-junit = { group = "org.testcontainers", name = "testcontainers-ju
 testcontainers-localstack = { group = "org.testcontainers", name = "testcontainers-localstack", version.ref = "testcontainers" }
 testcontainers-azure = { group = "org.testcontainers", name = "testcontainers-azure", version.ref = "testcontainers" }
 fluentKafkaStreamsTests = { group = "com.bakdata.fluent-kafka-streams-tests", name = "fluent-kafka-streams-tests-junit5", version = "3.6.0" }
-log4j-slf4j2 = { group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = "2.26.0" }
+log4j-slf4j2 = { group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version = "2.26.1" }
 
 [plugins]
 release = { id = "com.bakdata.release", version = "2.2.0" }
