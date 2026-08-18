@@ -39,6 +39,8 @@ serde.configure(Map.of(AbstractLargeMessageConfig.BASE_PATH_CONFIG, "s3://my-buc
         LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class), false);
 ```
 
+##### General
+
 The following configuration options are available:
 
 ``large.message.key.serde``
@@ -93,13 +95,15 @@ for backwards compatibility but leads to increased memory usage. It is recommend
   * Importance: medium
 
 ``large.message.compression.type``
-The compression type for data stored in blob storage. The default is `none` (i.e. no compression). Valid values are
-`none`,
-`gzip`, `snappy`, `lz4` and `zstd`. Note: this option is only available when `large.message.use.headers` is enabled.
+  The compression type for data stored in blob storage. The default is `none` (i.e. no compression). Valid values are
+  `none`, `gzip`, `snappy`, `lz4` and `zstd`. Note: this option is only available when `large.message.use.headers` is
+  enabled.
 
-* Type: string
-* Default: "none"
-* Importance: low
+  * Type: string
+  * Default: "none"
+  * Importance: low
+
+##### Amazon S3
 
 When adding `large-message-amazon-s3` to store large messages on Amazon S3, the following options are available:
 
@@ -174,6 +178,8 @@ Endpoint to use for connection to Amazon S3. Leave empty if default S3 endpoint 
   * Default: "WHEN_SUPPORTED"
   * Importance: low
 
+##### Azure Blob Storage
+
 When adding `large-message-azure-blob-storage` to store large messages on Azure Blob Storage, the following options are
 available:
 
@@ -183,6 +189,8 @@ available:
   * Type: password
   * Default: ""
   * Importance: low
+
+##### Azure Blob Storage
 
 When adding `large-message-google-cloud-storage` to store large messages on Google Cloud Storage, the following options
 are available:
