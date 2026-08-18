@@ -62,10 +62,10 @@ public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStor
     public static final String GOOGLE_CLOUD_KEY_PATH_DOC = "Path to the service account JSON file";
     public static final String GOOGLE_CLOUD_KEY_PATH_DEFAULT = null;
     public static final String GOOGLE_CLOUD_HOST_CONFIG = GOOGLE_STORAGE_PREFIX + "host";
-    public static final String GOOGLE_CLOUD_HOST_DOC = "Host for Google Cloud Storage";
+    public static final String GOOGLE_CLOUD_HOST_DOC = "Host for Google Cloud Storage.";
     public static final String GOOGLE_CLOUD_HOST_DEFAULT = null;
     public static final String GOOGLE_CLOUD_PROJECT_CONFIG = GOOGLE_STORAGE_PREFIX + "project";
-    public static final String GOOGLE_CLOUD_PROJECT_DOC = "Google Cloud project ID";
+    public static final String GOOGLE_CLOUD_PROJECT_DOC = "Google Cloud project ID.";
     public static final String GOOGLE_CLOUD_PROJECT_DEFAULT = null;
     private static final String GOOGLE_CLOUD_OAUTH_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
     private static final ConfigDef config = baseConfigDef();

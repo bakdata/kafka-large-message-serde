@@ -15,7 +15,7 @@ You can add kafka-large-message-serde via Maven Central.
 
 #### Gradle
 ```gradle
-implementation group: 'com.bakdata.kafka', name: 'large-message-serde', version: '2.0.0'
+implementation group: 'com.bakdata.kafka', name: 'large-message-serde', version: '4.0.0'
 ```
 
 #### Maven
@@ -23,7 +23,7 @@ implementation group: 'com.bakdata.kafka', name: 'large-message-serde', version:
 <dependency>
     <groupId>com.bakdata.kafka</groupId>
     <artifactId>large-message-serde</artifactId>
-    <version>2.0.0</version>
+  <version>4.0.0</version>
 </dependency>
 ```
 
@@ -91,6 +91,17 @@ for backwards compatibility but leads to increased memory usage. It is recommend
   * Type: class
   * Default: `com.bakdata.kafka.RandomUUIDGenerator`
   * Importance: medium
+
+``large.message.compression.type``
+The compression type for data stored in blob storage. The default is `none` (i.e. no compression). Valid values are
+`none`,
+`gzip`, `snappy`, `lz4` and `zstd`. Note: this option is only available when `large.message.use.headers` is enabled.
+
+* Type: string
+* Default: "none"
+* Importance: low
+
+When adding `large-message-amazon-s3` to store large messages on Amazon S3, the following options are available:
 
 ``large.message.s3.access.key``
   AWS access key to use for connecting to S3. Leave empty if AWS credential provider chain or STS Assume Role provider should be used.
@@ -163,12 +174,18 @@ Endpoint to use for connection to Amazon S3. Leave empty if default S3 endpoint 
   * Default: "WHEN_SUPPORTED"
   * Importance: low
 
+When adding `large-message-azure-blob-storage` to store large messages on Azure Blob Storage, the following options are
+available:
+
 ``large.message.abs.connection.string``
   Azure connection string for connection to blob storage. Leave empty if Azure credential provider chain should be used.
 
   * Type: password
   * Default: ""
   * Importance: low
+
+When adding `large-message-google-cloud-storage` to store large messages on Google Cloud Storage, the following options
+are available:
 
 ``large.message.gs.key.path``
   Google service account key JSON path. Leave empty If the environment variable GOOGLE_APPLICATION_CREDENTIALS is set
@@ -180,14 +197,19 @@ Endpoint to use for connection to Amazon S3. Leave empty if default S3 endpoint 
   * Default: ""
   * Importance: low
 
-``large.message.compression.type``
-  The compression type for data stored in blob storage. The default is `none` (i.e. no compression). Valid values are `none`,
-  `gzip`, `snappy`, `lz4` and `zstd`.
-  Note: this option is only available when `large.message.use.headers` is enabled.
+``large.message.gs.host``
+Host for Google Cloud Storage.
 
   * Type: string
-  * Default: "none"
+* Default: ""
   * Importance: low
+
+``large.message.gs.project``
+Google Cloud project ID.
+
+* Type: string
+* Default: ""
+* Importance: low
 
 
 ### Kafka Connect
