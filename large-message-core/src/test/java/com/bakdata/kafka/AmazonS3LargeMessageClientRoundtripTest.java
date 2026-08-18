@@ -88,7 +88,7 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
                 .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
                 .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
-                .put(AbstractLargeMessageConfig.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, argument.isPathStyleAccess())
+                .put(AmazonS3Config.S3_ENABLE_PATH_STYLE_ACCESS_CONFIG, argument.isPathStyleAccess())
                 .put(AbstractLargeMessageConfig.COMPRESSION_TYPE_CONFIG, argument.getCompressionType())
                 .build();
         final S3Client s3 = this.getS3Client();
@@ -119,7 +119,7 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
                 .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
                 .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
-                .put(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, RecordingHttpClientBuilder.class)
+                .put(AmazonS3Config.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, RecordingHttpClientBuilder.class)
                 .build();
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
@@ -155,7 +155,7 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
                 .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
                 .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
-                .put(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, RecordingHttpClientBuilder.class)
+                .put(AmazonS3Config.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, RecordingHttpClientBuilder.class)
                 .build();
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
@@ -183,8 +183,8 @@ class AmazonS3LargeMessageClientRoundtripTest extends AmazonS3IntegrationTest {
         final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
                 .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
                 .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
-                .put(AbstractLargeMessageConfig.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, RecordingHttpClientBuilder.class)
-                .put(AbstractLargeMessageConfig.S3_REQUEST_CHECKSUM_CALCULATION_CONFIG, "WHEN_REQUIRED")
+                .put(AmazonS3Config.S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, RecordingHttpClientBuilder.class)
+                .put(AmazonS3Config.S3_REQUEST_CHECKSUM_CALCULATION_CONFIG, "WHEN_REQUIRED")
                 .build();
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());

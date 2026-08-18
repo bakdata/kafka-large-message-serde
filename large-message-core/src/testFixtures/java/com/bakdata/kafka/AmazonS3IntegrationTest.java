@@ -27,10 +27,9 @@ package com.bakdata.kafka;
 import com.google.common.collect.ImmutableMap;
 import java.net.URI;
 import java.util.Map;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -41,10 +40,10 @@ import software.amazon.awssdk.services.s3.S3Client;
 abstract class AmazonS3IntegrationTest {
 
     private static final DockerImageName LOCAL_STACK_IMAGE = DockerImageName.parse("localstack/localstack")
-            .withTag("4.2.0");
+            .withTag("4.14.0");
     @Container
     private final LocalStackContainer localStackContainer = new LocalStackContainer(LOCAL_STACK_IMAGE)
-            .withServices(Service.S3);
+            .withServices("s3");
 
     S3Client getS3Client() {
         return S3Client.builder()
@@ -57,10 +56,10 @@ abstract class AmazonS3IntegrationTest {
     Map<String, String> getLargeMessageConfig() {
         final AwsBasicCredentials credentials = this.getCredentials();
         return ImmutableMap.<String, String>builder()
-                .put(AbstractLargeMessageConfig.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString())
-                .put(AbstractLargeMessageConfig.S3_REGION_CONFIG, this.getRegion().id())
-                .put(AbstractLargeMessageConfig.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId())
-                .put(AbstractLargeMessageConfig.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey())
+                .put(AmazonS3Config.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString())
+                .put(AmazonS3Config.S3_REGION_CONFIG, this.getRegion().id())
+                .put(AmazonS3Config.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId())
+                .put(AmazonS3Config.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey())
                 .build();
     }
 
@@ -75,6 +74,6 @@ abstract class AmazonS3IntegrationTest {
     }
 
     private URI getEndpointOverride() {
-        return this.localStackContainer.getEndpointOverride(Service.S3);
+        return this.localStackContainer.getEndpoint();
     }
 }
