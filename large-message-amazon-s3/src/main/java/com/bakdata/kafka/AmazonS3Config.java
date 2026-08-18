@@ -120,10 +120,6 @@ public class AmazonS3Config extends AbstractConfig implements BlobStorageConfig 
         super(config, originals);
     }
 
-    protected AmazonS3Config(final ConfigDef config, final Map<?, ?> originals) {
-        super(config, originals);
-    }
-
     protected static ConfigDef baseConfigDef() {
         return new ConfigDef()
                 .define(S3_ENDPOINT_CONFIG, Type.STRING, S3_ENDPOINT_DEFAULT, Importance.LOW, S3_ENDPOINT_DOC)

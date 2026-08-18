@@ -64,10 +64,6 @@ public class AzureBlobStorageConfig extends AbstractConfig implements BlobStorag
         super(config, originals);
     }
 
-    protected AzureBlobStorageConfig(final ConfigDef config, final Map<?, ?> originals) {
-        super(config, originals);
-    }
-
     protected static ConfigDef baseConfigDef() {
         return new ConfigDef()
                 .define(AZURE_CONNECTION_STRING_CONFIG, Type.PASSWORD, AZURE_CONNECTION_STRING_DEFAULT, Importance.LOW,

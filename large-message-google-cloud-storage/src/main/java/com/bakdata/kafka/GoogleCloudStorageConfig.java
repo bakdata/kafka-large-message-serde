@@ -66,10 +66,6 @@ public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStor
         super(config, originals);
     }
 
-    protected GoogleCloudStorageConfig(final ConfigDef config, final Map<?, ?> originals) {
-        super(config, originals);
-    }
-
     protected static ConfigDef baseConfigDef() {
         return new ConfigDef()
                 .define(GOOGLE_CLOUD_KEY_PATH, Type.STRING, GOOGLE_CLOUD_KEY_PATH_DEFAULT, Importance.LOW,
