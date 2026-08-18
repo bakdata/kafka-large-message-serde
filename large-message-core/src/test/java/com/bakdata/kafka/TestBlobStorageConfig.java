@@ -70,7 +70,7 @@ public class TestBlobStorageConfig extends AbstractConfig implements BlobStorage
 
         @Override
         public void close() {
-
+            // do nothing
         }
     }
 }
