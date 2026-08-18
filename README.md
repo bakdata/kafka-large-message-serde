@@ -190,7 +190,7 @@ available:
   * Default: ""
   * Importance: low
 
-##### Azure Blob Storage
+##### Google Cloud Storage
 
 When adding `large-message-google-cloud-storage` to store large messages on Google Cloud Storage, the following options
 are available:
@@ -227,7 +227,7 @@ You can add kafka-large-message-connect via Maven Central.
 
 #### Gradle
 ```gradle
-implementation group: 'com.bakdata.kafka', name: 'large-message-connect', version: '1.1.6'
+implementation group: 'com.bakdata.kafka', name: 'large-message-connect', version: '4.0.0'
 ```
 
 #### Maven
@@ -264,7 +264,7 @@ We also provide a method for cleaning up all files on the blob storage associate
 ```java
 final Map<String, Object> properties = ...;
 final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
-final LargeMessageStoringClient storer = this.config.getStorer();
+final LargeMessageStoringClient storer = config.getStorer();
 storer.deleteAllFiles("topic");
 ```
 
