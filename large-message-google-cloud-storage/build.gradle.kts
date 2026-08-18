@@ -19,4 +19,7 @@ dependencies {
 
     testImplementation(libs.log4j.slf4j2)
     testImplementation(libs.google.cloud.nio)
+    testImplementation(testFixtures(project(":large-message-core")))
+    testImplementation(libs.testcontainers.gcs)
+    testImplementation(libs.testcontainers.junit)
 }
