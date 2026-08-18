@@ -150,6 +150,10 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 }));
     }
 
+    public LargeMessageRetrievingClient getRetriever() {
+        return new LargeMessageRetrievingClient(this.configs, this.getBoolean(ACCEPT_NO_HEADERS_CONFIG));
+    }
+
     public LargeMessageStoringClient getStorer() {
         final BlobStorageClient client = this.getClient();
         return LargeMessageStoringClient.builder()
@@ -161,10 +165,6 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                         : new ByteFlagLargeMessagePayloadProtocol())
                 .compressionType(this.getCompressionType())
                 .build();
-    }
-
-    public LargeMessageRetrievingClient getRetriever() {
-        return new LargeMessageRetrievingClient(this.configs, this.getBoolean(ACCEPT_NO_HEADERS_CONFIG));
     }
 
     protected <T> T getInstance(final String key, final Class<T> targetClass) {
