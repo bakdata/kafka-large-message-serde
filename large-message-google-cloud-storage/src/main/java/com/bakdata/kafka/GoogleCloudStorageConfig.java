@@ -80,7 +80,7 @@ public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStor
      * the service account that is attached to the resource that is running your code. For more information see the <a
      * href="https://cloud.google.com/docs/authentication/production#automatically">official documentation</a>
      *
-     * @return GoogleStorageClient
+     * @return {@link GoogleCloudStorageClient}
      */
     @Override
     public BlobStorageClient createBlobStorageClient() {

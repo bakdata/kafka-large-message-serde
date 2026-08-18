@@ -24,9 +24,9 @@
 
 package com.bakdata.kafka;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.KafkaException;
@@ -85,7 +85,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final String COMPRESSION_TYPE_DEFAULT = "none";
 
     private static final ConfigDef config = baseConfigDef();
-    private static final Map<String, Function<Map<?, ?>, BlobStorageConfig>> CONFIG_FACTORIES =
+    private static final Collection<BlobStorageConfigFactory> CONFIG_FACTORIES =
             BlobStorageConfigLoader.loadConfigFactories();
     private final Map<String, BlobStorageConfig> configs;
 
@@ -143,11 +143,10 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     }
 
     private static Map<String, BlobStorageConfig> getConfigs(final Map<?, ?> originals) {
-        return CONFIG_FACTORIES.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> {
-                    final Function<Map<?, ?>, BlobStorageConfig> factory = e.getValue();
-                    return factory.apply(originals);
-                }));
+        return CONFIG_FACTORIES.stream()
+                .map(factory -> factory.create(originals))
+                .flatMap(Optional::stream)
+                .collect(Collectors.toMap(ConfigWithScheme::getScheme, ConfigWithScheme::getConfig));
     }
 
     public LargeMessageRetrievingClient getRetriever() {
