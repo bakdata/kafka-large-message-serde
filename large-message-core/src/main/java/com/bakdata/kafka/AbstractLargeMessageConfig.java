@@ -24,11 +24,9 @@
 
 package com.bakdata.kafka;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.KafkaException;
@@ -87,8 +85,9 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final String COMPRESSION_TYPE_DEFAULT = "none";
 
     private static final ConfigDef config = baseConfigDef();
-    private static final Map<String, Function<Map<?, ?>, BlobStorageConfig>> CLIENT_FACTORIES = new HashMap<>();
-    private final Map<String, Supplier<BlobStorageClient>> clientFactories;
+    private static final Map<String, Function<Map<?, ?>, BlobStorageConfig>> CONFIG_FACTORIES =
+            BlobStorageConfigLoader.loadConfigFactories();
+    private final Map<String, BlobStorageConfig> configs;
 
     /**
      * Create a new configuration from the given properties
@@ -97,16 +96,12 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
      */
     public AbstractLargeMessageConfig(final Map<?, ?> originals) {
         super(config, originals);
-        this.clientFactories = getClientFactories(originals);
+        this.configs = getConfigs(originals);
     }
 
     protected AbstractLargeMessageConfig(final ConfigDef config, final Map<?, ?> originals) {
         super(config, originals);
-        this.clientFactories = getClientFactories(originals);
-    }
-
-    public static void register(final String scheme, final Function<Map<?, ?>, BlobStorageConfig> factory) {
-        CLIENT_FACTORIES.put(scheme, factory);
+        this.configs = getConfigs(originals);
     }
 
     protected static ConfigDef baseConfigDef() {
@@ -122,15 +117,6 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 ;
     }
 
-    static SerializationException unknownScheme(final String scheme) {
-        return new SerializationException("Unknown scheme for handling large messages: '" + scheme + "'");
-    }
-
-    private static NoBlobStorageClient createNoBlobStorageClient() {
-        log.warn("No " + BASE_PATH_CONFIG + " has been provided and storing a large message will lead to an error.");
-        return new NoBlobStorageClient();
-    }
-
     protected static <T> T getInstance(final AbstractConfig config, final String key, final Class<T> targetClass) {
         final Class<?> configuredClass = config.getClass(key);
         if (configuredClass == null) {
@@ -141,6 +127,27 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
             throw new KafkaException(configuredClass.getName() + " is not an instance of " + targetClass.getName());
         }
         return targetClass.cast(o);
+    }
+
+    protected static boolean isEmpty(final CharSequence s) {
+        return s == null || s.isEmpty();
+    }
+
+    static SerializationException unknownScheme(final String scheme) {
+        return new SerializationException("Unknown scheme for handling large messages: '" + scheme + "'");
+    }
+
+    private static NoBlobStorageClient createNoBlobStorageClient() {
+        log.warn("No " + BASE_PATH_CONFIG + " has been provided and storing a large message will lead to an error.");
+        return new NoBlobStorageClient();
+    }
+
+    private static Map<String, BlobStorageConfig> getConfigs(final Map<?, ?> originals) {
+        return CONFIG_FACTORIES.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> {
+                    final Function<Map<?, ?>, BlobStorageConfig> factory = e.getValue();
+                    return factory.apply(originals);
+                }));
     }
 
     public LargeMessageStoringClient getStorer() {
@@ -156,20 +163,12 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .build();
     }
 
-    private static Map<String, Supplier<BlobStorageClient>> getClientFactories(final Map<?, ?> originals) {
-        return CLIENT_FACTORIES.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> {
-                    final BlobStorageConfig config = e.getValue().apply(originals);
-                    return config::createBlobStorageClient;
-                }));
+    public LargeMessageRetrievingClient getRetriever() {
+        return new LargeMessageRetrievingClient(this.configs, this.getBoolean(ACCEPT_NO_HEADERS_CONFIG));
     }
 
     protected <T> T getInstance(final String key, final Class<T> targetClass) {
         return getInstance(this, key, targetClass);
-    }
-
-    public LargeMessageRetrievingClient getRetriever() {
-        return new LargeMessageRetrievingClient(this.clientFactories, this.getBoolean(ACCEPT_NO_HEADERS_CONFIG));
     }
 
     private BlobStorageClient getClient() {
@@ -180,13 +179,9 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     }
 
     private BlobStorageClient createClient(final String scheme) {
-        return Optional.ofNullable(this.clientFactories.get(scheme))
-                .map(Supplier::get)
+        return Optional.ofNullable(this.configs.get(scheme))
+                .map(BlobStorageConfig::createBlobStorageClient)
                 .orElseThrow(() -> unknownScheme(scheme));
-    }
-
-    protected static boolean isEmpty(final CharSequence s) {
-        return s == null || s.isEmpty();
     }
 
     private Optional<BlobStorageURI> getBasePath() {

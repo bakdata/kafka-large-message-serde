@@ -63,6 +63,7 @@ import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider
  * </ul>
  */
 @Slf4j
+@BlobStorageType(AmazonS3Client.SCHEME)
 public class AmazonS3Config extends AbstractConfig implements BlobStorageConfig {
     public static final String S3_PREFIX = PREFIX + AmazonS3Client.SCHEME + ".";
     public static final String S3_ENDPOINT_CONFIG = S3_PREFIX + "endpoint";
@@ -109,10 +110,6 @@ public class AmazonS3Config extends AbstractConfig implements BlobStorageConfig 
             "AWS request checksum validation mode to use when uploading to S3. Leave empty to use the AWS SDK default.";
 
     private static final ConfigDef config = baseConfigDef();
-
-    static {
-        AbstractLargeMessageConfig.register(AmazonS3Client.SCHEME, AmazonS3Config::new);
-    }
 
     /**
      * Create a new configuration from the given properties

@@ -22,6 +22,7 @@ azure-storage-blob = { group = "com.azure", name = "azure-storage-blob", version
 google-cloud-storage = { group = "com.google.cloud", name = "google-cloud-storage", version = "2.70.0" }
 google-cloud-nio = { group = "com.google.cloud", name = "google-cloud-nio", version = "0.134.0" }
 guava = { group = "com.google.guava", name = "guava", version = "33.6.0-jre" }
+classgraph = { group = "io.github.classgraph", name = "classgraph", version = "4.8.192" }
 
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }

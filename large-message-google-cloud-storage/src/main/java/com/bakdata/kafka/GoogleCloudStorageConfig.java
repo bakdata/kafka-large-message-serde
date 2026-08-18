@@ -47,6 +47,7 @@ import org.apache.kafka.common.config.ConfigDef.Type;
  * </ul>
  */
 @Slf4j
+@BlobStorageType(GoogleCloudStorageClient.SCHEME)
 public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStorageConfig {
     public static final String GOOGLE_STORAGE_PREFIX = PREFIX + GoogleCloudStorageClient.SCHEME + ".";
     public static final String GOOGLE_CLOUD_KEY_PATH = GOOGLE_STORAGE_PREFIX + "key.path";
@@ -55,10 +56,6 @@ public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStor
     private static final String GOOGLE_CLOUD_OAUTH_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 
     private static final ConfigDef config = baseConfigDef();
-
-    static {
-        AbstractLargeMessageConfig.register(GoogleCloudStorageClient.SCHEME, GoogleCloudStorageConfig::new);
-    }
 
     /**
      * Create a new configuration from the given properties
