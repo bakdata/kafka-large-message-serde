@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2025 bakdata
+ * Copyright (c) 2026 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 
 package com.bakdata.kafka;
 
+import static com.bakdata.kafka.TestHelper.serializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
@@ -42,7 +43,7 @@ class LargeMessageRetrievingClientS3IntegrationTest extends AmazonS3IntegrationT
 
     private static byte[] createBackedText(final String bucket, final String key) {
         final String uri = "s3://" + bucket + "/" + key;
-        return TestHelper.serializeUri(uri);
+        return serializeUri(uri);
     }
 
     @Test
