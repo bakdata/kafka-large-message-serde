@@ -89,7 +89,8 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final String COMPRESSION_TYPE_DEFAULT = "none";
 
     private static final ConfigDef config = baseConfigDef();
-    private static final Map<String, Function<Map<String, ?>, BlobStorageConfig>> CLIENT_FACTORIES = new HashMap<>();
+    private static final Map<String, Function<Map<?, ?>, BlobStorageConfig>> CLIENT_FACTORIES = new HashMap<>();
+    private final Map<String, Supplier<BlobStorageClient>> clientFactories;
 
     /**
      * Create a new configuration from the given properties
@@ -98,13 +99,15 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
      */
     public AbstractLargeMessageConfig(final Map<?, ?> originals) {
         super(config, originals);
+        this.clientFactories = getClientFactories(originals);
     }
 
     protected AbstractLargeMessageConfig(final ConfigDef config, final Map<?, ?> originals) {
         super(config, originals);
+        this.clientFactories = getClientFactories(originals);
     }
 
-    public static void register(final String scheme, final Function<Map<String, ?>, BlobStorageConfig> factory) {
+    public static void register(final String scheme, final Function<Map<?, ?>, BlobStorageConfig> factory) {
         CLIENT_FACTORIES.put(scheme, factory);
     }
 
@@ -155,21 +158,20 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .build();
     }
 
-    public LargeMessageRetrievingClient getRetriever() {
-        final Map<String, Supplier<BlobStorageClient>> clientFactories = this.getClientFactories();
-        return new LargeMessageRetrievingClient(clientFactories, this.getBoolean(ACCEPT_NO_HEADERS_CONFIG));
+    private static Map<String, Supplier<BlobStorageClient>> getClientFactories(final Map<?, ?> originals) {
+        return CLIENT_FACTORIES.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> {
+                    final BlobStorageConfig config = e.getValue().apply(originals);
+                    return config::createBlobStorageClient;
+                }));
     }
 
     protected <T> T getInstance(final String key, final Class<T> targetClass) {
         return getInstance(this, key, targetClass);
     }
 
-    private Map<String, Supplier<BlobStorageClient>> getClientFactories() {
-        return CLIENT_FACTORIES.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> {
-                    final BlobStorageConfig config = e.getValue().apply(this.originals());
-                    return config::createBlobStorageClient;
-                }));
+    public LargeMessageRetrievingClient getRetriever() {
+        return new LargeMessageRetrievingClient(this.clientFactories, this.getBoolean(ACCEPT_NO_HEADERS_CONFIG));
     }
 
     private BlobStorageClient getClient() {
@@ -180,7 +182,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     }
 
     private BlobStorageClient createClient(final String scheme) {
-        return Optional.ofNullable(this.getClientFactories().get(scheme))
+        return Optional.ofNullable(this.clientFactories.get(scheme))
                 .map(Supplier::get)
                 .orElseThrow(() -> unknownScheme(scheme));
     }
