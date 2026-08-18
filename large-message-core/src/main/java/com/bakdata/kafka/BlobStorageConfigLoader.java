@@ -47,7 +47,7 @@ class BlobStorageConfigLoader {
         return load(classStream);
     }
 
-    private static Class<BlobStorageConfig> loadClass(final ClassInfo classInfo) {
+    private static Class<? extends BlobStorageConfig> loadClass(final ClassInfo classInfo) {
         return classInfo.loadClass(BlobStorageConfig.class);
     }
 
