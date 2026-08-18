@@ -58,7 +58,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final int MAX_BYTE_SIZE_DEFAULT = 1000 * 1000;
     public static final String BASE_PATH_CONFIG = PREFIX + "base.path";
     public static final String BASE_PATH_DOC = "Base path to store data. Must include bucket and any prefix that "
-            + "should be used, e.g., 's3://my-bucket/my/prefix/'. Available protocols: 's3', 'abs'.";
+            + "should be used, e.g., 's3://my-bucket/my/prefix/'.";
     public static final String BASE_PATH_DEFAULT = "";
     public static final String ID_GENERATOR_CONFIG = PREFIX + "id.generator";
     public static final String ID_GENERATOR_DOC = "Class to use for generating unique object IDs. Available "

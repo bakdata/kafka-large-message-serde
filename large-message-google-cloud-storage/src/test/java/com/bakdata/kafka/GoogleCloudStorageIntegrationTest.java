@@ -33,6 +33,7 @@ import org.testcontainers.utility.DockerImageName;
 
 @Testcontainers
 abstract class GoogleCloudStorageIntegrationTest {
+    static final String PROJECT = "test-project";
     private static final DockerImageName GCS_IMAGE = DockerImageName.parse("fsouza/fake-gcs-server")
             .withTag("1.55.1");
     @Container
@@ -45,6 +46,7 @@ abstract class GoogleCloudStorageIntegrationTest {
     Storage getStorage() {
         return StorageOptions.newBuilder()
                 .setHost(this.getUrl())
+                .setProjectId(PROJECT)
                 .build()
                 .getService();
     }

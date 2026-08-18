@@ -62,6 +62,9 @@ public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStor
     public static final String GOOGLE_CLOUD_URL_CONFIG = GOOGLE_STORAGE_PREFIX + "url";
     public static final String GOOGLE_CLOUD_URL_DOC = "Path to the service account JSON file";
     public static final String GOOGLE_CLOUD_URL_DEFAULT = null;
+    public static final String GOOGLE_CLOUD_PROJECT_CONFIG = GOOGLE_STORAGE_PREFIX + "project";
+    public static final String GOOGLE_CLOUD_PROJECT_DOC = "Google Cloud project ID";
+    public static final String GOOGLE_CLOUD_PROJECT_DEFAULT = null;
     private static final String GOOGLE_CLOUD_OAUTH_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
     private static final ConfigDef config = baseConfigDef();
 
@@ -80,6 +83,8 @@ public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStor
                         GOOGLE_CLOUD_KEY_PATH_DOC)
                 .define(GOOGLE_CLOUD_URL_CONFIG, Type.STRING, GOOGLE_CLOUD_URL_DEFAULT, Importance.LOW,
                         GOOGLE_CLOUD_URL_DOC)
+                .define(GOOGLE_CLOUD_PROJECT_CONFIG, Type.STRING, GOOGLE_CLOUD_PROJECT_DEFAULT, Importance.LOW,
+                        GOOGLE_CLOUD_PROJECT_DOC)
                 ;
     }
 
@@ -99,6 +104,8 @@ public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStor
         credentials.ifPresent(builder::setCredentials);
         final Optional<String> url = this.getUrl();
         url.ifPresent(builder::setHost);
+        final Optional<String> project = this.getProject();
+        project.ifPresent(builder::setProjectId);
         final StorageOptions options = builder.build();
         final Storage service = options.getService();
         return new GoogleCloudStorageClient(service);
@@ -107,6 +114,11 @@ public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStor
     private Optional<String> getUrl() {
         final String url = this.getString(GOOGLE_CLOUD_URL_CONFIG);
         return isEmpty(url) ? Optional.empty() : Optional.of(url);
+    }
+
+    private Optional<String> getProject() {
+        final String project = this.getString(GOOGLE_CLOUD_PROJECT_CONFIG);
+        return isEmpty(project) ? Optional.empty() : Optional.of(project);
     }
 
     private Optional<Credentials> getCredentials() {
