@@ -28,21 +28,13 @@ plugins {
     id("java-library")
 }
 
-configurations.all {
-    exclude(group = "commons-logging", module = "commons-logging")
-}
-
 dependencies {
     compileOnly(platform(libs.kafka.bom))
     compileOnly(libs.kafka.clients)
 
     implementation(libs.slf4j.api)
-    implementation(libs.slf4j.jcl)
     implementation(libs.guava)
-    api(libs.aws.s3)
-    api(libs.aws.sts)
-    api(libs.azure.storage.blob)
-    api(libs.google.cloud.storage)
+    implementation(libs.classgraph)
 
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.junit.jupiter)
@@ -53,8 +45,6 @@ dependencies {
     testImplementation(libs.kafka.clients)
 
     testImplementation(libs.log4j.slf4j2)
-    testImplementation(libs.google.cloud.nio)
-    testImplementation(libs.testcontainers.azure)
-    testFixturesApi(libs.testcontainers.junit)
-    testFixturesImplementation(libs.testcontainers.localstack)
+    testFixturesImplementation(platform(libs.kafka.bom))
+    testFixturesImplementation(libs.kafka.clients)
 }

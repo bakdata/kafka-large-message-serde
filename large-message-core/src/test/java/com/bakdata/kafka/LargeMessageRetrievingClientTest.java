@@ -27,8 +27,7 @@ package com.bakdata.kafka;
 import static com.bakdata.kafka.FlagHelper.IS_BACKED;
 import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
 import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.getHeaderName;
-import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
-import static com.bakdata.kafka.LargeMessagePayload.ofUri;
+import static com.bakdata.kafka.TestHelper.serializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
@@ -58,7 +57,6 @@ import org.mockito.quality.Strictness;
 class LargeMessageRetrievingClientTest {
 
     private static final Serializer<String> STRING_SERIALIZER = Serdes.String().serializer();
-    private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
     @Mock
     private BlobStorageClient client;
 
@@ -72,20 +70,12 @@ class LargeMessageRetrievingClientTest {
         );
     }
 
-    static byte[] serializeUri(final String uri) {
-        return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders(), false);
-    }
-
-    static byte[] serialize(final byte[] bytes) {
-        return BYTE_FLAG_PROTOCOL.serialize(ofBytes(bytes), new RecordHeaders(), false);
-    }
-
     private static void assertHasHeader(final Headers headers, final boolean isKey) {
         assertThat(headers.headers(getHeaderName(isKey))).hasSize(1);
     }
 
     private static byte[] createNonBackedText(final String text) {
-        return serialize(serialize(text));
+        return TestHelper.serialize(serialize(text));
     }
 
     private static byte[] createBackedText(final String bucket, final String key) {

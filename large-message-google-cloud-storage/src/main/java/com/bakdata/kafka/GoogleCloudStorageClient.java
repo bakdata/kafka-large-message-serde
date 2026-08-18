@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
  * Implementation of {@link BlobStorageClient} for Google Cloud Storage.
  */
 @RequiredArgsConstructor
-public class GoogleStorageClient implements BlobStorageClient {
+public class GoogleCloudStorageClient implements BlobStorageClient {
     static final String SCHEME = "gs";
     private final @NonNull Storage storage;
 

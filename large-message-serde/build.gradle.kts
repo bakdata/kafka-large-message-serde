@@ -33,6 +33,7 @@ dependencies {
     api(project(":large-message-core"))
     compileOnly(platform(libs.kafka.bom))
     compileOnly(libs.kafka.clients)
+    implementation(libs.slf4j.api)
 
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.junit.jupiter)
@@ -41,5 +42,5 @@ dependencies {
     testImplementation(platform(libs.kafka.bom))
     testImplementation(libs.fluentKafkaStreamsTests)
     testImplementation(libs.log4j.slf4j2)
-    testImplementation(testFixtures(project(":large-message-core")))
+    testImplementation(testFixtures(project(":large-message-amazon-s3")))
 }

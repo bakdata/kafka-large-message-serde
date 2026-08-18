@@ -76,7 +76,7 @@ public class LargeMessageConverterConfig extends AbstractLargeMessageConfig {
     }
 
     Converter getConverter() {
-        return this.getInstance(CONVERTER_CLASS_CONFIG, Converter.class);
+        return getInstance(this, CONVERTER_CLASS_CONFIG, Converter.class);
     }
 
 }
