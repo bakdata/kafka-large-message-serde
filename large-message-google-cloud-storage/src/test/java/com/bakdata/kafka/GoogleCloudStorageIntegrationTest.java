@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2026 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,29 +22,32 @@
  * SOFTWARE.
  */
 
-description = "Base module for Kafka plugins that store large messages on a blob storage, such as Amazon S3 and Azure Blob Storage"
+package com.bakdata.kafka;
 
-plugins {
-    id("java-library")
-}
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
+import io.aiven.testcontainers.fakegcsserver.FakeGcsServerContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
-dependencies {
-    compileOnly(platform(libs.kafka.bom))
-    compileOnly(libs.kafka.clients)
+@Testcontainers
+abstract class GoogleCloudStorageIntegrationTest {
+    static final String PROJECT = "test-project";
+    private static final DockerImageName GCS_IMAGE = DockerImageName.parse("fsouza/fake-gcs-server")
+            .withTag("1.55.1");
+    @Container
+    private final FakeGcsServerContainer gcs = new FakeGcsServerContainer(GCS_IMAGE);
 
-    implementation(libs.slf4j.api)
-    implementation(libs.guava)
-    implementation(libs.classgraph)
+    String getUrl() {
+        return this.gcs.url();
+    }
 
-    testRuntimeOnly(libs.junit.platform.launcher)
-    testImplementation(libs.junit.jupiter)
-    testImplementation(libs.assertj)
-    testImplementation(libs.mockito.core)
-    testImplementation(libs.mockito.junit)
-    testImplementation(platform(libs.kafka.bom))
-    testImplementation(libs.kafka.clients)
-
-    testImplementation(libs.log4j.slf4j2)
-    testFixturesImplementation(platform(libs.kafka.bom))
-    testFixturesImplementation(libs.kafka.clients)
+    Storage getStorage() {
+        return StorageOptions.newBuilder()
+                .setHost(this.getUrl())
+                .setProjectId(PROJECT)
+                .build()
+                .getService();
+    }
 }

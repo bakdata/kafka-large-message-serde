@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2026 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,29 +22,30 @@
  * SOFTWARE.
  */
 
-description = "Base module for Kafka plugins that store large messages on a blob storage, such as Amazon S3 and Azure Blob Storage"
+package com.bakdata.kafka;
 
-plugins {
-    id("java-library")
-}
+import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
+import static com.bakdata.kafka.LargeMessagePayload.ofBytes;
+import static com.bakdata.kafka.LargeMessagePayload.ofUri;
+import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
 
-dependencies {
-    compileOnly(platform(libs.kafka.bom))
-    compileOnly(libs.kafka.clients)
+import lombok.experimental.UtilityClass;
+import org.apache.kafka.common.header.internals.RecordHeaders;
 
-    implementation(libs.slf4j.api)
-    implementation(libs.guava)
-    implementation(libs.classgraph)
+@UtilityClass
+class TestHelper {
+    private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
 
-    testRuntimeOnly(libs.junit.platform.launcher)
-    testImplementation(libs.junit.jupiter)
-    testImplementation(libs.assertj)
-    testImplementation(libs.mockito.core)
-    testImplementation(libs.mockito.junit)
-    testImplementation(platform(libs.kafka.bom))
-    testImplementation(libs.kafka.clients)
+    static BlobStorageURI deserializeUriWithFlag(final byte[] data) {
+        final byte[] uriBytes = stripFlag(data);
+        return deserializeUri(uriBytes);
+    }
 
-    testImplementation(libs.log4j.slf4j2)
-    testFixturesImplementation(platform(libs.kafka.bom))
-    testFixturesImplementation(libs.kafka.clients)
+    static byte[] serializeUri(final String uri) {
+        return BYTE_FLAG_PROTOCOL.serialize(ofUri(uri), new RecordHeaders(), false);
+    }
+
+    static byte[] serialize(final byte[] bytes) {
+        return BYTE_FLAG_PROTOCOL.serialize(ofBytes(bytes), new RecordHeaders(), false);
+    }
 }
