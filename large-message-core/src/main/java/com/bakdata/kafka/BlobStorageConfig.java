@@ -24,7 +24,15 @@
 
 package com.bakdata.kafka;
 
+/**
+ * A config for create a {@link BlobStorageClient}
+ */
 @FunctionalInterface
 public interface BlobStorageConfig {
+    /**
+     * Create a new blob storage client
+     *
+     * @return blob storage client
+     */
     BlobStorageClient createBlobStorageClient();
 }

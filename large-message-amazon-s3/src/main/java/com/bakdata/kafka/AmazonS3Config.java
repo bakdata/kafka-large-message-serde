@@ -149,7 +149,7 @@ public class AmazonS3Config extends AbstractConfig implements BlobStorageConfig 
         this.getAmazonEndpointOverride().ifPresent(clientBuilder::endpointOverride);
         this.getAmazonRegion().ifPresent(clientBuilder::region);
         this.getAmazonCredentialsProvider().ifPresent(clientBuilder::credentialsProvider);
-        this.getAmazonSdkHttpClientBuilderInstance()
+        this.getHttpClientBuilder()
                 .ifPresent(clientBuilder::httpClientBuilder);
         if (this.enableAmazonS3PathStyleAccess()) {
             clientBuilder.forcePathStyle(true);
@@ -162,7 +162,7 @@ public class AmazonS3Config extends AbstractConfig implements BlobStorageConfig 
         return AbstractLargeMessageConfig.getInstance(this, key, targetClass);
     }
 
-    private <T extends SdkHttpClient.Builder<T>> Optional<SdkHttpClient.Builder<T>> getAmazonSdkHttpClientBuilderInstance() {
+    private <T extends SdkHttpClient.Builder<T>> Optional<SdkHttpClient.Builder<T>> getHttpClientBuilder() {
         final SdkHttpClient.Builder<T> builder =
                 this.getInstance(S3_SDK_HTTP_CLIENT_BUILDER_CONFIG, SdkHttpClient.Builder.class);
         return Optional.ofNullable(builder);
