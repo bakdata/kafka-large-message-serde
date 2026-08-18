@@ -227,7 +227,7 @@ implementation group: 'com.bakdata.kafka', name: 'large-message-connect', versio
 <dependency>
     <groupId>com.bakdata.kafka</groupId>
     <artifactId>large-message-connect</artifactId>
-    <version>2.0.0</version>
+    <version>4.0.0</version>
 </dependency>
 ```
 
@@ -256,7 +256,7 @@ We also provide a method for cleaning up all files on the blob storage associate
 ```java
 final Map<String, Object> properties = ...;
 final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(properties);
-final LargeMessageStoringClient storer = config.getStorer();
+final LargeMessageStoringClient storer = this.config.getStorer();
 storer.deleteAllFiles("topic");
 ```
 
