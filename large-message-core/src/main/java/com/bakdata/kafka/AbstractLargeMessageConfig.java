@@ -166,10 +166,6 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
                 .build();
     }
 
-    protected <T> T getInstance(final String key, final Class<T> targetClass) {
-        return getInstance(this, key, targetClass);
-    }
-
     private BlobStorageClient getClient() {
         return this.getBasePath()
                 .map(BlobStorageURI::getScheme)
