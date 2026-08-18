@@ -13,6 +13,11 @@ import lombok.extern.slf4j.Slf4j;
 class BlobStorageConfigFactory {
     private final @NonNull Class<? extends BlobStorageConfig> clazz;
 
+    @Override
+    public String toString() {
+        return this.clazz.getName();
+    }
+
     String getScheme() {
         return this.clazz.getAnnotation(BlobStorageType.class).value();
     }
@@ -24,7 +29,7 @@ class BlobStorageConfigFactory {
             return Optional.of(new ConfigWithScheme(scheme, config));
         } catch (final InvocationTargetException | InstantiationException | IllegalAccessException |
                        NoSuchMethodException e) {
-            log.error("Cannot create blob storage config {}", this.clazz, e);
+            log.error("Cannot create blob storage config {}", this.clazz.getName(), e);
             return Optional.empty();
         }
     }

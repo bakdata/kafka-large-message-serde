@@ -6,6 +6,10 @@ import io.github.classgraph.ClassInfoList;
 import io.github.classgraph.ScanResult;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,19 +25,30 @@ class BlobStorageConfigLoader {
         }
     }
 
-    private static List<BlobStorageConfigFactory> load(final Collection<? extends ClassInfo> classes) {
-        final List<BlobStorageConfigFactory> factories = classes.stream()
-                .map(BlobStorageConfigLoader::loadClass)
+    static List<BlobStorageConfigFactory> load(final Stream<Class<? extends BlobStorageConfig>> classes) {
+        final List<BlobStorageConfigFactory> factories = classes
+                .map(BlobStorageConfigFactory::new)
                 .toList();
-        final List<String> schemes = factories.stream()
-                .map(BlobStorageConfigFactory::getScheme)
-                .toList();
-        log.info("Found {} blob storage factories for types: {}", factories.size(), schemes);
+        final Map<String, List<BlobStorageConfigFactory>> byScheme = factories.stream()
+                .collect(Collectors.groupingBy(BlobStorageConfigFactory::getScheme));
+        final Map<String, List<BlobStorageConfigFactory>> duplicates = byScheme.entrySet().stream()
+                .filter(entry -> entry.getValue().size() > 1)
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+        if (!duplicates.isEmpty()) {
+            throw new IllegalStateException("Duplicate schemes found: %s".formatted(duplicates));
+        }
+        log.info("Found {} blob storage factories for types: {}", factories.size(), byScheme.keySet());
         return factories;
     }
 
-    private static BlobStorageConfigFactory loadClass(final ClassInfo classInfo) {
-        return new BlobStorageConfigFactory(classInfo.loadClass(BlobStorageConfig.class));
+    private static List<BlobStorageConfigFactory> load(final Collection<? extends ClassInfo> classes) {
+        final Stream<Class<? extends BlobStorageConfig>> classStream = classes.stream()
+                .map(BlobStorageConfigLoader::loadClass);
+        return load(classStream);
+    }
+
+    private static Class<BlobStorageConfig> loadClass(final ClassInfo classInfo) {
+        return classInfo.loadClass(BlobStorageConfig.class);
     }
 
 }
