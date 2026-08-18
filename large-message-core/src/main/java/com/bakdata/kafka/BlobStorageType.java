@@ -31,8 +31,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * {@link BlobStorageConfig} annotated with this annotation are registered with the scheme specified by {@link #value()}
- * when storing and retrieving large messages using {@link AbstractLargeMessageConfig}.
+ * {@link BlobStorageConfig} classes annotated with this annotation are registered with the scheme specified by
+ * {@link #value()} when storing and retrieving large messages using {@link AbstractLargeMessageConfig}.
  */
 @Retention(RUNTIME)
 @Target({TYPE})
