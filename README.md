@@ -198,18 +198,18 @@ are available:
   * Importance: low
 
 ``large.message.gs.host``
-Host for Google Cloud Storage.
+  Host for Google Cloud Storage.
 
   * Type: string
-* Default: ""
+  * Default: ""
   * Importance: low
 
 ``large.message.gs.project``
-Google Cloud project ID.
+  Google Cloud project ID.
 
-* Type: string
-* Default: ""
-* Importance: low
+  * Type: string
+  * Default: ""
+  * Importance: low
 
 
 ### Kafka Connect
