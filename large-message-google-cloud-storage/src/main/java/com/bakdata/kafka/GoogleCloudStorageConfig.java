@@ -47,8 +47,8 @@ import org.apache.kafka.common.config.ConfigDef.Type;
  * </ul>
  */
 @Slf4j
-public class GoogleStorageConfig extends AbstractConfig implements BlobStorageConfig {
-    public static final String GOOGLE_STORAGE_PREFIX = PREFIX + GoogleStorageClient.SCHEME + ".";
+public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStorageConfig {
+    public static final String GOOGLE_STORAGE_PREFIX = PREFIX + GoogleCloudStorageClient.SCHEME + ".";
     public static final String GOOGLE_CLOUD_KEY_PATH = GOOGLE_STORAGE_PREFIX + "key.path";
     public static final String GOOGLE_CLOUD_KEY_PATH_DOC = "Path to the service account JSON file";
     public static final String GOOGLE_CLOUD_KEY_PATH_DEFAULT = "";
@@ -57,7 +57,7 @@ public class GoogleStorageConfig extends AbstractConfig implements BlobStorageCo
     private static final ConfigDef config = baseConfigDef();
 
     static {
-        AbstractLargeMessageConfig.register(GoogleStorageClient.SCHEME, GoogleStorageConfig::new);
+        AbstractLargeMessageConfig.register(GoogleCloudStorageClient.SCHEME, GoogleCloudStorageConfig::new);
     }
 
     /**
@@ -65,11 +65,11 @@ public class GoogleStorageConfig extends AbstractConfig implements BlobStorageCo
      *
      * @param originals properties for configuring this config
      */
-    public GoogleStorageConfig(final Map<?, ?> originals) {
+    public GoogleCloudStorageConfig(final Map<?, ?> originals) {
         super(config, originals);
     }
 
-    protected GoogleStorageConfig(final ConfigDef config, final Map<?, ?> originals) {
+    protected GoogleCloudStorageConfig(final ConfigDef config, final Map<?, ?> originals) {
         super(config, originals);
     }
 
@@ -93,10 +93,10 @@ public class GoogleStorageConfig extends AbstractConfig implements BlobStorageCo
     public BlobStorageClient createBlobStorageClient() {
         if (!this.getString(GOOGLE_CLOUD_KEY_PATH).isEmpty()) {
             final GoogleCredentials credentials = this.getGoogleCredentials();
-            return new GoogleStorageClient(
+            return new GoogleCloudStorageClient(
                     StorageOptions.newBuilder().setCredentials(credentials).build().getService());
         }
-        return new GoogleStorageClient(StorageOptions.getDefaultInstance().getService());
+        return new GoogleCloudStorageClient(StorageOptions.getDefaultInstance().getService());
     }
 
     private GoogleCredentials getGoogleCredentials() {

@@ -24,8 +24,6 @@
 
 package com.bakdata.kafka;
 
-import static software.amazon.awssdk.utils.StringUtils.isEmpty;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -185,6 +183,10 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
         return Optional.ofNullable(this.clientFactories.get(scheme))
                 .map(Supplier::get)
                 .orElseThrow(() -> unknownScheme(scheme));
+    }
+
+    protected static boolean isEmpty(final CharSequence s) {
+        return s == null || s.isEmpty();
     }
 
     private Optional<BlobStorageURI> getBasePath() {

@@ -28,7 +28,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.azure.core.util.BinaryData;
 import com.azure.storage.blob.BlobContainerClient;
-import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serdes;
@@ -46,7 +45,7 @@ class LargeMessageRetrievingClientAzureIntegrationTest extends AzureBlobStorageI
 
     private static byte[] createBackedText(final String bucket, final String key) {
         final String uri = "abs://" + bucket + "/" + key;
-        return LargeMessageRetrievingClientTest.serializeUri(uri);
+        return TestHelper.serializeUri(uri);
     }
 
     @Test
@@ -67,9 +66,9 @@ class LargeMessageRetrievingClientAzureIntegrationTest extends AzureBlobStorageI
     }
 
     private Map<String, Object> createProperties() {
-        return ImmutableMap.<String, Object>builder()
-                .put(AzureBlobStorageConfig.AZURE_CONNECTION_STRING_CONFIG, this.getConnectionString())
-                .build();
+        return Map.of(
+                AzureBlobStorageConfig.AZURE_CONNECTION_STRING_CONFIG, this.getConnectionString()
+        );
     }
 
     private LargeMessageRetrievingClient createRetriever() {

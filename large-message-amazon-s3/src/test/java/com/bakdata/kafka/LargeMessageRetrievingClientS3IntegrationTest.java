@@ -24,7 +24,6 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.LargeMessageRetrievingClientTest.serializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
@@ -43,7 +42,7 @@ class LargeMessageRetrievingClientS3IntegrationTest extends AmazonS3IntegrationT
 
     private static byte[] createBackedText(final String bucket, final String key) {
         final String uri = "s3://" + bucket + "/" + key;
-        return serializeUri(uri);
+        return TestHelper.serializeUri(uri);
     }
 
     @Test

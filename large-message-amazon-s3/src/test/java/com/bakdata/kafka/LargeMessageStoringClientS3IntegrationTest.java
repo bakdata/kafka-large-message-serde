@@ -25,7 +25,7 @@
 package com.bakdata.kafka;
 
 import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
-import static com.bakdata.kafka.LargeMessageRetrievingClient.deserializeUri;
+import static com.bakdata.kafka.TestHelper.deserializeUriWithFlag;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -59,11 +59,6 @@ class LargeMessageStoringClientS3IntegrationTest extends AmazonS3IntegrationTest
     @Mock
     private static IdGenerator idGenerator;
 
-    static BlobStorageURI deserializeUriWithFlag(final byte[] data) {
-        final byte[] uriBytes = stripFlag(data);
-        return deserializeUri(uriBytes);
-    }
-
     private static void expectNonBackedText(final String expected, final byte[] backedText) {
         assertThat(STRING_DESERIALIZER.deserialize(null, stripFlag(backedText)))
                 .isInstanceOf(String.class)
@@ -77,9 +72,9 @@ class LargeMessageStoringClientS3IntegrationTest extends AmazonS3IntegrationTest
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldWriteNonBackedText(final boolean isKey) {
-        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE)
-                .build();
+        final Map<String, Object> properties = Map.of(
+                AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, Integer.MAX_VALUE
+        );
         final LargeMessageStoringClient storer = this.createStorer(properties);
         assertThat(storer.storeBytes(null, serialize("foo"), isKey, new RecordHeaders()))
                 .satisfies(backedText -> expectNonBackedText("foo", backedText));
@@ -89,10 +84,10 @@ class LargeMessageStoringClientS3IntegrationTest extends AmazonS3IntegrationTest
     void shouldWriteBackedTextKey() {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
-        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
-                .build();
+        final Map<String, Object> properties = Map.of(
+                AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0,
+                AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath
+        );
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         final LargeMessageStoringClient storer = this.createStorer(properties);
@@ -104,11 +99,11 @@ class LargeMessageStoringClientS3IntegrationTest extends AmazonS3IntegrationTest
     void shouldUseConfiguredIdGenerator() {
         final String bucket = "bucket";
         final String basePath = "s3://" + bucket + "/base/";
-        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
-                .put(AbstractLargeMessageConfig.ID_GENERATOR_CONFIG, MockIdGenerator.class)
-                .build();
+        final Map<String, Object> properties = Map.of(
+                AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0,
+                AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath,
+                AbstractLargeMessageConfig.ID_GENERATOR_CONFIG, MockIdGenerator.class
+        );
         final S3Client s3 = this.getS3Client();
         s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
         try (final LargeMessageStoringClient storer = this.createStorer(properties)) {

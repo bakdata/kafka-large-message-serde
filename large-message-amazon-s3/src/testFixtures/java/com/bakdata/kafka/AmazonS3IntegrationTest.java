@@ -24,7 +24,6 @@
 
 package com.bakdata.kafka;
 
-import com.google.common.collect.ImmutableMap;
 import java.net.URI;
 import java.util.Map;
 import org.testcontainers.junit.jupiter.Container;
@@ -55,12 +54,12 @@ abstract class AmazonS3IntegrationTest {
 
     Map<String, String> getLargeMessageConfig() {
         final AwsBasicCredentials credentials = this.getCredentials();
-        return ImmutableMap.<String, String>builder()
-                .put(AmazonS3Config.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString())
-                .put(AmazonS3Config.S3_REGION_CONFIG, this.getRegion().id())
-                .put(AmazonS3Config.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId())
-                .put(AmazonS3Config.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey())
-                .build();
+        return Map.of(
+                AmazonS3Config.S3_ENDPOINT_CONFIG, this.getEndpointOverride().toString(),
+                AmazonS3Config.S3_REGION_CONFIG, this.getRegion().id(),
+                AmazonS3Config.S3_ACCESS_KEY_CONFIG, credentials.accessKeyId(),
+                AmazonS3Config.S3_SECRET_KEY_CONFIG, credentials.secretAccessKey()
+        );
     }
 
     private Region getRegion() {

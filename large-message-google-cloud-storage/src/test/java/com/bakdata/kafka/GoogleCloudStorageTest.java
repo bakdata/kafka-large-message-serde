@@ -48,7 +48,7 @@ class GoogleCloudStorageTest {
 
     @Test
     void shouldReadBackedText() {
-        try (final BlobStorageClient googleStorageClient = new GoogleStorageClient(this.storage)) {
+        try (final BlobStorageClient googleStorageClient = new GoogleCloudStorageClient(this.storage)) {
             googleStorageClient.putObject(serialize("foo"), BUCKET, KEY);
             assertThat(googleStorageClient.getObject(BUCKET, KEY)).isEqualTo(serialize("foo"));
         }
@@ -56,15 +56,15 @@ class GoogleCloudStorageTest {
 
     @Test
     void shouldWriteBackedText() {
-        try (final BlobStorageClient googleStorageClient = new GoogleStorageClient(this.storage)) {
-            final String expected = String.format("%s://%s/%s", GoogleStorageClient.SCHEME, BUCKET, KEY);
+        try (final BlobStorageClient googleStorageClient = new GoogleCloudStorageClient(this.storage)) {
+            final String expected = String.format("%s://%s/%s", GoogleCloudStorageClient.SCHEME, BUCKET, KEY);
             assertThat(googleStorageClient.putObject(serialize("foo"), BUCKET, KEY)).isEqualTo(expected);
         }
     }
 
     @Test
     void shouldDeleteFiles() {
-        try (final BlobStorageClient googleStorageClient = new GoogleStorageClient(this.storage)) {
+        try (final BlobStorageClient googleStorageClient = new GoogleCloudStorageClient(this.storage)) {
 
             googleStorageClient.putObject(serialize("foo"), BUCKET, "base/foo/1");
             googleStorageClient.putObject(serialize("foo"), BUCKET, "base/foo/2");

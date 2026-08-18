@@ -28,7 +28,7 @@ import static com.bakdata.kafka.ByteFlagLargeMessagePayloadProtocol.stripFlag;
 import static com.bakdata.kafka.FlagHelper.IS_NOT_BACKED;
 import static com.bakdata.kafka.HeaderLargeMessagePayloadProtocol.getHeaderName;
 import static com.bakdata.kafka.LargeMessagePayload.getUriBytes;
-import static com.bakdata.kafka.LargeMessageRetrievingClientTest.serializeUri;
+import static com.bakdata.kafka.TestHelper.serializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
@@ -124,7 +124,7 @@ class LargeMessageStoringClientTest {
                 .build()) {
             final byte[] fooBytes = serialize("foo");
             assertThat(storer.storeBytes(null, fooBytes, isKey))
-                    .isEqualTo(LargeMessageRetrievingClientTest.serialize(fooBytes));
+                    .isEqualTo(TestHelper.serialize(fooBytes));
         }
     }
 

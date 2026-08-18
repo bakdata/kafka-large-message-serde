@@ -24,7 +24,7 @@
 
 package com.bakdata.kafka;
 
-import static com.bakdata.kafka.LargeMessageStoringClientS3IntegrationTest.deserializeUriWithFlag;
+import static com.bakdata.kafka.TestHelper.deserializeUriWithFlag;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.azure.storage.blob.BlobContainerClient;
@@ -51,10 +51,10 @@ class LargeMessageStoringClientAzureIntegrationTest extends AzureBlobStorageInte
     void shouldWriteBackedTextKey() {
         final String bucket = "bucket";
         final String basePath = "abs://" + bucket + "/base/";
-        final Map<String, Object> properties = ImmutableMap.<String, Object>builder()
-                .put(AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0)
-                .put(AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath)
-                .build();
+        final Map<String, Object> properties = Map.of(
+                AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0,
+                AbstractLargeMessageConfig.BASE_PATH_CONFIG, basePath
+        );
         final BlobServiceClient client = this.getBlobServiceClient();
         final BlobContainerClient containerClient = client.getBlobContainerClient(bucket);
         try {

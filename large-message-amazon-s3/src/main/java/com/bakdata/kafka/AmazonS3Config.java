@@ -25,7 +25,7 @@
 package com.bakdata.kafka;
 
 import static com.bakdata.kafka.AbstractLargeMessageConfig.PREFIX;
-import static software.amazon.awssdk.utils.StringUtils.isEmpty;
+import static com.bakdata.kafka.AbstractLargeMessageConfig.isEmpty;
 
 import java.io.File;
 import java.net.URI;
