@@ -68,7 +68,7 @@ class LargeMessageStoringClientGoogleIntegrationTest extends GoogleCloudStorageI
     private Map<String, Object> createProperties(final Map<String, Object> properties) {
         return ImmutableMap.<String, Object>builder()
                 .putAll(properties)
-                .put(GoogleCloudStorageConfig.GOOGLE_CLOUD_URL_CONFIG, this.getUrl())
+                .put(GoogleCloudStorageConfig.GOOGLE_CLOUD_HOST_CONFIG, this.getUrl())
                 .put(GoogleCloudStorageConfig.GOOGLE_CLOUD_PROJECT_CONFIG, PROJECT)
                 .build();
     }

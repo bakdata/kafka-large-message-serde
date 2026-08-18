@@ -68,7 +68,7 @@ class LargeMessageRetrievingClientGoogleIntegrationTest extends GoogleCloudStora
 
     private Map<String, Object> createProperties() {
         return Map.of(
-                GoogleCloudStorageConfig.GOOGLE_CLOUD_URL_CONFIG, this.getUrl(),
+                GoogleCloudStorageConfig.GOOGLE_CLOUD_HOST_CONFIG, this.getUrl(),
                 GoogleCloudStorageConfig.GOOGLE_CLOUD_PROJECT_CONFIG, PROJECT
         );
     }

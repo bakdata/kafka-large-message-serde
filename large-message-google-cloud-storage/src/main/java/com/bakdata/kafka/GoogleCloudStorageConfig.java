@@ -61,9 +61,9 @@ public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStor
     public static final String GOOGLE_CLOUD_KEY_PATH_CONFIG = GOOGLE_STORAGE_PREFIX + "key.path";
     public static final String GOOGLE_CLOUD_KEY_PATH_DOC = "Path to the service account JSON file";
     public static final String GOOGLE_CLOUD_KEY_PATH_DEFAULT = null;
-    public static final String GOOGLE_CLOUD_URL_CONFIG = GOOGLE_STORAGE_PREFIX + "url";
-    public static final String GOOGLE_CLOUD_URL_DOC = "Path to the service account JSON file";
-    public static final String GOOGLE_CLOUD_URL_DEFAULT = null;
+    public static final String GOOGLE_CLOUD_HOST_CONFIG = GOOGLE_STORAGE_PREFIX + "host";
+    public static final String GOOGLE_CLOUD_HOST_DOC = "Host for Google Cloud Storage";
+    public static final String GOOGLE_CLOUD_HOST_DEFAULT = null;
     public static final String GOOGLE_CLOUD_PROJECT_CONFIG = GOOGLE_STORAGE_PREFIX + "project";
     public static final String GOOGLE_CLOUD_PROJECT_DOC = "Google Cloud project ID";
     public static final String GOOGLE_CLOUD_PROJECT_DEFAULT = null;
@@ -83,8 +83,8 @@ public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStor
         return new ConfigDef()
                 .define(GOOGLE_CLOUD_KEY_PATH_CONFIG, Type.STRING, GOOGLE_CLOUD_KEY_PATH_DEFAULT, Importance.LOW,
                         GOOGLE_CLOUD_KEY_PATH_DOC)
-                .define(GOOGLE_CLOUD_URL_CONFIG, Type.STRING, GOOGLE_CLOUD_URL_DEFAULT, Importance.LOW,
-                        GOOGLE_CLOUD_URL_DOC)
+                .define(GOOGLE_CLOUD_HOST_CONFIG, Type.STRING, GOOGLE_CLOUD_HOST_DEFAULT, Importance.LOW,
+                        GOOGLE_CLOUD_HOST_DOC)
                 .define(GOOGLE_CLOUD_PROJECT_CONFIG, Type.STRING, GOOGLE_CLOUD_PROJECT_DEFAULT, Importance.LOW,
                         GOOGLE_CLOUD_PROJECT_DOC)
                 ;
@@ -114,7 +114,7 @@ public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStor
     }
 
     private Optional<String> getUrl() {
-        final String url = this.getString(GOOGLE_CLOUD_URL_CONFIG);
+        final String url = this.getString(GOOGLE_CLOUD_HOST_CONFIG);
         return isEmpty(url) ? Optional.empty() : Optional.of(url);
     }
 
