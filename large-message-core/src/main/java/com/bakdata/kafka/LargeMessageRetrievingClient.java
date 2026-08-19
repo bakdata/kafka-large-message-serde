@@ -69,7 +69,9 @@ public class LargeMessageRetrievingClient implements AutoCloseable {
         final LargeMessagePayloadProtocol protocol = this.getProtocol(headers, isKey);
         final LargeMessagePayload payload = protocol.deserialize(data, headers, isKey);
         CompressionType compressionType = CompressionType.NONE;
-        final Header compressionHeader = headers.lastHeader(CompressionType.HEADER_NAME);
+        final Header compressionHeader = Optional.ofNullable(headers.lastHeader(CompressionType.HEADER_NAME))
+                .or(() -> Optional.ofNullable(headers.lastHeader(CompressionType.OLD_HEADER_NAME)))
+                .orElse(null);
         if (compressionHeader != null) {
             compressionType = CompressionType.forId(compressionHeader.value()[0]);
         }

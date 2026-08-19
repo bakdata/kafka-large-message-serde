@@ -27,11 +27,15 @@ package com.bakdata.kafka;
 import static com.bakdata.kafka.TestHelper.serializeUri;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -56,6 +60,29 @@ class LargeMessageRetrievingClientS3IntegrationTest extends AmazonS3IntegrationT
         try (final LargeMessageRetrievingClient retriever = this.createRetriever()) {
             assertThat(retriever.retrieveBytes(createBackedText(bucket, key), new RecordHeaders(), false))
                     .isEqualTo(STRING_SERIALIZER.serialize(null, "foo"));
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldReadCompressedUsingOldHeader(final boolean isKey) {
+        final CompressionType compressionType = CompressionType.GZIP;
+        try (final S3Client s3 = this.getS3Client()) {
+            final String bucket = "bucket";
+            s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+            final String key = "key";
+            final byte[] obj = "foo".getBytes(StandardCharsets.UTF_8);
+            final byte[] bytes = compressionType.compress(obj);
+            s3.putObject(PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .build(), RequestBody.fromBytes(bytes));
+            final Headers headers = new RecordHeaders();
+            headers.add(CompressionType.OLD_HEADER_NAME, new byte[]{compressionType.getId()});
+            try (final LargeMessageRetrievingClient retriever = this.createRetriever()) {
+                final byte[] result = retriever.retrieveBytes(createBackedText(bucket, key), headers, isKey);
+                assertThat(result).isEqualTo(obj);
+            }
         }
     }
 
