@@ -100,8 +100,8 @@ public enum CompressionType {
         }
     };
 
-    //FIXME key contains `..`
-    public static final String HEADER_NAME = HeaderLargeMessagePayloadProtocol.HEADER_PREFIX + ".compression";
+    public static final String HEADER_NAME = HeaderLargeMessagePayloadProtocol.HEADER_PREFIX + "compression";
+    static final String OLD_HEADER_NAME = HeaderLargeMessagePayloadProtocol.HEADER_PREFIX + ".compression";
     private static final BufferSupplier BUFFER_SUPPLIER = BufferSupplier.create();
     @Getter
     private final byte id;

@@ -297,6 +297,33 @@ class LargeMessageDeserializerTest extends AmazonS3IntegrationTest {
     }
 
     @Test
+    void shouldReadBackedTextValueWithOldCompressionHeader() {
+        final String bucket = "bucket";
+        this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
+        final String key = "key";
+        this.store(bucket, key, "foo");
+        this.createTopology(LargeMessageDeserializerTest::createValueTopology);
+        final Headers headers = new RecordHeaders();
+        final byte[] value = createBackedText(bucket, key, headers, false);
+        // add compression header for 'none' type, so we can assert it is also properly removed
+        headers.add(CompressionType.OLD_HEADER_NAME, new byte[]{CompressionType.NONE.getId()});
+        this.topology.input()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.ByteArray())
+                .add(1, value, headers);
+        final List<ProducerRecord<Integer, String>> records = this.topology.streamOutput()
+                .withKeySerde(Serdes.Integer())
+                .withValueSerde(Serdes.String())
+                .toList();
+        assertThat(records)
+                .hasSize(1)
+                .anySatisfy(producerRecord -> {
+                    assertThat(producerRecord.value()).isEqualTo("foo");
+                    assertThat(producerRecord.headers()).isEmpty();
+                });
+    }
+
+    @Test
     void shouldReadBackedTextKey() {
         final String bucket = "bucket";
         this.getS3Client().createBucket(CreateBucketRequest.builder().bucket(bucket).build());
