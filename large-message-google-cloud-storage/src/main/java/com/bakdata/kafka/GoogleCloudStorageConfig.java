@@ -102,12 +102,9 @@ public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStor
     @Override
     public BlobStorageClient createBlobStorageClient() {
         final Builder builder = StorageOptions.newBuilder();
-        final Optional<Credentials> credentials = this.getCredentials();
-        credentials.ifPresent(builder::setCredentials);
-        final Optional<String> url = this.getUrl();
-        url.ifPresent(builder::setHost);
-        final Optional<String> project = this.getProject();
-        project.ifPresent(builder::setProjectId);
+        this.getCredentials().ifPresent(builder::setCredentials);
+        this.getUrl().ifPresent(builder::setHost);
+        this.getProject().ifPresent(builder::setProjectId);
         final StorageOptions options = builder.build();
         final Storage service = options.getService();
         return new GoogleCloudStorageClient(service);
