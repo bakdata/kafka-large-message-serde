@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2026 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,29 +22,24 @@
  * SOFTWARE.
  */
 
-description = "Base module for Kafka plugins that store large messages on a blob storage, such as Amazon S3 and Azure Blob Storage"
+package com.bakdata.kafka;
 
-plugins {
-    id("java-library")
-}
+import java.util.Map;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
+import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-dependencies {
-    compileOnly(platform(libs.kafka.bom))
-    compileOnly(libs.kafka.clients)
+@ExtendWith(SoftAssertionsExtension.class)
+class BlobStorageConfigFactoryTest {
+    @InjectSoftAssertions
+    private SoftAssertions softly;
 
-    implementation(libs.slf4j.api)
-    implementation(libs.guava)
-    implementation(libs.classgraph)
+    @Test
+    void shouldNotCreateConfig() {
+        final BlobStorageConfigFactory factory = new BlobStorageConfigFactory(InvalidBlobStorageConfig.class);
+        this.softly.assertThat(factory.create(Map.of())).isNotPresent();
+    }
 
-    testRuntimeOnly(libs.junit.platform.launcher)
-    testImplementation(libs.junit.jupiter)
-    testImplementation(libs.assertj)
-    testImplementation(libs.mockito.core)
-    testImplementation(libs.mockito.junit)
-    testImplementation(platform(libs.kafka.bom))
-    testImplementation(libs.kafka.clients)
-
-    testImplementation(libs.log4j.slf4j2)
-    testFixturesImplementation(platform(libs.kafka.bom))
-    testFixturesImplementation(libs.kafka.clients)
 }

@@ -15,7 +15,7 @@ You can add kafka-large-message-serde via Maven Central.
 
 #### Gradle
 ```gradle
-implementation group: 'com.bakdata.kafka', name: 'large-message-serde', version: '2.0.0'
+implementation group: 'com.bakdata.kafka', name: 'large-message-serde', version: '4.0.0'
 ```
 
 #### Maven
@@ -23,7 +23,7 @@ implementation group: 'com.bakdata.kafka', name: 'large-message-serde', version:
 <dependency>
     <groupId>com.bakdata.kafka</groupId>
     <artifactId>large-message-serde</artifactId>
-    <version>2.0.0</version>
+    <version>4.0.0</version>
 </dependency>
 ```
 
@@ -38,6 +38,8 @@ final Serde<String> serde = new LargeMessageSerde<>();
 serde.configure(Map.of(AbstractLargeMessageConfig.BASE_PATH_CONFIG, "s3://my-bucket/",
         LargeMessageSerdeConfig.VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class), false);
 ```
+
+##### General
 
 The following configuration options are available:
 
@@ -56,7 +58,7 @@ The following configuration options are available:
   * Importance: high
 
 ``large.message.base.path``
-  Base path to store data. Must include bucket and any prefix that should be used, e.g., `s3://my-bucket/my/prefix/`. Available protocols: `s3`, `abs`.
+  Base path to store data. Must include bucket and any prefix that should be used, e.g., `s3://my-bucket/my/prefix/`.
 
   * Type: string
   * Default: ""
@@ -91,6 +93,20 @@ for backwards compatibility but leads to increased memory usage. It is recommend
   * Type: class
   * Default: `com.bakdata.kafka.RandomUUIDGenerator`
   * Importance: medium
+
+``large.message.compression.type``
+  The compression type for data stored in blob storage. The default is `none` (i.e. no compression). Valid values are
+  `none`, `gzip`, `snappy`, `lz4` and `zstd`. Note: this option is only available when `large.message.use.headers` is
+  enabled.
+
+  * Type: string
+  * Default: "none"
+  * Importance: low
+
+##### Amazon S3
+
+To store large messages on Amazon S3, add the module `large-message-amazon-s3` as a dependency.
+The following options are available:
 
 ``large.message.s3.access.key``
   AWS access key to use for connecting to S3. Leave empty if AWS credential provider chain or STS Assume Role provider should be used.
@@ -163,12 +179,22 @@ Endpoint to use for connection to Amazon S3. Leave empty if default S3 endpoint 
   * Default: "WHEN_SUPPORTED"
   * Importance: low
 
+##### Azure Blob Storage
+
+To store large messages on Azure Blob Storage, add the module `large-message-azure-blob-storage` as a dependency.
+The following options are available:
+
 ``large.message.abs.connection.string``
   Azure connection string for connection to blob storage. Leave empty if Azure credential provider chain should be used.
 
   * Type: password
   * Default: ""
   * Importance: low
+
+##### Google Cloud Storage
+
+To store large messages on Google Cloud Storage, add the module `large-message-google-cloud-storage` as a dependency.
+The following options are available:
 
 ``large.message.gs.key.path``
   Google service account key JSON path. Leave empty If the environment variable GOOGLE_APPLICATION_CREDENTIALS is set
@@ -180,13 +206,18 @@ Endpoint to use for connection to Amazon S3. Leave empty if default S3 endpoint 
   * Default: ""
   * Importance: low
 
-``large.message.compression.type``
-  The compression type for data stored in blob storage. The default is `none` (i.e. no compression). Valid values are `none`,
-  `gzip`, `snappy`, `lz4` and `zstd`.
-  Note: this option is only available when `large.message.use.headers` is enabled.
+``large.message.gs.host``
+  Host for Google Cloud Storage.
 
   * Type: string
-  * Default: "none"
+  * Default: ""
+  * Importance: low
+
+``large.message.gs.project``
+  Google Cloud project ID.
+
+  * Type: string
+  * Default: ""
   * Importance: low
 
 
@@ -197,7 +228,7 @@ You can add kafka-large-message-connect via Maven Central.
 
 #### Gradle
 ```gradle
-implementation group: 'com.bakdata.kafka', name: 'large-message-connect', version: '1.1.6'
+implementation group: 'com.bakdata.kafka', name: 'large-message-connect', version: '4.0.0'
 ```
 
 #### Maven
@@ -205,7 +236,7 @@ implementation group: 'com.bakdata.kafka', name: 'large-message-connect', versio
 <dependency>
     <groupId>com.bakdata.kafka</groupId>
     <artifactId>large-message-connect</artifactId>
-    <version>2.0.0</version>
+    <version>4.0.0</version>
 </dependency>
 ```
 

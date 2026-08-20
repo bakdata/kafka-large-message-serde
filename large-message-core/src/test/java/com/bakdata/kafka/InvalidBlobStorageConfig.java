@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2026 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,29 +22,23 @@
  * SOFTWARE.
  */
 
-description = "Base module for Kafka plugins that store large messages on a blob storage, such as Amazon S3 and Azure Blob Storage"
+package com.bakdata.kafka;
 
-plugins {
-    id("java-library")
-}
+import static java.util.Collections.emptyMap;
 
-dependencies {
-    compileOnly(platform(libs.kafka.bom))
-    compileOnly(libs.kafka.clients)
+import org.apache.kafka.common.config.AbstractConfig;
+import org.apache.kafka.common.config.ConfigDef;
 
-    implementation(libs.slf4j.api)
-    implementation(libs.guava)
-    implementation(libs.classgraph)
+@BlobStorageType(InvalidBlobStorageConfig.SCHEME)
+public class InvalidBlobStorageConfig extends AbstractConfig implements BlobStorageConfig {
+    static final String SCHEME = "invalid";
 
-    testRuntimeOnly(libs.junit.platform.launcher)
-    testImplementation(libs.junit.jupiter)
-    testImplementation(libs.assertj)
-    testImplementation(libs.mockito.core)
-    testImplementation(libs.mockito.junit)
-    testImplementation(platform(libs.kafka.bom))
-    testImplementation(libs.kafka.clients)
+    public InvalidBlobStorageConfig() {
+        super(new ConfigDef(), emptyMap());
+    }
 
-    testImplementation(libs.log4j.slf4j2)
-    testFixturesImplementation(platform(libs.kafka.bom))
-    testFixturesImplementation(libs.kafka.clients)
+    @Override
+    public BlobStorageClient createBlobStorageClient() {
+        throw new UnsupportedOperationException();
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2025 bakdata
+ * Copyright (c) 2026 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -76,7 +76,7 @@ public class LargeMessageConverterConfig extends AbstractLargeMessageConfig {
     }
 
     Converter getConverter() {
-        return this.getInstance(CONVERTER_CLASS_CONFIG, Converter.class);
+        return getInstance(this, CONVERTER_CLASS_CONFIG, Converter.class);
     }
 
 }

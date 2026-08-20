@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2026 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,29 +22,25 @@
  * SOFTWARE.
  */
 
-description = "Base module for Kafka plugins that store large messages on a blob storage, such as Amazon S3 and Azure Blob Storage"
+package com.bakdata.kafka;
 
-plugins {
-    id("java-library")
-}
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-dependencies {
-    compileOnly(platform(libs.kafka.bom))
-    compileOnly(libs.kafka.clients)
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-    implementation(libs.slf4j.api)
-    implementation(libs.guava)
-    implementation(libs.classgraph)
+/**
+ * {@link BlobStorageConfig} classes annotated with this annotation are registered with the scheme specified by
+ * {@link #value()} when storing and retrieving large messages using {@link AbstractLargeMessageConfig}.
+ */
+@Retention(RUNTIME)
+@Target({TYPE})
+public @interface BlobStorageType {
 
-    testRuntimeOnly(libs.junit.platform.launcher)
-    testImplementation(libs.junit.jupiter)
-    testImplementation(libs.assertj)
-    testImplementation(libs.mockito.core)
-    testImplementation(libs.mockito.junit)
-    testImplementation(platform(libs.kafka.bom))
-    testImplementation(libs.kafka.clients)
-
-    testImplementation(libs.log4j.slf4j2)
-    testFixturesImplementation(platform(libs.kafka.bom))
-    testFixturesImplementation(libs.kafka.clients)
+    /**
+     * Scheme used by this {@link BlobStorageConfig}
+     * @return scheme
+     */
+    String value();
 }

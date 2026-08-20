@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 bakdata
+ * Copyright (c) 2026 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,29 +22,30 @@
  * SOFTWARE.
  */
 
-description = "Base module for Kafka plugins that store large messages on a blob storage, such as Amazon S3 and Azure Blob Storage"
+package com.bakdata.kafka;
 
-plugins {
-    id("java-library")
-}
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
+import org.testcontainers.azure.AzuriteContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
-dependencies {
-    compileOnly(platform(libs.kafka.bom))
-    compileOnly(libs.kafka.clients)
+@Testcontainers
+abstract class AzureBlobStorageIntegrationTest {
+    private static final DockerImageName AZURITE_IMAGE =
+            DockerImageName.parse("mcr.microsoft.com/azure-storage/azurite")
+                    .withTag("3.36.0");
+    @Container
+    private final AzuriteContainer azure = new AzuriteContainer(AZURITE_IMAGE);
 
-    implementation(libs.slf4j.api)
-    implementation(libs.guava)
-    implementation(libs.classgraph)
+    String getConnectionString() {
+        return this.azure.getConnectionString();
+    }
 
-    testRuntimeOnly(libs.junit.platform.launcher)
-    testImplementation(libs.junit.jupiter)
-    testImplementation(libs.assertj)
-    testImplementation(libs.mockito.core)
-    testImplementation(libs.mockito.junit)
-    testImplementation(platform(libs.kafka.bom))
-    testImplementation(libs.kafka.clients)
-
-    testImplementation(libs.log4j.slf4j2)
-    testFixturesImplementation(platform(libs.kafka.bom))
-    testFixturesImplementation(libs.kafka.clients)
+    BlobServiceClient getBlobServiceClient() {
+        return new BlobServiceClientBuilder()
+                .connectionString(this.getConnectionString())
+                .buildClient();
+    }
 }

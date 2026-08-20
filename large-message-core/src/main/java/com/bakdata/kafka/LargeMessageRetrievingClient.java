@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2025 bakdata
+ * Copyright (c) 2026 bakdata
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Supplier;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +45,7 @@ public class LargeMessageRetrievingClient implements AutoCloseable {
 
     private static final LargeMessagePayloadProtocol BYTE_FLAG_PROTOCOL = new ByteFlagLargeMessagePayloadProtocol();
     private static final LargeMessagePayloadProtocol HEADER_PROTOCOL = new HeaderLargeMessagePayloadProtocol();
-    private final @NonNull Map<String, Supplier<BlobStorageClient>> clientFactories;
+    private final @NonNull Map<String, BlobStorageConfig> configs;
     private final @NonNull Map<String, BlobStorageClient> clientCache = new HashMap<>();
     private final boolean acceptNoHeaders;
 
@@ -128,8 +127,8 @@ public class LargeMessageRetrievingClient implements AutoCloseable {
     }
 
     private BlobStorageClient createClient(final String scheme) {
-        return Optional.ofNullable(this.clientFactories.get(scheme))
-                .map(Supplier::get)
+        return Optional.ofNullable(this.configs.get(scheme))
+                .map(BlobStorageConfig::createBlobStorageClient)
                 .orElseThrow(() -> AbstractLargeMessageConfig.unknownScheme(scheme));
     }
 }

@@ -18,5 +18,8 @@ include(
     ":large-message-core",
     ":large-message-serde",
     ":large-message-connect",
+    ":large-message-amazon-s3",
+    ":large-message-google-cloud-storage",
+    ":large-message-azure-blob-storage",
     ":large-message-bom",
 )
