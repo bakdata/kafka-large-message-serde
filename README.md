@@ -105,7 +105,8 @@ for backwards compatibility but leads to increased memory usage. It is recommend
 
 ##### Amazon S3
 
-When adding `large-message-amazon-s3` to store large messages on Amazon S3, the following options are available:
+To store large messages on Amazon S3, add the module `large-message-amazon-s3` as a dependency.
+The following options are available:
 
 ``large.message.s3.access.key``
   AWS access key to use for connecting to S3. Leave empty if AWS credential provider chain or STS Assume Role provider should be used.
@@ -180,8 +181,8 @@ Endpoint to use for connection to Amazon S3. Leave empty if default S3 endpoint 
 
 ##### Azure Blob Storage
 
-When adding `large-message-azure-blob-storage` to store large messages on Azure Blob Storage, the following options are
-available:
+To store large messages on Azure Blob Storage, add the module `large-message-azure-blob-storage` as a dependency.
+The following options are available:
 
 ``large.message.abs.connection.string``
   Azure connection string for connection to blob storage. Leave empty if Azure credential provider chain should be used.
@@ -192,8 +193,8 @@ available:
 
 ##### Google Cloud Storage
 
-When adding `large-message-google-cloud-storage` to store large messages on Google Cloud Storage, the following options
-are available:
+To store large messages on Google Cloud Storage, add the module `large-message-google-cloud-storage` as a dependency.
+The following options are available:
 
 ``large.message.gs.key.path``
   Google service account key JSON path. Leave empty If the environment variable GOOGLE_APPLICATION_CREDENTIALS is set
