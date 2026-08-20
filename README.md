@@ -12,19 +12,21 @@ Formerly known as kafka-s3-backed-serde.
 You can add large-message-bom via Maven Central.
 
 ### Gradle
-```gradle
+```gradlekts
 implementation(platform("com.bakdata.kafka:large-message-bom:4.0.0"))
 ```
 
 ### Maven
 ```xml
-<dependency>
+<dependencyManagement>
+  <dependency>
     <groupId>com.bakdata.kafka</groupId>
     <artifactId>large-message-bom</artifactId>
     <version>4.0.0</version>
     <type>pom</type>
     <scope>import</scope>
-</dependency>
+  </dependency>
+</dependencyManagement>
 ```
 
 For other build tools or versions, refer to the [latest version in MvnRepository](https://mvnrepository.com/artifact/com.bakdata.kafka/large-message-bom/latest).
