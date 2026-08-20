@@ -4,10 +4,6 @@ plugins {
     id("java-library")
 }
 
-configurations.all {
-    exclude(group = "commons-logging", module = "commons-logging")
-}
-
 dependencies {
     compileOnly(platform(libs.kafka.bom))
     compileOnly(libs.kafka.clients)
@@ -15,7 +11,6 @@ dependencies {
     api(project(":large-message-core"))
     api(libs.aws.s3)
     api(libs.aws.sts)
-    implementation(libs.slf4j.jcl)
 
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.junit.jupiter)
