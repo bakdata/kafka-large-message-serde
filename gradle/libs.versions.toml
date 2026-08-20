@@ -15,7 +15,6 @@ kafka-connect-runtime = { group = "org.apache.kafka", name = "connect-runtime" }
 kafka-connect-file = { group = "org.apache.kafka", name = "connect-file" }
 kafka-test-common-runtime = { group = "org.apache.kafka", name = "kafka-test-common-runtime" }
 slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
-slf4j-jcl = { group = "org.slf4j", name = "jcl-over-slf4j", version.ref = "slf4j" }
 aws-s3 = { group = "software.amazon.awssdk", name = "s3", version.ref = "aws" }
 aws-sts = { group = "software.amazon.awssdk", name = "sts", version.ref = "aws" }
 azure-storage-blob = { group = "com.azure", name = "azure-storage-blob", version = "12.32.0" }
