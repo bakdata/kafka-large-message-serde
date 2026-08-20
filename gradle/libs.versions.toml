@@ -1,7 +1,7 @@
 [versions]
 junit = "6.1.2"
 slf4j = "2.0.18"
-aws = "2.49.3"
+aws = "2.52.1"
 mockito = "5.23.0"
 testcontainers = "2.0.5"
 
