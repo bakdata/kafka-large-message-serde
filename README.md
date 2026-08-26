@@ -9,25 +9,31 @@ Formerly known as kafka-s3-backed-serde.
 
 ## Getting Started
 
+You can add large-message-bom via Maven Central.
+
+### Gradle
+```gradlekts
+implementation(platform("com.bakdata.kafka:large-message-bom:4.0.0"))
+```
+
+### Maven
+```xml
+<dependencyManagement>
+  <dependency>
+    <groupId>com.bakdata.kafka</groupId>
+    <artifactId>large-message-bom</artifactId>
+    <version>4.0.0</version>
+    <type>pom</type>
+    <scope>import</scope>
+  </dependency>
+</dependencyManagement>
+```
+
+For other build tools or versions, refer to the [latest version in MvnRepository](https://mvnrepository.com/artifact/com.bakdata.kafka/large-message-bom/latest).
+
 ### Serde
 
-You can add kafka-large-message-serde via Maven Central.
-
-#### Gradle
-```gradle
-implementation group: 'com.bakdata.kafka', name: 'large-message-serde', version: '4.0.0'
-```
-
-#### Maven
-```xml
-<dependency>
-    <groupId>com.bakdata.kafka</groupId>
-    <artifactId>large-message-serde</artifactId>
-    <version>4.0.0</version>
-</dependency>
-```
-
-For other build tools or versions, refer to the [latest version in MvnRepository](https://mvnrepository.com/artifact/com.bakdata.kafka/large-message-serde/latest).
+Add `large-message-serde` as a dependency to your project.
 
 #### Usage
 
@@ -224,23 +230,7 @@ The following options are available:
 ### Kafka Connect
 
 This serde also comes with support for Kafka Connect.
-You can add kafka-large-message-connect via Maven Central.
-
-#### Gradle
-```gradle
-implementation group: 'com.bakdata.kafka', name: 'large-message-connect', version: '4.0.0'
-```
-
-#### Maven
-```xml
-<dependency>
-    <groupId>com.bakdata.kafka</groupId>
-    <artifactId>large-message-connect</artifactId>
-    <version>4.0.0</version>
-</dependency>
-```
-
-For other build tools or versions, refer to the [latest version in MvnRepository](https://mvnrepository.com/artifact/com.bakdata.kafka/large-message-connect/latest).
+Add `large-message-connect` as a dependency to your Kafka Connect cluster.
 
 #### Usage
 

@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [4.0.0](https://github.com/bakdata/kafka-large-message-serde/tree/4.0.0) - 2026-08-20
+### What's changed
+
+* Upgrade to fluent-kafka 4.0 by @philipp94831 in [#203](https://github.com/bakdata/kafka-large-message-serde/pull/203)
+
+* Bump the "build" group with 1 update across multiple ecosystems by @dependabot[bot] in [#207](https://github.com/bakdata/kafka-large-message-serde/pull/207)
+
+* Bump aws from 2.46.17 to 2.49.3 by @dependabot[bot] in [#205](https://github.com/bakdata/kafka-large-message-serde/pull/205)
+
+* Bump org.junit.jupiter:junit-jupiter from 6.1.1 to 6.1.2 in the test-dependencies group by @dependabot[bot] in [#204](https://github.com/bakdata/kafka-large-message-serde/pull/204)
+
+* Fix compression header name by @philipp94831 in [#209](https://github.com/bakdata/kafka-large-message-serde/pull/209)
+
+* Modularize blob storage types by @philipp94831 in [#208](https://github.com/bakdata/kafka-large-message-serde/pull/208)
+
+* Bump the build group with 4 updates by @dependabot[bot] in [#213](https://github.com/bakdata/kafka-large-message-serde/pull/213)
+
+* Bump org.junit.jupiter:junit-jupiter from 6.1.2 to 6.1.3 by @dependabot[bot] in [#216](https://github.com/bakdata/kafka-large-message-serde/pull/216)
+
+* Bump the google-cloud group with 2 updates by @dependabot[bot] in [#211](https://github.com/bakdata/kafka-large-message-serde/pull/211)
+
+* Bump aws from 2.49.3 to 2.52.1 by @dependabot[bot] in [#217](https://github.com/bakdata/kafka-large-message-serde/pull/217)
+
+* Remove Java commons logging bridge by @philipp94831 in [#218](https://github.com/bakdata/kafka-large-message-serde/pull/218)
+
+* Use BOM in README by @philipp94831 in [#219](https://github.com/bakdata/kafka-large-message-serde/pull/219)
+
+* Bump com.google.cloud:google-cloud-nio from 0.134.0 to 0.135.0 by @dependabot[bot] in [#214](https://github.com/bakdata/kafka-large-message-serde/pull/214)
+
+
+**Full Changelog**: https://github.com/bakdata/kafka-large-message-serde/compare/3.2.1...4.0.0
+
 ## [3.2.1](https://github.com/bakdata/kafka-large-message-serde/tree/3.2.1) - 2026-07-17
 ### What's changed
 
