@@ -27,11 +27,13 @@ package com.bakdata.kafka;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ClassInfoList;
+import io.github.classgraph.HasName;
 import io.github.classgraph.ScanResult;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.experimental.UtilityClass;
@@ -43,6 +45,8 @@ class BlobStorageConfigLoader {
     static Collection<BlobStorageConfigFactory> loadConfigFactories() {
         try (final ScanResult scanResult = new ClassGraph()
                 .enableAnnotationInfo()
+                .enableClassInfo()
+                .enableClasspath()
                 .scan()) {
             final ClassInfoList classes = scanResult.getClassesWithAnnotation(BlobStorageType.class);
             return load(classes);
@@ -67,12 +71,20 @@ class BlobStorageConfigLoader {
 
     private static List<BlobStorageConfigFactory> load(final Collection<? extends ClassInfo> classes) {
         final Stream<Class<? extends BlobStorageConfig>> classStream = classes.stream()
-                .map(BlobStorageConfigLoader::loadClass);
+                .map(BlobStorageConfigLoader::loadClass)
+                .flatMap(Optional::stream);
         return load(classStream);
     }
 
-    private static Class<? extends BlobStorageConfig> loadClass(final ClassInfo classInfo) {
-        return classInfo.loadClass(BlobStorageConfig.class);
+    private static Optional<Class<? extends BlobStorageConfig>> loadClass(final HasName classInfo) {
+        final String name = classInfo.getName();
+        try {
+            final Class<? extends BlobStorageConfig> clazz = (Class<? extends BlobStorageConfig>) Class.forName(name);
+            return Optional.of(clazz);
+        } catch (final ClassNotFoundException e) {
+            log.error("Cannot create blob storage config {}", name, e);
+            return Optional.empty();
+        }
     }
 
 }
