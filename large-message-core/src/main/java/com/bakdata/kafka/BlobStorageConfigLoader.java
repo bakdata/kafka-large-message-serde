@@ -37,6 +37,8 @@ import lombok.extern.slf4j.Slf4j;
 @UtilityClass
 @Slf4j
 class BlobStorageConfigLoader {
+    // Providers must be compatible with the BlobStorageConfigProvider loaded by this class loader. The context class
+    // loader might not see the providers or might use a different copy of the interface, e.g., in Kafka Connect.
     static List<BlobStorageConfigProvider> loadProviders() {
         final ServiceLoader<BlobStorageConfigProvider> serviceLoader = ServiceLoader.load(
                 BlobStorageConfigProvider.class, BlobStorageConfigProvider.class.getClassLoader());
