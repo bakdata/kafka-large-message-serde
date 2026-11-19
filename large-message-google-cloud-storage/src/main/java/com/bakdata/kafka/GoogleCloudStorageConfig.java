@@ -55,7 +55,6 @@ import org.apache.kafka.common.config.ConfigDef.Type;
  * </ul>
  */
 @Slf4j
-@BlobStorageType(GoogleCloudStorageClient.SCHEME)
 public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStorageConfig {
     public static final String GOOGLE_STORAGE_PREFIX = PREFIX + GoogleCloudStorageClient.SCHEME + ".";
     public static final String GOOGLE_CLOUD_KEY_PATH_CONFIG = GOOGLE_STORAGE_PREFIX + "key.path";

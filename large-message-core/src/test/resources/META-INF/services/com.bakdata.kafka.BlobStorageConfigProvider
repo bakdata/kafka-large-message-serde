@@ -1,0 +1,2 @@
+com.bakdata.kafka.TestBlobStorageConfigProvider
+com.bakdata.kafka.InvalidBlobStorageConfigProvider

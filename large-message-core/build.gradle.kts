@@ -34,7 +34,6 @@ dependencies {
 
     implementation(libs.slf4j.api)
     implementation(libs.guava)
-    implementation(libs.classgraph)
 
     testRuntimeOnly(libs.junit.platform.launcher)
     testImplementation(libs.junit.jupiter)

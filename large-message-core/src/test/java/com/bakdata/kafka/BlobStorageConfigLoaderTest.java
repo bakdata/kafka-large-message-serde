@@ -25,6 +25,7 @@
 package com.bakdata.kafka;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
@@ -39,19 +40,19 @@ class BlobStorageConfigLoaderTest {
 
     @Test
     void shouldLoad() {
-        final Collection<BlobStorageConfigFactory> factories = BlobStorageConfigLoader.loadConfigFactories();
-        this.softly.assertThat(factories)
-                .extracting(BlobStorageConfigFactory::getScheme)
-                .containsExactlyInAnyOrder(TestBlobStorageConfig.SCHEME, InvalidBlobStorageConfig.SCHEME);
+        final Collection<BlobStorageConfigProvider> providers = BlobStorageConfigLoader.loadProviders();
+        this.softly.assertThat(providers)
+                .extracting(BlobStorageConfigProvider::getScheme)
+                .containsExactlyInAnyOrder(TestBlobStorageConfig.SCHEME, InvalidBlobStorageConfigProvider.SCHEME);
     }
 
     @Test
     void shouldFailOnDuplicateScheme() {
-        final Stream<Class<? extends BlobStorageConfig>> classes = Stream.of(
-                Duplicate1.class,
-                Duplicate2.class
+        final Stream<BlobStorageConfigProvider> providers = Stream.of(
+                new Duplicate1(),
+                new Duplicate2()
         );
-        this.softly.assertThatThrownBy(() -> BlobStorageConfigLoader.load(classes))
+        this.softly.assertThatThrownBy(() -> BlobStorageConfigLoader.load(providers))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageStartingWith("Duplicate schemes found: {duplicate=[")
                 .hasMessageContaining(Duplicate1.class.getName())
@@ -59,18 +60,26 @@ class BlobStorageConfigLoaderTest {
                 .hasMessageEndingWith("]}");
     }
 
-    @BlobStorageType("duplicate")
-    private static class Duplicate1 implements BlobStorageConfig {
+    private static class Duplicate1 implements BlobStorageConfigProvider {
         @Override
-        public BlobStorageClient createBlobStorageClient() {
+        public String getScheme() {
+            return "duplicate";
+        }
+
+        @Override
+        public BlobStorageConfig createConfig(final Map<?, ?> originals) {
             throw new UnsupportedOperationException();
         }
     }
 
-    @BlobStorageType("duplicate")
-    private static class Duplicate2 implements BlobStorageConfig {
+    private static class Duplicate2 implements BlobStorageConfigProvider {
         @Override
-        public BlobStorageClient createBlobStorageClient() {
+        public String getScheme() {
+            return "duplicate";
+        }
+
+        @Override
+        public BlobStorageConfig createConfig(final Map<?, ?> originals) {
             throw new UnsupportedOperationException();
         }
     }

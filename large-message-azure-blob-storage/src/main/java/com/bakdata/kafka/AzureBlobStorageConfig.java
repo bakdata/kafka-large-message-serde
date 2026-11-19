@@ -45,7 +45,6 @@ import org.apache.kafka.common.config.ConfigDef.Type;
  * </ul>
  */
 @Slf4j
-@BlobStorageType(AzureBlobStorageClient.SCHEME)
 public class AzureBlobStorageConfig extends AbstractConfig implements BlobStorageConfig {
     public static final String AZURE_PREFIX = PREFIX + AzureBlobStorageClient.SCHEME + ".";
     public static final String AZURE_CONNECTION_STRING_CONFIG = AZURE_PREFIX + "connection.string";

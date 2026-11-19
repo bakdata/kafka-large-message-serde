@@ -63,7 +63,6 @@ import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider
  * </ul>
  */
 @Slf4j
-@BlobStorageType(AmazonS3Client.SCHEME)
 public class AmazonS3Config extends AbstractConfig implements BlobStorageConfig {
     public static final String S3_PREFIX = PREFIX + AmazonS3Client.SCHEME + ".";
     public static final String S3_ENDPOINT_CONFIG = S3_PREFIX + "endpoint";
