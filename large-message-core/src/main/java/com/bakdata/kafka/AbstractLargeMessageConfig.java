@@ -34,6 +34,7 @@ import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Importance;
 import org.apache.kafka.common.config.ConfigDef.Type;
+import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.utils.Utils;
 
@@ -153,7 +154,7 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
             final Map<?, ?> originals) {
         try {
             return Optional.of(provider.createConfig(originals));
-        } catch (final LinkageError | RuntimeException e) {
+        } catch (final ConfigException e) {
             log.error("Cannot create blob storage config for scheme {} using {}", provider.getScheme(),
                     provider.getClass().getName(), e);
             return Optional.empty();

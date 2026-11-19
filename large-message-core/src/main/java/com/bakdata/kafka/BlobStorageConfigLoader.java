@@ -24,13 +24,13 @@
 
 package com.bakdata.kafka;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ServiceLoader;
 import java.util.ServiceLoader.Provider;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,12 +42,11 @@ class BlobStorageConfigLoader {
     static List<BlobStorageConfigProvider> loadProviders() {
         final ServiceLoader<BlobStorageConfigProvider> serviceLoader = ServiceLoader.load(
                 BlobStorageConfigProvider.class, BlobStorageConfigProvider.class.getClassLoader());
-        return load(serviceLoader.stream().map(Provider::get));
+        return load(serviceLoader);
     }
 
-    static List<BlobStorageConfigProvider> load(final Stream<BlobStorageConfigProvider> providers) {
-        final List<BlobStorageConfigProvider> providerList = providers.toList();
-        final Map<String, List<BlobStorageConfigProvider>> byScheme = providerList.stream()
+    static List<BlobStorageConfigProvider> load(final List<BlobStorageConfigProvider> providers) {
+        final Map<String, List<BlobStorageConfigProvider>> byScheme = providers.stream()
                 .collect(Collectors.groupingBy(BlobStorageConfigProvider::getScheme));
         final Map<String, List<String>> duplicates = byScheme.entrySet().stream()
                 .filter(entry -> entry.getValue().size() > 1)
@@ -55,11 +54,18 @@ class BlobStorageConfigLoader {
         if (!duplicates.isEmpty()) {
             throw new IllegalStateException("Duplicate schemes found: %s".formatted(duplicates));
         }
-        log.info("Found {} blob storage providers for types: {}", providerList.size(), byScheme.keySet());
-        return providerList;
+        log.info("Found {} blob storage providers for types: {}", providers.size(), byScheme.keySet());
+        return providers;
     }
 
-    private static List<String> getClassNames(final List<? extends BlobStorageConfigProvider> providers) {
+    private static List<BlobStorageConfigProvider> load(final ServiceLoader<BlobStorageConfigProvider> serviceLoader) {
+        final List<BlobStorageConfigProvider> providers = serviceLoader.stream()
+                .map(Provider::get)
+                .toList();
+        return load(providers);
+    }
+
+    private static List<String> getClassNames(final Collection<? extends BlobStorageConfigProvider> providers) {
         return providers.stream()
                 .map(provider -> provider.getClass().getName())
                 .toList();

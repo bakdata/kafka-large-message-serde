@@ -39,7 +39,6 @@ import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Importance;
@@ -54,7 +53,6 @@ import org.apache.kafka.common.config.ConfigDef.Type;
  *     <li> Project
  * </ul>
  */
-@Slf4j
 public class GoogleCloudStorageConfig extends AbstractConfig implements BlobStorageConfig {
     public static final String GOOGLE_STORAGE_PREFIX = PREFIX + GoogleCloudStorageClient.SCHEME + ".";
     public static final String GOOGLE_CLOUD_KEY_PATH_CONFIG = GOOGLE_STORAGE_PREFIX + "key.path";

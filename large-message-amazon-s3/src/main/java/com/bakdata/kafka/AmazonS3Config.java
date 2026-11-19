@@ -31,7 +31,6 @@ import java.io.File;
 import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Importance;
@@ -62,7 +61,6 @@ import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider
  *     <li> S3 request checksum calculation mode
  * </ul>
  */
-@Slf4j
 public class AmazonS3Config extends AbstractConfig implements BlobStorageConfig {
     public static final String S3_PREFIX = PREFIX + AmazonS3Client.SCHEME + ".";
     public static final String S3_ENDPOINT_CONFIG = S3_PREFIX + "endpoint";

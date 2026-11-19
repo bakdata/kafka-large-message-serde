@@ -31,7 +31,6 @@ import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import java.util.Map;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Importance;
@@ -44,7 +43,6 @@ import org.apache.kafka.common.config.ConfigDef.Type;
  *     <li> Connection string
  * </ul>
  */
-@Slf4j
 public class AzureBlobStorageConfig extends AbstractConfig implements BlobStorageConfig {
     public static final String AZURE_PREFIX = PREFIX + AzureBlobStorageClient.SCHEME + ".";
     public static final String AZURE_CONNECTION_STRING_CONFIG = AZURE_PREFIX + "connection.string";

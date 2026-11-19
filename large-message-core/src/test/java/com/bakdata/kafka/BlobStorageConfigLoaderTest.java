@@ -25,8 +25,8 @@
 package com.bakdata.kafka;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
@@ -48,7 +48,7 @@ class BlobStorageConfigLoaderTest {
 
     @Test
     void shouldFailOnDuplicateScheme() {
-        final Stream<BlobStorageConfigProvider> providers = Stream.of(
+        final List<BlobStorageConfigProvider> providers = List.of(
                 new Duplicate1(),
                 new Duplicate2()
         );
