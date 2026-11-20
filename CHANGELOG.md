@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [5.0.0](https://github.com/bakdata/kafka-large-message-serde/tree/5.0.0) - 2026-11-20
+### What's changed
+
+* Bump com.azure:azure-storage-blob from 12.32.0 to 12.35.1 by @dependabot[bot] in [#215](https://github.com/bakdata/kafka-large-message-serde/pull/215)
+
+* Bump aws from 2.52.1 to 2.54.3 by @dependabot[bot] in [#222](https://github.com/bakdata/kafka-large-message-serde/pull/222)
+
+* Bump the google-cloud group with 2 updates by @dependabot[bot] in [#221](https://github.com/bakdata/kafka-large-message-serde/pull/221)
+
+* Bump the "build" group with 1 update across multiple ecosystems by @dependabot[bot] in [#225](https://github.com/bakdata/kafka-large-message-serde/pull/225)
+
+* Bump io.github.classgraph:classgraph from 4.8.192 to 4.8.194 by @dependabot[bot] in [#224](https://github.com/bakdata/kafka-large-message-serde/pull/224)
+
+* Bump com.bakdata.kafka:kafka-bom from 1.6.1 to 2.0.0 in the kafka-dependencies group by @dependabot[bot] in [#220](https://github.com/bakdata/kafka-large-message-serde/pull/220)
+
+* Bump com.google.guava:guava from 33.6.0-jre to 33.7.2-jre by @dependabot[bot] in [#223](https://github.com/bakdata/kafka-large-message-serde/pull/223)
+
+* Bump the test-dependencies group with 2 updates by @dependabot[bot] in [#229](https://github.com/bakdata/kafka-large-message-serde/pull/229)
+
+* Bump org.slf4j:slf4j-api from 2.0.18 to 2.0.20 in the log-dependencies group by @dependabot[bot] in [#228](https://github.com/bakdata/kafka-large-message-serde/pull/228)
+
+* Bump com.bakdata.kafka:kafka-bom from 2.0.0 to 2.0.1 in the kafka-dependencies group by @dependabot[bot] in [#227](https://github.com/bakdata/kafka-large-message-serde/pull/227)
+
+* Bump the google-cloud group with 2 updates by @dependabot[bot] in [#230](https://github.com/bakdata/kafka-large-message-serde/pull/230)
+
+* Bump the "build" group with 2 updates across multiple ecosystems by @dependabot[bot] in [#232](https://github.com/bakdata/kafka-large-message-serde/pull/232)
+
+* Bump com.azure:azure-storage-blob from 12.35.1 to 12.36.0 by @dependabot[bot] in [#231](https://github.com/bakdata/kafka-large-message-serde/pull/231)
+
+* Use service loader instead of classgraph by @philipp94831 in [#233](https://github.com/bakdata/kafka-large-message-serde/pull/233)
+
+
+**Full Changelog**: https://github.com/bakdata/kafka-large-message-serde/compare/4.0.0...5.0.0
+
 ## [4.0.0](https://github.com/bakdata/kafka-large-message-serde/tree/4.0.0) - 2026-08-20
 ### What's changed
 
