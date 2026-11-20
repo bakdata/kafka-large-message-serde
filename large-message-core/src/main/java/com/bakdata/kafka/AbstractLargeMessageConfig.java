@@ -34,6 +34,7 @@ import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Importance;
 import org.apache.kafka.common.config.ConfigDef.Type;
+import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.utils.Utils;
 
@@ -85,8 +86,8 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     public static final String COMPRESSION_TYPE_DEFAULT = "none";
 
     private static final ConfigDef config = baseConfigDef();
-    private static final Collection<BlobStorageConfigFactory> CONFIG_FACTORIES =
-            BlobStorageConfigLoader.loadConfigFactories();
+    private static final Collection<BlobStorageConfigProvider> CONFIG_PROVIDERS =
+            BlobStorageConfigLoader.loadProviders();
     private final Map<String, BlobStorageConfig> configs;
 
     /**
@@ -142,10 +143,22 @@ public class AbstractLargeMessageConfig extends AbstractConfig {
     }
 
     private static Map<String, BlobStorageConfig> getConfigs(final Map<?, ?> originals) {
-        return CONFIG_FACTORIES.stream()
-                .map(factory -> factory.create(originals))
-                .flatMap(Optional::stream)
-                .collect(Collectors.toMap(ConfigWithScheme::getScheme, ConfigWithScheme::getConfig));
+        return CONFIG_PROVIDERS.stream()
+                .flatMap(provider -> createConfig(provider, originals)
+                        .map(config -> Map.entry(provider.getScheme(), config))
+                        .stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private static Optional<BlobStorageConfig> createConfig(final BlobStorageConfigProvider provider,
+            final Map<?, ?> originals) {
+        try {
+            return Optional.of(provider.createConfig(originals));
+        } catch (final ConfigException e) {
+            log.error("Cannot create blob storage config for scheme {} using {}", provider.getScheme(),
+                    provider.getClass().getName(), e);
+            return Optional.empty();
+        }
     }
 
     public LargeMessageRetrievingClient getRetriever() {

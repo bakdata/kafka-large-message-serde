@@ -24,23 +24,19 @@
 
 package com.bakdata.kafka;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import java.util.Map;
+import org.apache.kafka.common.config.ConfigException;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+public class InvalidBlobStorageConfigProvider implements BlobStorageConfigProvider {
+    static final String SCHEME = "invalid";
 
-/**
- * {@link BlobStorageConfig} classes annotated with this annotation are registered with the scheme specified by
- * {@link #value()} when storing and retrieving large messages using {@link AbstractLargeMessageConfig}.
- */
-@Retention(RUNTIME)
-@Target({TYPE})
-public @interface BlobStorageType {
+    @Override
+    public String getScheme() {
+        return SCHEME;
+    }
 
-    /**
-     * Scheme used by this {@link BlobStorageConfig}
-     * @return scheme
-     */
-    String value();
+    @Override
+    public BlobStorageConfig createConfig(final Map<?, ?> originals) {
+        throw new ConfigException("Invalid config");
+    }
 }

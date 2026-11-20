@@ -29,7 +29,6 @@ import java.util.Map;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 
-@BlobStorageType(TestBlobStorageConfig.SCHEME)
 public class TestBlobStorageConfig extends AbstractConfig implements BlobStorageConfig {
     static final String SCHEME = "test";
     private final BlobStorageClient client = new TestBlobStorageClient();

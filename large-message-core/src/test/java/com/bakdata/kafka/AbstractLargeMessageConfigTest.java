@@ -58,11 +58,23 @@ class AbstractLargeMessageConfigTest {
     void shouldNotLoadInvalidConfig() {
         final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(Map.of(
                 AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0,
-                AbstractLargeMessageConfig.BASE_PATH_CONFIG, InvalidBlobStorageConfig.SCHEME + "://bucket"
+                AbstractLargeMessageConfig.BASE_PATH_CONFIG, InvalidBlobStorageConfigProvider.SCHEME + "://bucket"
         ));
         this.softly.assertThatThrownBy(config::getStorer)
                 .isInstanceOf(SerializationException.class)
-                .hasMessage("Unknown scheme for handling large messages: '%s'", InvalidBlobStorageConfig.SCHEME);
+                .hasMessage("Unknown scheme for handling large messages: '%s'",
+                        InvalidBlobStorageConfigProvider.SCHEME);
+    }
+
+    @Test
+    void shouldFailOnUnknownScheme() {
+        final AbstractLargeMessageConfig config = new AbstractLargeMessageConfig(Map.of(
+                AbstractLargeMessageConfig.MAX_BYTE_SIZE_CONFIG, 0,
+                AbstractLargeMessageConfig.BASE_PATH_CONFIG, "unknown://bucket"
+        ));
+        this.softly.assertThatThrownBy(config::getStorer)
+                .isInstanceOf(SerializationException.class)
+                .hasMessage("Unknown scheme for handling large messages: 'unknown'");
     }
 
 }

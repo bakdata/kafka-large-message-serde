@@ -24,13 +24,20 @@
 
 package com.bakdata.kafka;
 
-import lombok.NonNull;
-import lombok.Value;
+import java.util.Map;
 
-@Value
-class ConfigWithScheme {
-    @NonNull
-    String scheme;
-    @NonNull
-    BlobStorageConfig config;
+/**
+ * {@link BlobStorageConfigProvider} for {@link AzureBlobStorageConfig}
+ */
+public class AzureBlobStorageConfigProvider implements BlobStorageConfigProvider {
+
+    @Override
+    public String getScheme() {
+        return AzureBlobStorageClient.SCHEME;
+    }
+
+    @Override
+    public BlobStorageConfig createConfig(final Map<?, ?> originals) {
+        return new AzureBlobStorageConfig(originals);
+    }
 }

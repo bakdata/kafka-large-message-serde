@@ -24,21 +24,20 @@
 
 package com.bakdata.kafka;
 
-import static java.util.Collections.emptyMap;
+import java.util.Map;
 
-import org.apache.kafka.common.config.AbstractConfig;
-import org.apache.kafka.common.config.ConfigDef;
+/**
+ * {@link BlobStorageConfigProvider} for {@link TestBlobStorageConfig}
+ */
+public class TestBlobStorageConfigProvider implements BlobStorageConfigProvider {
 
-@BlobStorageType(InvalidBlobStorageConfig.SCHEME)
-public class InvalidBlobStorageConfig extends AbstractConfig implements BlobStorageConfig {
-    static final String SCHEME = "invalid";
-
-    public InvalidBlobStorageConfig() {
-        super(new ConfigDef(), emptyMap());
+    @Override
+    public String getScheme() {
+        return TestBlobStorageConfig.SCHEME;
     }
 
     @Override
-    public BlobStorageClient createBlobStorageClient() {
-        throw new UnsupportedOperationException();
+    public BlobStorageConfig createConfig(final Map<?, ?> originals) {
+        return new TestBlobStorageConfig(originals);
     }
 }

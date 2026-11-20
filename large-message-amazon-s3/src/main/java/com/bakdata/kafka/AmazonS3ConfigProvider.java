@@ -25,21 +25,19 @@
 package com.bakdata.kafka;
 
 import java.util.Map;
-import org.assertj.core.api.SoftAssertions;
-import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
-import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(SoftAssertionsExtension.class)
-class BlobStorageConfigFactoryTest {
-    @InjectSoftAssertions
-    private SoftAssertions softly;
+/**
+ * {@link BlobStorageConfigProvider} for {@link AmazonS3Config}
+ */
+public class AmazonS3ConfigProvider implements BlobStorageConfigProvider {
 
-    @Test
-    void shouldNotCreateConfig() {
-        final BlobStorageConfigFactory factory = new BlobStorageConfigFactory(InvalidBlobStorageConfig.class);
-        this.softly.assertThat(factory.create(Map.of())).isNotPresent();
+    @Override
+    public String getScheme() {
+        return AmazonS3Client.SCHEME;
     }
 
+    @Override
+    public BlobStorageConfig createConfig(final Map<?, ?> originals) {
+        return new AmazonS3Config(originals);
+    }
 }
